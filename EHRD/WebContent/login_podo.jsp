@@ -102,6 +102,7 @@ var dev = "Y";
 	    border-bottom: 1px solid #ccc;
     	padding-top: 304px;
     }    
+    
     .bg_cen {
 	    border-top-left-radius: 6px;
 	    border-top-right-radius: 6px;
