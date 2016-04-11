@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	 <script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+	 <script>
+                $(document).ready(function () {
+                    $("#grid").kendoGrid({
+                        dataSource: {
+                            type: "odata",
+                            transport: {
+                                read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+                            },
+                            pageSize: 20
+                        },
+                        height: 550,
+                        groupable: false,
+                        sortable: true,
+						resizable: true,
+                        reorderable: true,
+                        pageable: false,
+                        columns: [{
+                            field: "Country",
+							title: "부서"
+                        }, {
+                            field: "Country",
+							title: "성명"
+                        },{
+                            field: "Country",
+							title: "ID"
+                        },{
+                            field: "Country",
+							title: "직급"
+                        },{
+                            field: "Country",
+							title: "직무"
+                        },{
+                            field: "Country",
+							title: "계급"
+                        },{
+                            field: "Country",
+							title: "전체평점"
+                        }]
+                    });
+                });
+            </script>
+   
+		
+   </head>
+<body>
+<div class="wrap">
+	<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			<div class="top_cont">
+				<h3 class="tit01">종합진단결과</h3>
+				<div class="point">
+					※ 피진단자들의 진단 결과를 열람할 수 있습니다. <br/>※ 진단자 성명을 클릭 시 세부 진단 결과를 열람할 수 있습니다.
+				</div>
+				<div class="location">
+					<span><img src="../../images/ico/ico_home.png" /> &nbsp;&#62;</span>
+					<span>역량진단결과&nbsp; &#62;</span>
+					<span class="h">종합진단결과</span>
+				</div><!--//location-->
+			</div>
+			 <div class="sub_cont">
+				
+				<div class="result_info">
+					<ul>
+						<li>
+						<label for="p_year">진단선택  : </label>
+							<div class="demo-section k-header style01" id="p_year">
+								<select id="select" style="width: 120px" accesskey="w">
+									<option selected>2014</option>
+									<option>2013</option>
+									<option>2012</option>
+									<option >2011</option>
+								</select>
+							</div>
+							<script>
+								$(document).ready(function () {
+									$("#select").kendoDropDownList();
+								});
+							</script>
+							 <style scoped>
+								.demo-section.style01 {width:120px;}
+								.k-input {padding-left:5px;}
+							</style>       
+						</li>  
+						<li>
+							<label for="p_name" class="blind">진단명 : </label>
+							<div class="demo-section k-header style02" id="p_name">
+								<select id="select2"  style="width: 250px" accesskey="w">
+									<option selected>2014년 하반기 전사 역량진단</option>
+									<option>2013년 하반기 전사 역량진단</option>
+									<option>2012년 하반기 전사 역량진단</option>
+									<option>2011년 하반기 전사 역량진단</option>
+								</select>
+							</div>
+							<script>
+								$(document).ready(function () {
+									$("#select2").kendoDropDownList();
+								});
+							</script>
+							 <style scoped>
+								.demo-section.style02 {width:250px;}
+								.k-input {padding-left:5px;}
+							</style>    
+						</li>
+					</ul>
+					<div class="btn">
+						<a class="k-button" href="javascript:excelDownLoad()">엑셀 다운로드</a>
+					</div>
+				</div><!--//result_info-->
+				<div id="grid" class="mt15"></div>
+
+			 </div><!--//sub_cont-->
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

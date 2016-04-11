@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	  <script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+	  <script>
+                $(document).ready(function () {
+                    $("#grid").kendoGrid({
+                        dataSource: {
+                            type: "odata",
+                            transport: {
+                                read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+                            },
+                            pageSize: 20
+                        },
+                        height: 550,
+                        groupable: false,
+                        sortable: true,
+						resizable: true,
+                        reorderable: true,
+                        pageable: {
+                            refresh: true,
+                            pageSizes: true,
+                            buttonCount: 5
+                        },
+                        columns: [{
+                            field: "ContactName",
+                            title: "해당년도",
+                            width: 200
+                        }, {
+                            field: "ContactTitle",
+                            title: "진단명"
+                        }, {
+                            field: "CompanyName",
+                            title: "진단기간"
+                        }, 
+						{
+                            field: "CompanyName",
+                            title: "진단유형",
+							 width: 150
+                        }, {
+                            field: "Country",
+							title: "진단여부",
+                            width: 150
+                        }]
+                    });
+                });
+            </script>
+
+    </head>
+<body>
+<div class="wrap">
+		<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<div class="admin"><a href="#" class="topadmin">ADMIN</a></div>
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li class="mr15"><strong>홍길동</strong>님 안녕하세요</li>
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			<div class="top_cont">
+				<h3 class="tit01">역량진단</h3>
+				<div class="point">
+					※ 역량진단은 개발이 요구되는 역량을 알려주어 최적화된 자기개발을 하기 위함입니다. <br/>※ 진단 시 실제행동에 가까운 쪽으로 응답하셔야 효과적인 역량개발에 도움이 됩니다.
+				</div>
+				<div class="location">
+					<span><img src="../../images/ico/ico_home.png" /> &nbsp;&#62;</span>
+					<span>역량진단&nbsp; &#62;</span>
+					<span class="h">목록</span>
+				</div><!--//location-->
+			</div>
+			 <div class="sub_cont">
+				<h4 class="mt30">역량 진단 목록</h4>
+				<div id="grid" class="mt15"></div>
+				<h4 class="mt40">역량 진단 절차 안내</h4>
+				<ol class="method_Info">
+					<li class="fir">
+						<dl>
+							<dt>기본정보확인</dt>
+							<dd>
+								<span>역량진단 안내</span>
+								<span class="cen">개인정보 확인</span>
+								<span>진단대상자 목록</span>
+							</dd>
+						</dl>
+					</li>
+					<li class="last">
+						<dl>
+							<dt>현수준 진단</dt>
+							<dd>
+								<span>문항을 읽고 피진단자들의 레벨 체크</span>
+							</dd>
+						</dl>
+					</li>
+				</ol>
+			 </div><!--//sub_cont-->
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+			
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

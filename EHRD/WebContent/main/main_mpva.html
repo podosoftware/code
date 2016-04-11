@@ -1,0 +1,633 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../css/main_mpva.css" type="text/css" />
+<link href="../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+   <!-- <link href="../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />-->
+	<link href="../styles/kendo/kendo.default.min.css" rel="stylesheet" />
+	<link href="../styles/kendo/kendo.dataviz.min.css" rel="stylesheet" />
+	<link href="../styles/kendo/kendo.dataviz.default.min.css." rel="stylesheet" />
+	 <script src="../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../js/js/common.js"></script>
+    <script src="../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../js/kendo/kendo.web.min.js"></script>
+    <script src="../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+<body>
+<div class="wrap">
+		<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<div class="admin"><a href="#" class="topadmin">ADMIN</a></div>
+				<h1><a href="#"><img alt="국가보훈처" src="../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li class="mr15"><strong>홍길동</strong>님 안녕하세요</li>
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01 on"><a href="#" class="">역량진단</a>
+							<ul class="sub-nav">
+								<li class="on"><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">승인하기</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="contents">
+			<div class="main_cont">
+				<ul class ="main_top">
+					<li class="col01 fir">
+						<h3>역량진단 결과 </h3>
+		<!--	<div id="example">
+    <div class="demo-section k-content">
+        <div id="chart"></div>
+    </div>
+    <script>
+        function createChart() {
+            $("#chart").kendoChart({
+                title: {
+                    text: "Employment candidate review"
+                },
+                legend: {
+                    position: "bottom"
+                },
+                seriesDefaults: {
+                    type: "radarArea"
+                },
+                series: [{
+                    name: "Andrew Dodsworth",
+                    data: [10, 3, 3, 10, 2, 10]
+                }, {
+                    name: "Margaret Peacock",
+                    data: [9, 7, 7, 9, 6, 7]
+                }, {
+                    name: "Nancy Callahan",
+                    data: [4, 10, 10, 5, 5, 4]
+                }],
+                categoryAxis: {
+                    categories: [
+                        "Experience", "Communication", "Friendliness",
+                        "Subject knowledge", "Presentation", "Education"
+                    ],
+                    majorGridLines: {
+                        visible: false
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        format: "{0}%"
+                    },
+                    line: {
+                        visible: false
+                    }
+                }
+            });
+        }
+
+        $(document).ready(createChart);
+        $(document).bind("kendo:skinChange", createChart);
+    </script>
+</div>-->
+			<div style="margin:0 0 0 20px;">
+				<div class="no_data">
+					역량진단결과가 존재하지 않습니다.
+				</div><!--no data-->
+			</div>
+
+
+						<p class="btn_more01"><a href="#">역량진단</a></p>
+					</li>
+					<li class="col01">
+						<h3>연간상시학습 이수현황</h3>
+						<div class="states">
+							<p class="per_img"><img src="../images/main/70p.png" alt=""/></p>
+							<p class="per">70%</p>
+							<p class="des">80시간 중 56시간 이수 </p>
+						</div>
+						<p class="btn_more01"><a href="#">나의강의실</a></p>
+					</li>
+					<li class="col02">
+						<h3>부처지정학습 이수현황</h3>
+						<div class="graph">
+							<img src="../images/main/@temp01.gif" alt="" />
+						</div>
+					</li>
+					<li class="col03">
+						<h3>승인 요청/처리 현황</h3>
+						<div class="table_wp">
+							<table class="state">
+								<caption>승인요청/처리현황</caption>
+								<colgroup>
+									<col style="width: 106px"/>
+									<col style="width: 90px"/>
+									<col style="width: 87px"/>
+								</colgroup>
+								<thead>
+									<tr>
+										<th class="bg"><img src="../images/main/bg_table.gif" alt="" /></th>
+										<th>요청건수</th>
+										<th>처리할건수</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<th rowspan="2">교육</th>
+										<td>
+											<p class="go">
+												<a href="#"><span>72</span> 건 <br/>나의강의실</a>
+											</p>
+										</td>
+										<td rowspan="2">
+											<p class="go">
+												<a href="#"><span>120</span> 건 <br/>교육승인</a>
+											</p>
+										</td>
+									</tr>
+									<tr>	
+										<td>
+											<p class="go">
+												<a href="#"><span>72</span> 건<br/>상시학습</a>
+											</p>
+										</td>
+									</tr>
+									<tr>
+										<th>경력개발계획</th>
+										<td>
+											<p class="go">
+												<a href="#"><span>172</span> 건<br/> 계획수립</a>
+											</p>
+										</td>
+										<td>
+											<p class="go">
+												<a href="#"><span>220</span> 건 <br/>계획승인</a>
+											</p>
+										</td>
+									</tr>
+									<tr>
+										<th>멘토링</th>
+										<td>
+											<p class="go">
+												<a href="#"><span>272</span> 건<br/>멘토링</a></p>
+										</td>
+										<td>
+											<p class="go">
+												<a href="#"><span>140</span> 건 <br/>멘토링승인</a>
+											</p>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</li>
+				</ul><!--//main_top-->
+				<div class="main_btm">
+					<div class="quick_menu">
+						<ul>
+							<li class="no_img">
+								<a href="#">
+									<span class="img"><img src="../images/main/no_icon.png" /></span>       
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li>
+								<a href="#">
+									<span class="img"><img src="../images/main/icon3.png" /></span>
+									<span class="tit">역량진단역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li class="no_img">
+								<a href="#">
+									<span class="img"><img src="../images/main/no_icon.png" /></span>       
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li>
+								<a href="#">
+									<span class="img"><img src="../images/main/icon5.png" /></span>
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li>
+								<a href="#">
+									<span class="img"><img src="../images/main/icon6.png" /></span>
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li class="no_img">
+								<a href="#">
+									<span class="img"><img src="../images/main/no_icon.png" /></span>       
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li>
+								<a href="#">
+									<span class="img"><img src="../images/main/icon8.png" /></span>
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+							<li class="no_img">
+								<a href="#">
+									<span class="img"><img src="../images/main/no_icon.png" /></span>       
+									<span class="tit">역량진단역량진단</span>
+									<span class="btn_delete"><input type="image" src="../images/main/btn_delete.png" alt="삭제"/></span>
+								</a>
+							</li>
+						</ul>
+					</div><!--//quick_menu-->
+					<div class="bgArea"> 
+						<img src="../images/main/bg_main.jpg" height="298" alt="ministry of patriots and veterans affairs" />
+					</div><!--//bgArea-->
+				</div><!--//main_btm-->
+			</div><!--//main_cont-->
+		</div><!--//contents-->
+	</div><!--//container-->
+
+	
+								<div id="window">
+									<div class="menu_add">
+										<ul>
+											<li>
+												<div class="rline">
+													<em>[역량진단]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/1.png" /></span>
+															<span class="stit">1.역량진단</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>[역량진단 결과]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/2.png" /></span>
+															<span class="stit">2.진단실시현황</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/3.png" /></span>
+															<span class="stit">3.소속별응답현황</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/4.png" /></span>
+															<span class="stit">4.직무별응답현황</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/5.png" /></span>
+															<span class="stit">5.역량별직무/계급점수</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/6.png" /></span>
+															<span class="stit">6.역량별점수</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div class="rline">
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/7.png" /></span>
+															<span class="stit">7.종합진단결과</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div class=" last">
+													<em>[경력개발계획]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/8.png" /></span>
+															<span class="stit">8.계획수립</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div class="rline">
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/9.png" /></span>
+															<span class="stit">9.계획수립현황</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>[교육훈련]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/10.png" /></span>
+															<span class="stit">10.나의강의실</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/11.png" /></span>
+															<span class="stit">11.교육신청</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/12.png" /></span>
+															<span class="stit">12.상시학습</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div class="rline">
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/13.png" /></span>
+															<span class="stit">13.상시학습관리</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>[교육훈련결과]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/14.png" /></span>
+															<span class="stit">14.부서원교육현황</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div class="rline">
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/15.png" /></span>
+															<span class="stit">15.부서원상시학습달성현황</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li>
+												<div>
+													<em>[멘토링]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/16.png" /></span>
+															<span class="stit">16.멘토링</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div class="rline">
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/17.png" /></span>
+															<span class="stit">17.멘토링관리</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div >
+													<em>[게시판]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/18.png" /></span>
+															<span class="stit">18.공지사항</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/19.png" /></span>
+															<span class="stit">19.질문과답변</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div class="rline">
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/20.png" /></span>
+															<span class="stit">20.교육안내</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div>
+													<em>[승인하기]</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/21.png" /></span>
+															<span class="stit">21.경력개발계획승인</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/22.png" /></span>
+															<span class="stit">22.멘토링승인</span>
+														</span>
+													</a>
+												</div>
+											</li>
+											<li class="noline">
+												<div>
+													<em>&nbsp;</em>
+													<a href="#">
+														<span class="des">
+															<span class="img"><img src="../images/main/23.png" /></span>
+															<span class="stit">23.교육승인</span>
+														</span>
+													</a>
+												</div>
+											</li>
+										</ul>
+									</div><!--//menu_add-->
+								</div>
+								<a href="#">
+									<span class="img" id="undo" style="display:none;">버튼</span>
+
+									<script>
+										$(document).ready(function() {
+											var window = $("#window"),
+												undo = $("#undo")
+														.bind("click", function() {
+															window.data("kendoWindow").open();
+															undo.hide();
+														});
+
+											var onClose = function() {
+												undo.show();
+											}
+
+											if (!window.data("kendoWindow")) {
+												window.kendoWindow({
+													width: "1060px",
+													title: "메뉴룰 선택해 주세요.",
+													actions: [
+														"Pin",
+														"Minimize",
+														"Maximize",
+														"Close"
+													],
+													close: onClose
+												});
+											}
+										});
+									</script>
+									<style>
+										 .k-window-content{padding:0px 30px 30px 30px !important;}
+										 .k-window-title {font-size:13px !important;}
+									</style>
+								</a>
+				
+
+
+
+
+
+	<div id="footerWrap">
+		<div class="footer">
+
+				<div class="foot_txt">
+					<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+					<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+				</div>
+
+		</div>
+	</div>
+</div><!--//wrap-->
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+
+    <link href="../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../styles/kendo/kendo.default.min.css" rel="stylesheet" />
+    <script src="../js/jquery/1.8.2/jquery.min.js"></script>
+    <script src="../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../js/kendo/kendo.web.min.js"></script>
+    <script src="../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+    
+    <script type="text/javascript"> 
+        $(document).ready(function () {
+        	
+
+            // area splitter
+            var splitter = $("#splitter").kendoSplitter({
+                orientation : "horizontal",
+                panes : [ {
+                    collapsible : true,
+                    min : "300px"
+                }, {
+                    collapsible : true,
+                    collapsed : true,
+                    min : "700px"
+                } ]
+            });
+            
+            $("#grid").kendoGrid({
+                dataSource: {
+                    type: "odata",
+                    transport: {
+                        read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+                    },
+                    pageSize: 20
+                },
+                height: 550,
+                sortable: true,
+                resizable: true,
+                reorderable: true,
+                filterable: true,
+                selectable: "multiple",
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                columns: [{
+                    field: "ContactName",
+                    title: "Contact Name",
+                    width: 200
+                }, {
+                    field: "ContactTitle",
+                    title: "Contact Title"
+                }, {
+                    field: "CompanyName",
+                    title: "Company Name"
+                }, {
+                    field: "Country",
+                    width: 150
+                }]
+            });
+            
+            //스플리터 expand..
+            $("#open").click(function(){
+
+                $("#splitter").data("kendoSplitter").expand("#detail_pane");
+
+            });
+            
+            $("#close").click(function(){
+
+            	$("#splitter").data("kendoSplitter").toggle("#list_pane",true);
+                $("#splitter").data("kendoSplitter").toggle("#detail_pane",false);
+
+            });
+            
+        });
+    </script>
+</head>
+<body>
+   
+                        <div id="splitter" style="width:100%; height: 500px; border:none;">
+                            <div id="list_pane">
+                                <div id="grid" ></div>
+                            </div>
+                                <div id="detail_pane">
+                                    <div id="details">
+                                        <table class="tabular" id="tabular" width="100%" cellspacing="0" cellpadding="0">
+								            <tr>
+								                <td class="subject" style="width:100px;"><label class="right inline required"><span style="background:url(/images/ico/ico_rec01.gif) no-repeat 0 6px">&nbsp;</span> 과 정 명 <span style="color:red">*</span></label></td>
+								                <td class="subject">
+								                    <input class="k-textbox" id="SUBJECT_NAME" style="width:80%;" />&nbsp;<button id="subjectSearchBtn" class="k-button">과정검색</button>
+								                    
+								                </td>
+								            </tr>
+								            <tr>
+								                <td class="subject"><label class="right inline required"><span style="background:url(/images/ico/ico_rec01.gif) no-repeat 0 6px">&nbsp;</span> 학습유형 <span style="color:red">*</span></label></td>
+								                <td class="subject">
+								                        <select id="TRAINING_CODE"  style="width:200px;" ></select>
+								                </td>
+								            </tr>
+								        </table>
+                                    </div>
+                                </div>
+                        </div>
+                        <button id="open"  class="k-button">OPEN</button>
+                        <button id="close"  class="k-button">CLOSE</button>
+                        
+</body>
+</html>

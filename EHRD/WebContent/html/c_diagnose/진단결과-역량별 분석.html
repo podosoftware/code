@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	 <script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+<style>
+.k-grid-content { height: 417px; }
+</style>
+
+
+   </head>
+<body>
+<div class="wrap">
+	<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			<div class="top_cont">
+				<h3 class="tit01">진단결과</h3>
+				<div class="location">
+					<span><img src="../../images/ico/ico_home.png" /> &nbsp;&#62;</span>
+					<span>역량진단&nbsp; &#62;</span>
+					<span>진단결과&nbsp; &#62;</span>
+					<span class="h">역량별분석</span>
+				</div><!--//location-->
+			</div>
+			 <div class="sub_cont">
+
+					<div class="table_tin">
+						<ul>
+							<li class="line">진단 년도 : 2014년</li>
+							<li>진단명 : 2014 상반기 전사 역량진단</li>
+						</ul>
+						<ul>
+							<li class="line">진단 기간 : 2014-01-02 ~ 2014-05-06</li>
+							<li>진단유형 : 다면진단</li>
+						</ul>
+					</div>
+					<div class="tab_menu">
+						<ul>
+							<li class="line on">역량별 분석</li>
+							<li><a href="javascript:void();" onclick="goPage(2); return false;"class="tab01">역량성장도</a></li>
+							<li><a href="javascript:void();" onclick="goPage(3); return false;" class="tab01">추천 교육</a></li>
+							<li><a href="javascript:void();" onclick="goPage(4); return false;"class="tab01">코멘트</a></li>
+						</ul>
+					</div>
+					<div class="tab_box" id="cmptAnalyCmt">
+						<u><span id="rst_tg_name" ></span></u>님의 <u><span id="rst_evl_run_name"></span></u> 결과 최종점수는 <u><span id="rst_evl_score"></span>점</u> 입니다. 진단자가 보유한 각 역량의 수준을 비교하여 강약점으로 나타난 역량을 우선 확인하시기 바랍니다.  그리고 각 역량을 전사, 동일 계층, 동일 직무 직원들의 평균 수준과 각각 비교해 보시기 바랍니다. 진단자 본인의 다른 역량과 비교에서 강점으로 나타난 역량일지라도 다른 직원과의 상대적 비교에서는 약점으로 나타날 수 있습니다.<br><br>  
+						<span style="background:url(../../images/ico/ico_rec01.gif) no-repeat 0 6px">&nbsp;</span> 진단자 역량수준 비교결과 부족 역량: <u><span id="r_weak_cmpt"></span></u><br>
+						<span style="background:url(../../images/ico/ico_rec01.gif) no-repeat 0 6px">&nbsp;</span> 전사 직원대비 부족 역량: <u><span id="a_weak_cmpt"></span></u><br>
+						<span style="background:url(../../images/ico/ico_rec01.gif) no-repeat 0 6px">&nbsp;</span> 동일 계층 직원대비 부족역량: <u><span id="l_weak_cmpt"></span></u><br>
+						<span style="background:url(../../images/ico/ico_rec01.gif) no-repeat 0 6px">&nbsp;</span> 동일 직무 직원대비 부족역량: <u><span id="j_weak_cmpt"></span></u>
+					</div>
+					
+					<div id="graph_list">
+						<ul id="graph_tab">
+							<li><a href="#graph1" class="tab"><img src="../../images/btn/btn_re.gif" alt="레이더차트" /></a>
+								<div id="graph1" class="line">
+									<!-- 레이더차트 -->
+									<table style="width:1060px;" >
+										<tr>
+											<td>
+											<div id="raderchart" style="width:100%;"></div>
+											</td>
+										</tr>
+									</table>
+									
+								</div>
+							</li>
+							<li><a href="#graph2" class="tab"><img src="../../images/btn/btn_ba.gif" alt="바차트" /></a>
+								<div id="graph2" class="line">
+									<!-- 바차트 -->
+									<div id="barchart" style="width:100%;"></div>
+								</div>
+							</li>
+							<li><a href="#graph3" class="tab"><img src="../../images/btn/btn_te.gif" alt="테이블차트" /></a>
+								<div id="graph3" class="line" >
+									<!-- 테이블차트 -->
+									 <div id="grid" style="width:100%;"></div>
+								</div>
+							</li>
+						</ul>
+						<script type="text/javascript">
+							initTabMenu("graph_tab");
+							document.getElementById("graph_tab").style.display="block";
+							
+							function initTabMenu(tabContainerID) {
+								var tabContainer = document.getElementById(tabContainerID);
+								var tabAnchor = tabContainer.getElementsByTagName("a");
+								var i = 0;
+
+								for(i=0; i<tabAnchor.length; i++) {
+									if (tabAnchor.item(i).className == "tab") {
+										var thismenu = tabAnchor.item(i);
+									} else {
+										continue;
+									}
+
+									thismenu.container = tabContainer;
+									thismenu.targetEl = document.getElementById(tabAnchor.item(i).href.split("#")[1]);
+									thismenu.targetEl.style.display = "none";
+									thismenu.imgEl = thismenu.getElementsByTagName("img").item(0);
+									if (thismenu.imgEl) {
+										thismenu.onfocus = function () {
+											this.onclick();
+										}
+									}
+									thismenu.onclick = tabMenuClick;
+
+									if (!thismenu.container.first) {
+										thismenu.container.first = thismenu;
+									}
+								}
+
+								tabContainer.first.onclick();
+							}
+
+							function tabMenuClick() {
+								var currentmenu = this.container.current;
+								if (currentmenu != this) {
+									if (currentmenu) {
+										currentmenu.targetEl.style.display = "none";
+										if (currentmenu.imgEl) {
+											currentmenu.imgEl.src = currentmenu.imgEl.src.replace("_on.gif", ".gif");
+										}
+									}
+
+									this.targetEl.style.display = "block";
+									if (this.imgEl) {
+										this.imgEl.src = this.imgEl.src.replace(".gif", "_on.gif");
+									}
+									this.container.current = this;
+								}
+								return false;
+							}
+
+						</script>
+					</div>
+					
+					<div align="right" style="width:100%; height: 40px;">
+						<button id="printBtn" class="k-button"  style="position:relative; top:25%;">출력</button>
+						<button id="listBtn" class="k-button"  style="position:relative; top:25%;">목록</button>
+					</div>
+				</div>
+
+			 </div><!--//sub_cont-->
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+			
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

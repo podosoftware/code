@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	  <script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+	
+	<script>
+			$(document).ready(function () {
+				$("#grid").kendoGrid({
+					dataSource: {
+						type: "odata",
+						transport: {
+							read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+						},
+						pageSize: 20
+					},
+					height: 250,
+					groupable: false,
+					sortable: true,
+					resizable: true,
+					reorderable: true,
+					pageable: false,
+					columns: [{
+						field: "ContactName",
+						title: "해당년도",
+						width: 200
+					}, {
+						field: "ContactTitle",
+						title: "진단명"
+					}]
+				});
+
+				$("#grid2").kendoGrid({
+					dataSource: {
+						type: "odata",
+						transport: {
+							read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+						},
+						pageSize: 20
+					},
+					height: 250,
+					groupable: false,
+					sortable: true,
+					resizable: true,
+					reorderable: true,
+					pageable: false,
+					columns: [{
+						field: "ContactName",
+						title: "해당년도",
+						width: 200
+					}, {
+						field: "ContactTitle",
+						title: "진단명"
+					}]
+				});
+
+					$("#grid3").kendoGrid({
+					dataSource: {
+						type: "odata",
+						transport: {
+							read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+						},
+						pageSize: 20
+					},
+					height: 250,
+					groupable: false,
+					sortable: true,
+					resizable: true,
+					reorderable: true,
+					pageable: false,
+					columns: [{
+						field: "ContactName",
+						title: "기수",
+						width: 80
+					}, {
+						field: "ContactTitle",
+						title: "과정명"
+					}, {
+						field: "ContactTitle",
+						title: "학습유형"
+					}, {
+						field: "ContactTitle",
+						title: "교육기간"
+					}, {
+						field: "ContactTitle",
+						title: "부처지정"
+					}, {
+						field: "ContactTitle",
+						title: "지정학습구분"
+					}, {
+						field: "ContactTitle",
+						title: "인정시간"
+					}]
+				});
+
+			});
+		</script>
+            
+            <style scoped>
+                .demo-section {
+                    width: 170px;
+					background:none;
+                }
+            </style>
+
+	
+    </head>
+<body>
+<div class="wrap">
+		<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			 <div class="sub_cont">
+				
+					<!--팝업 코딩 시작-->
+							<div id="pop01">
+								<div class="app_state">
+									<div class="tit">승인현황</div>
+									<ul>
+										<li class="fir">
+											<strong>1차 승인자</strong>
+											<p>임꺽정 (5급사무관)</p>
+											<p class="time">2014-09-14 15:30</p>
+										</li>
+										<li class="cen">
+											<strong>2차 승인자</strong>
+											<p>임꺽정 (5급사무관)</p>
+											<p class="time">2014-09-14 15:30</p>
+										</li>
+										<li>
+											<strong>3차 승인자</strong>
+											<p>임꺽정 (5급사무관)</p>
+											<p class="red">승인대기</p>
+										</li>
+									</ul>
+								</div>
+								<div class="d_step s01">
+									<div class="step_tit">경력목표수립</div>
+									<strong>STEP01. 경력목표수립</strong>
+									<div class="des">
+										경력개발계획의 1 단계인 경력목표수립입니다.<br/>
+										올해/장기목표 수립,  희망 직무/부서 설정 및 올해의 자격증, 어학 취득 목표를 설정합니다.
+									</div>
+								</div>
+								<h4 class="mt30 pop_tit">올해목표</h4>
+								<div class="goal_inp">
+									<textarea cols="18" rows="2" class="textarea02" title="올해목표입력란"></textarea>
+								</div>
+								<h4 class="mt30 pop_tit">장기목표</h4>
+								<div class="goal_inp">
+									<textarea cols="18" rows="2" class="textarea02" title="장기목표입력란"></textarea>
+								</div>
+								<ul class="select_Area01 mt30">
+									<li class="tit">희망직무1</li>
+									<li>
+										<div class="demo-section k-header style02">
+											<select id="select1" placeholder="2014년 하반기 전사 역량진단" style="width: 175px" accesskey="w">
+												<option>직무선택 1</option>
+												<option>직무선택 2</option>
+												<option>직무선택 3</option>
+												<option selected>직무선택 4</option>
+											</select>
+										</div>
+										<script>
+											$(document).ready(function () {
+												$("#select1").kendoDropDownList();
+											});
+										</script>
+										 <style scoped>
+											.demo-section.style02 {width:175px;margin-left:5px;font-size:13px;}
+										</style>
+									</li>
+									<li><button class="btn_style01 k-button">직무정보보기</button></li>
+								</ul>
+								<ul class="select_Area01 mt25">
+									<li class="tit">희망직무2</li>
+									<li>
+										<div class="demo-section k-header style02">
+											<select id="select2" placeholder="2014년 하반기 전사 역량진단" style="width: 175px" accesskey="w">
+												<option>직무선택 1</option>
+												<option>직무선택 2</option>
+												<option>직무선택 3</option>
+												<option selected>직무선택 4</option>
+											</select>
+										</div>
+										<script>
+											$(document).ready(function () {
+												$("#select2").kendoDropDownList();
+											});
+										</script>
+										 <style scoped>
+											.demo-section.style02 {width:175px;margin-left:5px;}
+											.k-input {padding-left:5px;}
+										</style>  
+									</li>
+									<li><button  class="k-button btn_style01">직무정보보기</button></li>
+								</ul>
+								<ul class="select_Area01 mt25">
+									<li class="tit">희망부서</li>
+									<li>
+										 <input type="text" class="k-textbox" value="부서선택" style="width:200px;padding-left:5px;border:1px solid #cccccc;margin-left:5px;" title="부서선택검색하기"/>
+									</li>
+									<li><button  class="k-button" style="margin-left:5px;">검색</button></li>
+								</ul>
+								<!--<h4 class="mt30 mb15 pop_tit">자격증 취득 계획</h4>
+								<div class="plan02_wp">
+									<ul>
+										<li class="fir">
+											<div id="grid"></div>
+										</li>
+										<li class="btn"><img src="../../images/ico/ico_arrow03.png" alt="화살표"></li>
+										<li class="last">
+											<div id="grid2"></div>
+										</li>
+									</ul>
+								</div><!--//plan02_wp-->
+								<div class="plan02_wp">
+									<ul>
+										<li class="fir" style="margin-right:85px;">
+											<dl>
+												<dt class="pop_tit2">자격증 취득 계획</dt>
+												<dd><div id="grid"></div></dd>
+											</dl>
+										</li>
+										<li class="last">
+											<dl>
+												<dt class="pop_tit2">어학 취득 계획</dt>
+												<dd><div id="grid2"></div></dd>
+											</dl>
+										</li>
+									</ul>
+								</div><!--//plan02_wp-->
+								<div class="pop_tit2">교육계획목록</div>
+								<div id="grid3"></div>
+								<div class="btn_right">
+									<button class="k-button" style="width:90px;">창닫기</button>
+									<button class="k-button" style="width:90px;">미승인</button>
+									<button class="k-button" style="width:90px;">승인</button>
+								</div>
+							</div><!--//pop01-->
+							<span id="undo" style="display:none" class="k-button btn_style01">승인하기</span>
+							<script>
+								$(document).ready(function() {
+									var window = $("#pop01"),
+										undo = $("#undo")
+												.bind("click", function() {
+													window.data("kendoWindow").open();
+													undo.hide();
+												});
+
+									var onClose = function() {
+										undo.show();
+									}
+
+									if (!window.data("kendoWindow")) {
+										window.kendoWindow({
+											width: "1160px",
+											title: "경력 개발 계획 승인",
+											actions: [
+												"Pin",
+												"Minimize",
+												"Maximize",
+												"Close"
+											],
+											close: onClose
+										});
+									}
+								});
+							</script>
+							<style scoped>
+								#undo {
+									text-align: center;
+									position: absolute;
+									white-space: nowrap;
+									cursor: pointer;
+								}
+								.k-window-title {font-size:13px;font-weight:bold;}
+								.k-content {padding:40px 55px 40px 55px !important}/*팝업 내부 콘텐츠 간격*/
+							</style>
+						<!--//팝업코딩끝-->
+				
+			 </div><!--//sub_cont-->                
+
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+			
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

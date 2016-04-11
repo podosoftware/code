@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	  <script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+	
+	<script>
+			$(document).ready(function () {
+					var window = $("#pop03"),
+						undo = $("#undo")
+								.bind("click", function() {
+									window.data("kendoWindow").open();
+									undo.hide();
+								});
+
+					var onClose = function() {
+						undo.show();
+					}
+
+					if (!window.data("kendoWindow")) {
+						window.kendoWindow({
+							width: "380px",
+							title: "승인 처리",
+							actions: [
+								"Pin",
+								"Minimize",
+								"Maximize",
+								"Close"
+							],
+							close: onClose
+						});
+					}
+				});
+			</script>
+            
+          <style scoped>
+			#undo {
+				text-align: center;
+				position: absolute;
+				white-space: nowrap;
+				cursor: pointer;
+			}
+			.k-window-title {font-size:13px;font-weight:bold;}
+			.k-content {padding:28px !important}/*팝업 내부 콘텐츠 간격*/
+		</style>
+
+	
+    </head>
+<body>
+<div class="wrap">
+		<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			 <div class="sub_cont">
+				
+					<!--팝업 코딩 시작-->
+							<div id="pop03">
+								<ul class="pop_step">
+									<li>
+										<ul class="inner green">
+											<li class="fir">
+												<p>1차승인자</p>
+												<p class="tit">홍길동(5급사무관5급사무관5급사무관)</p>
+												<p>2014-09-14 15:30</p>
+											</li>
+											<li class="sec">
+												<div class="comm">
+													커멘트<br/>
+													<textarea class="k-textbox comment" cols="5" rows="2"  disabled="disabled">잘합시다</textarea>
+												</div>
+											</li>
+										</ul>
+									</li>
+									<li class="arrow"><img alt="다음단계" src="../../images/ico/ico_arrow04.png"></a></li>
+									<li>
+										<ul class="inner pink">
+											<li class="fir">
+												<p>1차승인자</p>
+												<p class="tit">홍길동(5급사무관5급사무관5급사무관)</p>
+												<p>2014-09-14 15:30</p>
+											</li>
+											<li class="sec">
+												<div class="comm">
+													커멘트<br/>
+													<textarea class="k-textbox comment" cols="5" rows="2"  disabled="disabled" >잘합시다</textarea>
+												</div>
+											</li>
+										</ul>
+									</li>
+									<li class="arrow"><img alt="다음단계" src="../../images/ico/ico_arrow04.png"></a></li>
+									<li>
+										<ul class="inner purple">
+											<li class="fir">
+												<p>1차승인자</p>
+												<p class="tit">홍길동(5급사무관5급사무관5급사무관)</p>
+												<p>2014-09-14 15:30</p>
+											</li>
+											<li class="sec">
+												<div class="comm">
+													커멘트<br/>
+													<textarea class="k-textbox comment" cols="5" rows="2">커멘트입력</textarea>
+												</div>
+											</li>
+										</ul>
+									</li>
+								</ul>
+								<div class="btn_center mt40">
+									<button class="k-button k-primary" style="width:110px;">승인</button>
+									<button class="k-button" style="width:110px;">미승인</button>
+								</div>
+							</div><!--//pop03-->
+							<span id="undo" style="display:none" class="k-button btn_style01">승인하기</span>
+						<!--//팝업코딩끝-->
+				
+			 </div><!--//sub_cont-->                
+
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+			
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

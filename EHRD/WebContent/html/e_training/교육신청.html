@@ -1,0 +1,1085 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	<script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	<script src="../../js/js/front-ui_mpva.js"></script>
+	<script src="../../js/js/jquery.easing.1.3.js"></script>
+	<script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+	<script>
+			$(document).ready(function () {      
+			$("#grid6").kendoGrid({
+				dataSource: {
+					type: "odata",
+					transport: {
+						read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+					},
+					pageSize: 2
+				},
+				height: 125,
+				groupable: false,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				pageable: false,
+				columns: [{
+					field: "ContactName",
+					title: "역량명"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#1"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#2"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#3"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#4"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#5"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#6"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#7"
+				}, {
+					field: "ContactTitle",
+					title: "역량명#8"
+				}]
+			});
+		
+			 // area splitter
+		var splitter = $("#splitter2").kendoSplitter({
+			orientation : "horizontal",
+			panes : [ {
+				collapsible : true,
+				min : "300px"
+			}, {
+				collapsible : true,
+				collapsed : true,
+				min : "700px"
+			} ]
+		});
+
+			$("#grid7").kendoGrid({
+				dataSource: {
+					type: "odata",
+					transport: {
+						read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+					},
+					pageSize:15
+				},
+				height: 540,
+				groupable: false,
+				sortable: true,
+				resizable: true,
+				reorderable: true,
+				pageable: false,
+				columns: [{
+					field: "Country",
+					title: "역량명"
+				}, {
+					field: "Country",
+					title: "학습유형"
+				}, {
+					field: "Country",
+					title: "과정명",
+					width:250
+				}, {
+					field: "Country",
+					title: "기수",
+					width:50
+				}, {
+					field: "Country",
+					title: "교육기간",
+					width:150
+				}, {
+					field: "Country",
+					title: "인정시간"
+				}, {
+					field: "Country",
+					title: "부처지정유무"
+				}, {
+					field: "Country",
+					title: "지정학습구분"
+				}, {
+					field: "Country",
+					title: "보훈직무필수과정"
+				}, {
+					field: "Country",
+					title: "교육기관"
+				}]
+			});
+			 //스플리터 expand..
+		$("#open").click(function(){
+
+			$("#splitter2").data("kendoSplitter").expand("#detail_pane2");
+
+		});
+		
+		$("#close").click(function(){
+
+			$("#splitter2").data("kendoSplitter").toggle("#list_pane2",true);
+			$("#splitter2").data("kendoSplitter").toggle("#detail_pane2",false);
+
+		});
+
+		// area splitter
+		var splitter = $("#splitter").kendoSplitter({
+			orientation : "horizontal",
+			panes : [ {
+				collapsible : true,
+				min : "300px"
+			}, {
+				collapsible : true,
+				collapsed : true,
+				min : "700px"
+			} ]
+		});
+		
+		$("#grid8").kendoGrid({
+			dataSource: {
+				type: "odata",
+				transport: {
+					read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+				},
+				pageSize:15
+			},
+			height: 540,
+			sortable: true,
+			resizable: true,
+			reorderable: true,
+			filterable: false,
+			selectable: "multiple",
+			pageable: false,
+			columns: [{
+					field: "Country",
+					title: "이수여부"
+				},{
+					field: "Country",
+					title: "학습유형"
+				},{
+					field: "Country",
+					title: "과정명",
+					width:250
+				}, {
+					field: "Country",
+					title: "기수",
+					width:50
+				}, {
+					field: "Country",
+					title: "교육기간",
+					width:150
+				}, {
+					field: "Country",
+					title: "인정시간"
+				}, {
+					field: "Country",
+					title: "부처지정유무"
+				}, {
+					field: "Country",
+					title: "지정학습구분"
+				}, {
+					field: "Country",
+					title: "보훈직무필수과정"
+				}, {
+					field: "Country",
+					title: "교육기관"
+				}]
+		});
+		
+		//스플리터 expand..
+		$("#open2").click(function(){
+
+			$("#splitter").data("kendoSplitter").expand("#detail_pane");
+
+		});
+		
+		$("#close2").click(function(){
+
+			$("#splitter").data("kendoSplitter").toggle("#list_pane",true);
+			$("#splitter").data("kendoSplitter").toggle("#detail_pane",false);
+
+		});
+
+			// area splitter
+		var splitter = $("#splitter3").kendoSplitter({
+			orientation : "horizontal",
+			panes : [ {
+				collapsible : true,
+				min : "300px"
+			}, {
+				collapsible : true,
+				collapsed : true,
+				min : "700px"
+			} ]
+		});
+		
+		$("#grid9").kendoGrid({
+			dataSource: {
+				type: "odata",
+				transport: {
+					read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+				},
+				pageSize:15
+			},
+			height: 540,
+			sortable: true,
+			resizable: true,
+			reorderable: true,
+			filterable: false,
+			selectable: "multiple",
+			pageable: false,
+			columns: [{
+					field: "Country",
+					title: "학습유형"
+				},{
+					field: "Country",
+					title: "과정명",
+					width:250
+				}, {
+					field: "Country",
+					title: "기수",
+					width:50
+				}, {
+					field: "Country",
+					title: "교육기간",
+					width:150
+				}, {
+					field: "Country",
+					title: "인정시간"
+				}, {
+					field: "Country",
+					title: "부처지정유무"
+				}, {
+					field: "Country",
+					title: "지정학습구분"
+				}, {
+					field: "Country",
+					title: "보훈직무필수과정"
+				}, {
+					field: "Country",
+					title: "교육기관"
+				}]
+		});
+		
+		//스플리터 expand..
+		$("#open3").click(function(){
+
+			$("#splitter3").data("kendoSplitter").expand("#detail_pane3");
+
+		});
+		
+		$("#close3").click(function(){
+
+			$("#splitter3").data("kendoSplitter").toggle("#list_pane3",true);
+			$("#splitter3").data("kendoSplitter").toggle("#detail_pane3",false);
+
+		});
+
+	   
+		$("#select2").kendoDropDownList();	 
+		$("#select3").kendoDropDownList();
+		$("#select4").kendoDropDownList();
+
+		$("#tabstrip2").kendoTabStrip({
+				animation:  {
+					open: {
+						effects: "fadeIn"
+					}
+				}
+			});
+		 });
+		</script>
+            
+          
+	 <style scoped>
+		.demo-section.style01 {width:120px;}
+		.k-input {padding-left:5px;}
+		.demo-section.style03 {width:125px;font-size:13px;}
+		.demo-section.style04 {width:253px;margin-left:5px;font-size:13px;}
+		#tabstrip2 {width: 1218px;margin-top:50px;}/*1115*/
+		.k-link {font-weight:bold;}
+	</style>  
+	
+    </head>
+<body>
+<div class="wrap">
+		<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			<div class="top_cont">
+				<h3 class="tit01">교육신청</h3>
+				<div class="point">※ 듣고자 하는 교육을 신청할 수 있습니다.<br/>※ 신청 후엔 “나의 강의실＂에서 신청한 교육의 정보를 열람할 수 있습니다.</div>
+				<div class="location">
+					<span><img src="../../images/ico/ico_home.png" /> &nbsp;&#62;</span>
+					<span>교육훈련&nbsp; &#62;</span>
+					<span class="h">교육신청</span>
+				</div><!--//location-->
+			</div>
+			 <div class="sub_cont">
+				
+				<div class="result_info">
+					<ul>
+						<li>
+						<label for="p_year">년도선택  : </label>
+							<div class="demo-section k-header style01" id="p_year">
+								<select id="select2" style="width: 120px" accesskey="w">
+									<option selected>2014</option>
+									<option>2013</option>
+									<option>2012</option>
+									<option>2011</option>
+								</select>
+							</div>
+						</li>  
+					</ul>
+				</div><!--//result_info-->
+				
+				 <div class="state_wrap">
+					<dl class="accordion">
+						<dt class="ico_plus">
+							<span class="satisfy_tit">필수 이수 현황</span>
+							<span class="satisfy_txt mr140">
+								<span class="yes">충족</span> 
+							</span>
+							<span class="satisfy_tit">기관성과평가 이수 현황</span>
+							<span class="satisfy_txt">
+								<span class="no"> 미충족</span>
+							</span>
+						</dt>
+						<dd>
+							<h5>필수 이수 현황</h5>
+							<div class="table_wp02">
+								<table class="table_type02">
+									<caption>피진단자 안내</caption>
+									<colgroup>
+										<col style="width:180px"/>
+										<col style="width:*" />
+										<col style="width:230px" />
+										<col style="width:230px" />
+										<col style="width:220px" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th rowspan="2" class="fir">d</th>
+											<th rowspan="2" class="fir">총시간</th>
+											<th colspan="3" class="fir">부서지정학습 </th>
+										</tr>
+										<tr>
+											<th><span class="blue">국정철학및공직관</span></th>
+											<th><span class="blue">직무역량향상</span></th>
+											<th><span class="blue">특수직무역량</span></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>필수시간(H)</td>
+											<td>80</td>
+											<td>40</td>
+											<td>25</td>
+											<td>15</td>
+										</tr>
+										<tr>
+											<td>이수시간(H)</td>
+											<td>&nbsp;</td>
+											<td>&nbsp;</td>
+											<td>&nbsp;</td>
+											<td>&nbsp;</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<p class="point">※ 부처지정학습은 총시간의 40%이며, 40% 중 25%는 국정철학및공직관이며 15%는 직무역량과정이여야 합니다. </p>
+							<h5>기관성과평가 이수 현황</h5>
+							<div class="table_wp02">
+								<table class="table_type02">
+									<caption>피진단자 안내</caption>
+									<colgroup>
+										<col style="width:180px"/>
+										<col style="width:*" />
+										<col style="width:208px" />
+										<col style="width:208px" />
+										<col style="width:208px" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th></th>
+											<th>기관성과평가#1</th>
+											<th>기관성과평가#2</th>
+											<th>기관성과평가#3</th>
+											<th>기관성과평가#4</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>필수시간(H)</td>
+											<td>80</td>
+											<td>40</td>
+											<td>25</td>
+											<td>15</td>
+										</tr>
+										<tr>
+											<td>이수시간(H)</td>
+											<td>&nbsp;</td>
+											<td>&nbsp;</td>
+											<td>&nbsp;</td>
+											<td>&nbsp;</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</dd>
+					</dl>
+				</div><!--//state_wrap-->
+
+				<div id="tabstrip2">
+					<ul>
+						<li class="k-state-active">역량진단</li>
+						<li>경력개발계획</li>
+						<li>일반신청</li>
+					</ul>
+					<div class="tab_cont">
+						<ul class="select_Area03 mt10">
+							<li class="tit">진단선택</li>
+							<li>
+								<div class="demo-section k-header style03">
+									<select id="select3" placeholder="2014년" style="width: 125px" accesskey="w">
+										<option>2013년</option>
+										<option>2012년</option>
+										<option>2011년</option>
+										<option selected>2010년</option>
+									</select>
+								</div>
+							</li>
+							<li>
+								<div class="demo-section k-header style04">
+									<select id="select4" placeholder="2014년 하반기 전사 역량진단" style="width: 253px" accesskey="w">
+										<option>2013년 하반기 전사 역량진단 </option>
+										<option>2012년 하반기 전사 역량진단</option>
+										<option>2011년 하반기 전사 역량진단</option>
+										<option selected>2010년 하반기 전사 역량진단</option>
+									</select>
+								</div>
+							</li>
+						</ul>
+						 <p class="point2 mt10">※ 역량별 취득 점수 클릭 시 해당 역량을 개발하기 위한 과정이 검색됩니다.</p>
+						<div id="grid6" class="mt10"></div>
+						<ul class="select_Area03 mt15">
+							<li class="tit">교육시작일</li>
+							<li>
+								<input type="text" class="k-textbox inp_style03" value="20140901" style="width:110px;" title="교육시작일 선택1 "/>	~
+								<input type="text" class="k-textbox inp_style03" value="20140901" style="width:110px;" title="교육시작일 선택2"/>
+							</li>
+						</ul>
+						 <p class="point2 mt15">※ 과정명을 클릭하면 과정의 상세 정보를 열람할 수 있으며, 수강 신청을 할 수 있습니다.</p>
+						 <div id="splitter2" style="width:100%; height: 545px; border:none;" class="mt10 mb10 ie7_sp">
+							<div id="list_pane2">
+								<div id="grid7"></div>
+							</div>
+							<div id="detail_pane2">
+								<div class="detail_Info">
+									<div class="tit">과정상세정보</div>
+									<div class="dl_scroll">
+										<div class="dl_wrap">
+											<dl>
+												<dt class="fir">학습유형</dt>
+												<dd class="fir">집합교육</dd>
+											</dl>
+											<dl>
+												<dt> 과정명 </dt>
+												<dd>국가보훈처 필수교육 과정</dd>
+											</dl>
+											<dl>
+												<dt> 기수</dt>
+												<dd>2</dd>
+											</dl>
+											<dl>
+												<dt>교육기간  </dt>
+												<dd>2014-09-01 ~ 2014-09-30</dd>
+											</dl>
+											<dl>
+												<dt>신청기간   </dt>
+												<dd>2014-08-01 ~ 2014-08-30</dd>
+											</dl>
+											<dl>
+												<dt>취소마감일 </dt>
+												<dd>2014-08-31</dd>
+											</dl>
+											<dl>
+												<dt>모집정원  </dt>
+												<dd>20 명</dd>
+											</dl>
+											<dl>
+												<dt>교육일수  </dt>
+												<dd>5 일</dd>
+											</dl>
+											<dl>
+												<dt>교육시간  </dt>
+												<dd>20 시간</dd>
+											</dl>
+											<dl>
+												<dt>인정시간  </dt>
+												<dd>6 시간</dd>
+											</dl>
+											<dl>
+												<dt>목적 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03"  readonly="readonly"  title="교육의 목적"/>이 교육의 목적은 국가보훈처 필수 교육을 위한 교육입니다.이 교육의 목적은 국가보훈처 필수 교육을 위한 교육입니다. </textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="mt5">대상 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03 mt5"  readonly="readonly"  title="교육의 대상"/>국가보훈처 임직원 일동 </textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="mt5">내용 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03 mt5"  readonly="readonly"  title="교육의 내용"/>이 교육의 내용은 ~ 입니다.</textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt>상시학습종류</dt>
+												<dd>
+													상시학습대분류#1 &gt;  상시학습중분류#2 &gt; 상시학습분류#3
+												</dd>
+											</dl>
+											<dl>
+												<dt>부처지정</dt>
+												<dd>
+													예 or 아니오
+												</dd>
+											</dl>
+											<dl>
+												<dt>지정학습구분</dt>
+												<dd>
+													국정철학및공직관  or 해당사항없음
+												</dd>
+											</dl>
+											<dl>
+												<dt>기관성과평가</dt>
+												<dd>
+													  기관성과평가#3  or 해당사항없음
+												</dd>
+											</dl>
+											<dl>
+												<dt>맵핑역량</dt>
+												<dd>
+													 <p class="bold"> 역량군 #1 &gt; 역량명 #1</p>
+													 <p class="bold"> 역량군 #2 &gt; 역량명 #3</p>
+												</dd>
+											</dl>
+											<dl>
+												<dt>수료기준</dt>
+												<dd>
+													<div class="btn_top">
+														<button class="k-button k-primary" style="width:88px;">수강신청</button>
+														<button class="k-button" style="width:88px;">취소</button>
+													</div>
+													<div class="t_wrap">
+														<table class="table_type04 mb70">
+															<caption>수료기준</caption>
+															<colgroup>
+																<col style="width:190px" />
+																<col style="width:190px" />
+															</colgroup>
+															<thead>
+																<tr>
+																	<th scope="col">기준</th>
+																	<th scope="col">가중치</th>
+																</tr>
+															</thead>
+															<tbody>
+																<tr>
+																	<th scope="row">근태</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">실기평가</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">발표</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">과제</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">기타</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">분임토의</th>
+																	<td></td>
+																</tr>
+															</tbody>
+														</table>
+													</div>
+													<div class="btn_btm2">
+														<button class="k-button k-primary" style="width:88px;">수강신청</button>
+														<button class="k-button" style="width:88px;">취소</button>
+													</div>
+												</dd>
+											</dl>
+										</div>
+									</div><!--//dl_scroll-->
+								</div><!--//detail_info-->
+							</div><!--//detail_pane-->
+						</div>
+						<div class="mb10">
+							<button id="open"  class="k-button">OPEN</button>
+							<button id="close"  class="k-button">CLOSE</button>
+						</div>
+					</div><!--//tab_cont1-->
+					<div class="tab_cont">
+						<ul class="select_Area03 mt10 mb10">
+							<li class="tit">계획명</li>
+							<li class="txt"> 2014년 전사 경력개발계획</li>
+						</ul>
+						<ul class="select_Area03">
+							<li class="tit">교육시작일</li>
+							<li>
+								<input type="text" class="k-textbox inp_style03" value="20140901" style="width:110px;" title="교육시작일 선택1"/>	~
+								<input type="text" class="k-textbox inp_style03" value="20140901" style="width:110px;" title="교육시작일 선택2"/>
+							</li>
+						</ul>
+						<p class="point2 mt10">※ 과정명을 클릭하면 과정의 상세 정보를 열람할 수 있으며, 수강 신청을 할 수 있습니다.</p>
+						 <div id="splitter" style="width:1180px; height: 545px; border:none;" class="mt10 mb10">
+							<div id="list_pane">
+								<div id="grid8" ></div>
+							</div>
+							<div id="detail_pane">
+								<div class="detail_Info">
+									<div class="tit">과정상세정보</div>
+									<div class="dl_scroll">
+										<div class="dl_wrap">
+											<dl>
+												<dt class="fir">학습유형</dt>
+												<dd class="fir">집합교육</dd>
+											</dl>
+											<dl>
+												<dt> 과정명 </dt>
+												<dd>국가보훈처 필수교육 과정</dd>
+											</dl>
+											<dl>
+												<dt> 기수</dt>
+												<dd>2</dd>
+											</dl>
+											<dl>
+												<dt>교육기간  </dt>
+												<dd>2014-09-01 ~ 2014-09-30</dd>
+											</dl>
+											<dl>
+												<dt>신청기간   </dt>
+												<dd>2014-08-01 ~ 2014-08-30</dd>
+											</dl>
+											<dl>
+												<dt>취소마감일 </dt>
+												<dd>2014-08-31</dd>
+											</dl>
+											<dl>
+												<dt>모집정원  </dt>
+												<dd>20 명</dd>
+											</dl>
+											<dl>
+												<dt>교육일수  </dt>
+												<dd>5 일</dd>
+											</dl>
+											<dl>
+												<dt>교육시간  </dt>
+												<dd>20 시간</dd>
+											</dl>
+											<dl>
+												<dt>인정시간  </dt>
+												<dd>6 시간</dd>
+											</dl>
+											<dl>
+												<dt>목적 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03"  readonly="readonly"  title="교육의 목적"/>이 교육의 목적은 국가보훈처 필수 교육을 위한 교육입니다.이 교육의 목적은 국가보훈처 필수 교육을 위한 교육입니다. </textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="mt5">대상 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03 mt5"  readonly="readonly"  title="교육의 대상"/>국가보훈처 임직원 일동 </textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="mt5">내용 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03 mt5"  readonly="readonly"  title="교육의 내용"/>이 교육의 내용은 ~ 입니다.</textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt>상시학습종류</dt>
+												<dd>
+													상시학습대분류#1 &gt;  상시학습중분류#2 &gt; 상시학습분류#3
+												</dd>
+											</dl>
+											<dl>
+												<dt>부처지정</dt>
+												<dd>
+													예 or 아니오
+												</dd>
+											</dl>
+											<dl>
+												<dt>지정학습구분</dt>
+												<dd>
+													국정철학및공직관  or 해당사항없음
+												</dd>
+											</dl>
+											<dl>
+												<dt>기관성과평가</dt>
+												<dd>
+													  기관성과평가#3  or 해당사항없음
+												</dd>
+											</dl>
+											<dl>
+												<dt>맵핑역량</dt>
+												<dd>
+													 <p class="bold"> 역량군 #1 &gt; 역량명 #1</p>
+													 <p class="bold"> 역량군 #2 &gt; 역량명 #3</p>
+												</dd>
+											</dl>
+											<dl>
+												<dt>수료기준</dt>
+												<dd>
+													<div class="btn_top">
+														<button class="k-button k-primary" style="width:88px;">수강신청</button>
+														<button class="k-button" style="width:88px;">취소</button>
+													</div>
+													<div class="t_wrap">
+														<table class="table_type04 mb70">
+															<caption>수료기준</caption>
+															<colgroup>
+																<col style="width:190px" />
+																<col style="width:190px" />
+															</colgroup>
+															<thead>
+																<tr>
+																	<th scope="col">기준</th>
+																	<th scope="col">가중치</th>
+																</tr>
+															</thead>
+															<tbody>
+																<tr>
+																	<th scope="row">근태</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">실기평가</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">발표</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">과제</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">기타</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">분임토의</th>
+																	<td></td>
+																</tr>
+															</tbody>
+														</table>
+													</div>
+													<div class="btn_btm2">
+														<button class="k-button k-primary" style="width:88px;">수강신청</button>
+														<button class="k-button" style="width:88px;">취소</button>
+													</div>
+												</dd>
+											</dl>
+										</div>
+									</div><!--//dl_scroll-->
+								</div><!--//detail_info-->
+							</div><!--//detail_pane-->
+						</div>
+						<div class="mb10">
+							<button id="open2"  class="k-button">OPEN</button>
+							<button id="close2"  class="k-button">CLOSE</button>
+						</div>
+					</div><!--//tab_cont2-->
+					<div class="tab_cont">
+						<ul class="select_Area03 mt10">
+							<li class="tit">교육시작일</li>
+							<li>
+								<input type="text" class="k-textbox inp_style03" value="20140901" style="width:110px;" title="교육시작일 선택1"/>	~
+								<input type="text" class="k-textbox inp_style03" value="20140901" style="width:110px;" title="교육시작일 선택2"/>
+							</li>
+						</ul>
+						<p class="point2 mt10">※ 과정명을 클릭하면 과정의 상세 정보를 열람할 수 있으며, 수강 신청을 할 수 있습니다.</p>
+						 <div id="splitter3" style="width:1180px; height: 545px; border:none;" class="mt10 mb10">
+							<div id="list_pane3">
+								<div id="grid9"></div>
+							</div>
+							<div id="detail_pane3">
+								<div class="detail_Info">
+									<div class="tit">과정상세정보</div>
+									<div class="dl_scroll">
+										<div class="dl_wrap">
+											<dl>
+												<dt class="fir">학습유형</dt>
+												<dd class="fir">집합교육</dd>
+											</dl>
+											<dl>
+												<dt> 과정명 </dt>
+												<dd>국가보훈처 필수교육 과정</dd>
+											</dl>
+											<dl>
+												<dt> 기수</dt>
+												<dd>2</dd>
+											</dl>
+											<dl>
+												<dt>교육기간  </dt>
+												<dd>2014-09-01 ~ 2014-09-30</dd>
+											</dl>
+											<dl>
+												<dt>신청기간   </dt>
+												<dd>2014-08-01 ~ 2014-08-30</dd>
+											</dl>
+											<dl>
+												<dt>취소마감일 </dt>
+												<dd>2014-08-31</dd>
+											</dl>
+											<dl>
+												<dt>모집정원  </dt>
+												<dd>20 명</dd>
+											</dl>
+											<dl>
+												<dt>교육일수  </dt>
+												<dd>5 일</dd>
+											</dl>
+											<dl>
+												<dt>교육시간  </dt>
+												<dd>20 시간</dd>
+											</dl>
+											<dl>
+												<dt>인정시간  </dt>
+												<dd>6 시간</dd>
+											</dl>
+											<dl>
+												<dt>목적 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03"  readonly="readonly"  title="교육의 목적"/>이 교육의 목적은 국가보훈처 필수 교육을 위한 교육입니다.이 교육의 목적은 국가보훈처 필수 교육을 위한 교육입니다. </textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="mt5">대상 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03 mt5"  readonly="readonly"  title="교육의 대상"/>국가보훈처 임직원 일동 </textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="mt5">내용 </dt>
+												<dd>
+													<textarea cols="10" rows="5"  class="textarea03 mt5"  readonly="readonly"  title="교육의 내용"/>이 교육의 내용은 ~ 입니다.</textarea>
+												</dd>
+											</dl>
+											<dl>
+												<dt>상시학습종류</dt>
+												<dd>
+													상시학습대분류#1 &gt;  상시학습중분류#2 &gt; 상시학습분류#3
+												</dd>
+											</dl>
+											<dl>
+												<dt>부처지정</dt>
+												<dd>
+													예 or 아니오
+												</dd>
+											</dl>
+											<dl>
+												<dt>지정학습구분</dt>
+												<dd>
+													국정철학및공직관  or 해당사항없음
+												</dd>
+											</dl>
+											<dl>
+												<dt>기관성과평가</dt>
+												<dd>
+													  기관성과평가#3  or 해당사항없음
+												</dd>
+											</dl>
+											<dl>
+												<dt>맵핑역량</dt>
+												<dd>
+													 <p class="bold"> 역량군 #1 &gt; 역량명 #1</p>
+													 <p class="bold"> 역량군 #2 &gt; 역량명 #3</p>
+												</dd>
+											</dl>
+											<dl>
+												<dt>수료기준</dt>
+												<dd>
+													<div class="btn_top">
+														<button class="k-button k-primary" style="width:88px;">수강신청</button>
+														<button class="k-button" style="width:88px;">취소</button>
+													</div>
+													<div class="t_wrap">
+														<table class="table_type04 mb70">
+															<caption>수료기준</caption>
+															<colgroup>
+																<col style="width:190px" />
+																<col style="width:190px" />
+															</colgroup>
+															<thead>
+																<tr>
+																	<th scope="col">기준</th>
+																	<th scope="col">가중치</th>
+																</tr>
+															</thead>
+															<tbody>
+																<tr>
+																	<th scope="row">근태</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">실기평가</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">발표</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">과제</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">기타</th>
+																	<td></td>
+																</tr>
+																<tr>
+																	<th scope="row">분임토의</th>
+																	<td></td>
+																</tr>
+															</tbody>
+														</table>
+													</div>
+													<div class="btn_btm2">
+														<button class="k-button k-primary" style="width:88px;">수강신청</button>
+														<button class="k-button" style="width:88px;">취소</button>
+													</div>
+												</dd>
+											</dl>
+										</div>
+									</div><!--//dl_scroll-->
+								</div><!--//detail_info-->
+							</div><!--//detail_pane3-->
+						</div>
+						<div class="mb10">
+							<button id="open3"  class="k-button">OPEN</button>
+							<button id="close3"  class="k-button">CLOSE</button>
+						</div>
+					</div><!--//tab_cont3-->
+				</div>
+				
+			 </div><!--//sub_cont-->                
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+			
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

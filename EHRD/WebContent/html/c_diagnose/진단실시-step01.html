@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ko">
+<head>
+<title>국가보훈처 e-HRD</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="stylesheet" href="../../css/sub_mpva.css" type="text/css" />
+<link href="../../styles/kendo/kendo.common.min.css" rel="stylesheet" />
+    <link href="../../styles/kendo/kendo.bootstrap.min.css" rel="stylesheet" />
+	 <script src="../../js/jquery/1.8.2/jquery.min.js"></script>
+	  <script src="../../js/js/jquery.easing.1.3.js"></script>
+	  <script src="../../js/js/common.js"></script>
+    <script src="../../js/jgrowl/jquery.jgrowl.min.js"></script>
+    <script src="../../js/kendo/kendo.web.min.js"></script>
+    <script src="../../js/kendo/kendo.ko_KR.js"></script>
+    <script src="../../js/kendo/cultures/kendo.culture.ko-KR.min.js"></script>
+	  <script>
+                $(document).ready(function () {
+                    $("#grid").kendoGrid({
+                        dataSource: {
+                            type: "odata",
+                            transport: {
+                                read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
+                            },
+                            pageSize: 20
+                        },
+                        height: 230,
+                        groupable: false,
+                        sortable: true,
+						resizable: true,
+                        reorderable: true,
+                        pageable: false,
+                        columns: [{
+                            field: "ContactName",
+                            title: "성명",
+                            width: 150
+                        }, {
+                            field: "ContactTitle",
+                            title: "ID"
+                        }, {
+                            field: "CompanyName",
+                            title: "부서"
+                        }, 
+						 {
+                            field: "CompanyName",
+                            title: "직급"
+                        }, 
+						 {
+                            field: "CompanyName",
+                            title: "직무"
+                        }, 
+						{
+                            field: "CompanyName",
+                            title: "계급",
+							 width: 150
+                        }, {
+                            field: "Country",
+							title: "진단방향",
+                            width: 150
+                        }]
+                    });
+                });
+            </script>
+
+    </head>
+<body>
+<div class="wrap">
+	<div id="header_wrap">
+		<div class="header">
+			<div class="gnb">
+				<h1><a href="#"><img alt="국가보훈처" src="../../images/top/top_logo.gif"></a></h1>
+				<ul class="top_link">
+					<li><a href="#" class="tophome">HOME</a></li>
+					<li class="last"><a href="#" class="toplogin">LOGIN</a></li>
+				  </ul>
+			</div><!--//gnb-->
+			<div class="nav-area">
+				<div class="nav">
+					<h2 class="blind">상단메뉴</h2>
+					<ul>
+						<li class="m01"><a href="#">역량진단</a>
+							<ul class="sub-nav">
+								<li><a href="#">역량진단목록</a></li>
+								<li><a href="#">진단하기</a></li>
+								<li><a href="#">진단분석</a></li>
+							</ul>
+						</li>
+						<li><a href="#">역량진단결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">진단실시현황</a></li>
+								<li><a href="#">소속별응답현황분석</a></li>
+								<li><a href="#">직무별응답현황분석</a></li>
+								<li><a href="#">역량별직무/계급점수</a></li>
+								<li><a href="#">역량별점수</a></li>
+								<li><a href="#">종합진단결과</a></li>
+							</ul>
+						</li>
+						<li><a href="#">경력개발계획</a>
+							 <ul class="sub-nav">
+								<li><a href="#">계획수립</a></li>
+								<li><a href="#">계획수립현황</a></li>
+								<li><a href="#">계획승인</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">교육훈련</a>
+							 <ul class="sub-nav">
+								<li><a href="#">나의강의실</a></li>
+								<li><a href="#">교육신청</a></li>
+								<li><a href="#">외부학습</a></li>
+							  </ul>
+						 </li>
+						<li><a href="#">교육훈련결과</a>
+							<ul class="sub-nav">
+								<li><a href="#">교육승인</a></li>
+								<li><a href="#">임직원교육현황</a></li>
+								<li><a href="#">부서원상시학습달성현황</a></li>
+								<li><a href="#">승진기준달성현황</a></li>
+							</ul>
+						 </li>
+						<li><a href="#">멘토링</a>
+							<ul class="sub-nav">
+								<li><a href="#">멘토링</a></li>
+								<li><a href="#">멘토링승인</a></li>
+							 </ul>
+						</li>
+						<li><a href="#">게시판</a>
+							 <ul class="sub-nav last_line">
+								<li><a href="#">공지사항</a></li>
+								<li><a href="#">질문과답변</a></li>
+								<li><a href="#">교육안내</a></li>
+							 </ul>
+						</li>
+					</ul>
+				</div><!--//nav-->
+			</div><!--//nav-area-->
+		</div><!--//header-->
+		<div class="sub_nav_bg"></div>
+	</div><!--//header_wrap-->
+	<div class="container">
+		<div id="cont_body">
+		 <div class="content">
+			<div class="top_cont">
+				<h3 class="tit01">진단실시</h3>
+				<div class="d_step b01">
+					<strong>STEP01. 기본정보확인</strong>
+					<div class="des">
+						역량진단의 1 단계인 기본정보확인입니다.<br/>
+						역량진단실시 내용, 개인 정보 및 피진단자들을 확인 후 진단을 실시 하십시오.
+					</div>
+				</div>
+				<div class="location">
+					<span><img src="../../images/ico/ico_home.png" /> &nbsp;&#62;</span>
+					<span>역량진단&nbsp; &#62;</span>
+					<span>진단실시&nbsp; &#62;</span>
+					<span class="h">기본정보확인</span>
+				</div><!--//location-->
+			</div>
+			 <div class="sub_cont">
+				<h4 class="mt30">역량진단안내</h4>
+				<dl class="Info01 mb40">
+					<dt class="fir">진단명</dt>
+					<dd class="d01">2014 하반기 전사 역량진단</dd>
+					<dt>진단유형</dt>
+					<dd class="d02">다면진단</dd>
+					<dt>진단실시기간</dt>
+					<dd>2014-09-13 ~ 2014-09-30</dd>
+				</dl>
+				<h4 class="mt30">개인정보확인</h4>
+				<dl class="Info01">
+					<dt class="fir">성명/ID/부서/직급</dt>
+					<dd class="d03">홍길동/1234567/운영지원과/7급행정사무관</dd>
+					<dt>직무/계급</dt>
+					<dd class="">행정사무/7급</dd>
+				</dl>
+				<h4 class="mt40">피진단자목록</h4>
+				 <div id="example" class="mt15">
+					<div id="grid"></div>
+				</div>
+				<div class="btn_right">
+					<a href="#"><img src="../../images/btn/btn_start01.gif"" alt="진단시작" /></a>
+					<!--<input type ="image"  src="../../images/btn/btn_start01.gif"  title="진단시작"/>-->
+				</div>
+				
+			 </div><!--//sub_cont-->
+		 </div><!--//content-->
+		</div><!--//cont_body-->
+	</div><!--//container-->
+	<div id="footerWrap">
+		<div class="footer">
+			<div class="foot_txt">
+				<address>339-012 세종특별자치시 도움4로 9 대표전화 : 1577-0606</address>
+				<p>Copyright ⓒ 2014.Ministry of patriots & veterans Affairs.ALL Rights RESERVED.</p>
+			</div>
+			
+		</div>
+	</div>
+	
+</div><!--//wrap-->
+</body>
+</html>

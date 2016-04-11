@@ -1,0 +1,17 @@
+﻿폴더명 정리
+
+common  - 공통 (로그인/아웃, 메인 페이지)
+
+c_diagnose - 역량진단
+
+c_result - 역량진단결과
+
+plan - 경력개발계획
+
+e_training - 교육훈련
+
+e_result - 교육훈련결과
+
+mentoring - 멘토링
+
+board -게시판
