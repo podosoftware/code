@@ -15,8 +15,6 @@
 <head>    
 <title></title>
 <link rel="stylesheet" href="<%= architecture.ee.web.util.ServletUtils.getContextPath(request) %>/css/main.css" type="text/css"/>
-
-
 <script type="text/javascript">
 //개발서버 적용여부.. (운영서버와 개발서버 간의 로그인 절차가 dev값(Y / N)에 따라 달라짐. ) 
 var dev = "Y"; 
@@ -91,8 +89,27 @@ var dev = "Y";
     
     
     </script>
-    
-
+    <style>
+    #wrap{
+    	background: #EEF2F3;
+    }    
+    #content2 {
+		background-image: url(http://md.nsu.ac.kr/_File/skin/md.nsu.ac.kr/pageTheme/nsu_13_02/img/main/bg_main_container.jpg);
+	    background-size: cover;
+	    background-position-y: 1px;
+	    background-repeat: no-repeat;
+	    background-color: transparent;
+	    border-bottom: 1px solid #ccc;
+    	padding-top: 304px;
+    }    
+    .bg_cen {
+	    border-top-left-radius: 6px;
+	    border-top-right-radius: 6px;
+	    border-top: 1px solid #ccc;
+	    border-left: 1px solid #ccc;
+	    border-right: 1px solid #ccc;    
+    }    
+    </style>
 </head>
 <body class="login_back">
 <div id="wrap">
@@ -101,7 +118,7 @@ var dev = "Y";
             <h1 class="logo"><!--a href="#">
             <img src="/images/top/top_logo.gif" style="width:101px; height:20px;" id="logoLoc" alt="경북대학교" /></a--></h1>
             <div class="loginArea">
-                <div class="bg_top"></div>
+                <!-- <div class="bg_top"></div>-->
                 <div class="bg_cen">
                     <form name="fm1" method="POST" accept-charset="utf-8" id="login-form">
                     <input type="hidden" id="output" name="output" value="json" />
@@ -122,7 +139,7 @@ var dev = "Y";
                     </table>
                     </form>
                 </div>
-                <div class="bg_btm"></div>
+               <!--  <div class="bg_btm"></div>-->
             </div>
         </div>
     </div><!--//content2-->
