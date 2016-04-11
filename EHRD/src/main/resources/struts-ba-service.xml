@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+	<package name="ba-admin-actions" namespace="/admin/ba" extends="framework-default">
+	
+	  	<!-- 고객사관리 -->
+        <action name="ba-company-main" method="goCompanyMain" class="kr.podosoft.ws.service.ba.action.BaMainAction">
+            <result name="success">/includes/jsp/baCompanyMain.jsp</result>
+        </action>
+
+       <!-- 고객사 목록 조회 -->
+        <action name="ba-company-list" method="getCompanyList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 사업자등록번호 중복 체크 -->
+        <action name="ba_rgstno_dupcheck" method="getRgstnoCnt" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 고객사ID 중복 체크 -->
+        <action name="ba_cstmid_dupcheck" method="getCstmidCnt" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 고객사정보 저장 -->
+        <action name="ba_company_save" method="companySave"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!-- 고객사가 사용하는 역량 목록 조회 -->
+        <action name="ba-company-cmptuse_list" method="getCompanyCmptList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 고객사가 사용하는 역량 저장 -->
+        <action name="ba-company-cmptuse_save" method="companyCmptUseSave"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 고객사가 사용하는 KPI 목록 조회 -->
+        <action name="ba-company-kpiuse_list" method="getCompanyKpiList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 고객사가 사용하는 KPI 저장 -->
+        <action name="ba-company-kpiuse_save" method="companyKpiUseSave"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <action name="ba_company_list_excel" method="getCompanyListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 총괄관리자 정보 조회 -->
+        <action name="ba-mpvaadmin-info" method="getMpvaAdminInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 총괄관리자 정보 수정 -->
+        <action name="ba-mpvaadmin-save" method="saveMpvaAdmin"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!-- 비밀번호 변경 -->
+        <action name="save-mpvaadmin-pwd" method="saveMpvaAdminPwd" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        
+	</package>
+	
+	<package name="ba-operator-actions" namespace="/operator/ba" extends="framework-default">
+	
+            
+        <!-- 동기화 실행 -->
+        <action name="exec_sync_job" method="execSyncJob"  class="kr.podosoft.ws.service.ba.action.admin.BaSyncAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement, msg
+                </param>
+            </result>
+        </action>
+        
+       <!-- 동기화 목록 조회 -->
+        <action name="ba-sync-list" method="getSyncJobList"  class="kr.podosoft.ws.service.ba.action.admin.BaSyncAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 동기화관리 -->
+        <action name="ba-sync-main" class="kr.podosoft.ws.service.ba.action.admin.BaSyncAction">
+            <result name="success">/includes/jsp/operator/baSyncMain.jsp</result>
+        </action>
+    
+		<!-- 공통코드관리 -->
+		<action name="ba-main" method="goCommonCodeMain" class="kr.podosoft.ws.service.ba.action.BaMainAction">
+			<result name="success">/includes/jsp/operator/baCmmMain.jsp</result>
+		</action>
+	
+		<!-- 기본관리 직무관리 -->
+		<action name="ba_job_admin_main" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="success">/includes/jsp/operator/baJobAdminMain.jsp</result>
+		</action>
+		
+		<!-- 기본관리 리더쉽관리 -->
+		<action name="ba_ldr_admin_main" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="success">/includes/jsp/operator/baLdrAdminMain.jsp</result>
+		</action>
+		
+		<!-- 부서관리 BASIC DEPARTMENT sylee -->
+		<action name="ba-dept-main" method="goDeptMain" class="kr.podosoft.ws.service.ba.action.BaMainAction">
+			<result name="success">/includes/jsp/operator/baDptmntMngMain.jsp</result>
+		</action>
+
+        <action name="ba-dept-list" method="getDeptMngList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+         <action name="ba-dept-mng-list" method="getBaDeptMngList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <action name="ba_dept_save" method="deptSave"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!--  부서정보 엑셀 다운로드 -->
+        <action name="ba_dept_list_excel" method="getDeptListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        <!-- 부서정보 엑셀 업로드 -->
+        <action name="ba_dept_excel_upload" method="deptExcelUpload"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success">/includes/jsp/operator/baDptmntMngMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!-- 사용자검색 - 부서장 검색으로 사용함. -->
+        <action name="ba_user-list-popup" method="getUserListPopup" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+ 
+		<action name="ba_code_check" method="getCodeCheckValue" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					checkFlag
+				</param>
+			</result>
+		</action>
+		<action name="brd_category_list" method="getCategoryList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		<action name="brd_category_parent_list" method="getCategoryParentList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		<action name="brd_category_parent_code_list" method="getCategoryParentCodeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		<action name="ba-list" method="getCommonCodeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="ba-list" method="getCommonCodeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="ba-setdata" method="setCommonCodeInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					result
+				</param>
+			</result>
+		</action>
+		
+		
+		<!-- 기본관리 직무,리더쉽관리 리스트 -->
+		<action name="ba_job_admin_list" method="getJobList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<!-- 역량진단관리,직무관리 역량맵핑 -->
+		<action name="ba_job_cm_map_list" method="getJobCmMapList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<!-- 역량진단관리,직무관리 행동지표 -->
+		<action name="ba_job_indc_map_list" method="getJobIndcMapList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 역량진단관리,직무관리 역량매핑 추가 -->
+		<action name="ba_job_cm_new_list" method="getJobNewCompMapList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 역량진단관리,직무관리 행동지표 추가 -->
+		<action name="ba_job_indc_new_list" method="getJobNewIndcMapList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 역량진단관리,직무관리 행동지표 삭제  -->
+		<action name="ba_job_indc_del" method="getJobIndcDel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+			<!-- 직무삭제,역량매핑 삭제  -->
+		<action name="ba_job_admin_comp_del" method="getJobAdminCompDel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		
+		
+		
+		<!-- 기본관리 직무,리더쉽관리 저장 -->
+		<action name="ba_job_admin_save" method="setJobSave" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					result
+				</param>
+			</result>
+		</action>
+
+		<!-- 기본관리 직무관리 엑셀다운로드 -->
+        <action name="ba_job_list_excel" method="downJobListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 기본관리 계급관리 엑셀다운로드 -->
+        <action name="ba_ldr_list_excel" method="downLdrListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 기본관리 직무관리 엑셀업로드 -->
+        <action name="ba_job_excel_upload" method="jobExcelUpload"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success">/includes/jsp/operator/baJobAdminMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 기본관리 리더쉽관리 엑셀업로드 -->
+        <action name="ba_ldr_excel_upload" method="jobExcelUpload"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="success">/includes/jsp/operator/baLdrAdminMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 계급관리,직급매핑 리스트-->
+		<action name="ba_job_gd_map_list" method="getJobGradeMapList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+     	
+		
+	</package>
+	
+</struts>

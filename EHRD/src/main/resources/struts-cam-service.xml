@@ -1,0 +1,600 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+
+    <!--  역량진단 일반사용자 2014-10-13  sylee -->
+    <package name="cam-service-actions" namespace="/service/cam" extends="framework-default">
+
+        <!-- 역량진단 목록 화면 이동 -->
+        <action name="cmpt_evl_run_pg" method="getCmptEvlRunPg"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlRunList.jsp</result>
+        </action>
+        
+        
+        <!-- 역량진단 이력 조회 -->
+        <action name="cmpt_evl_run_list" method="getCmptEvlRunList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 step 1 기본정보 확인 화면 이동 -->
+        <action name="cmpt_evl_basic_info" method="getCmptEvlBasicInfo" class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlBasicInfo.jsp</result>
+        </action>
+        
+        <!-- 역량진단 - 진단기본정보 조회 결과-->
+        <action name="cmpt_evl_run_info" method="getCmptRunInfo"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 - 진단기본정보 조회 -->
+        <action name="cmpt_evl_run_info_exe" method="getCmptRunInfoExe"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 피진단자 정보 조회 -->
+        <action name="cmpt_evl_user_exed_info" method="getCmptEvlUserExedInfo"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 피진단자 목록 -->
+        <action name="cmpt_evl_exed_list" method="getCmptEvlExedList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 step 2 다면진단 화면 이동 -->
+        <action name="cmpt_evl_msd_exec" method="getCmptEvlMsdExec" class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlMsdExec.jsp</result>
+        </action>
+        
+        <!-- 역량진단 다면진단 피진단자 진단문항 조회  -->
+        <action name="cmpt_evl_msd_bhv_list" method="getCmptEvlMsdBhvList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 다면진단 피진단자 응답정보 조회  -->
+        <action name="cmpt_evl_msd_bhv_response_list" method="getCmptEvlMsdBhvResponseList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 저장 -->
+        <action name="cmpt_evl_save" method="cmptEvlSave"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 step 2 자가진단 화면 이동 -->
+        <action name="cmpt_evl_self_exec" method="getCmptEvlSelfExec"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlSelfExec.jsp</result>
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 역량진단 역량별분석  화면 이동 -->
+        <action name="cmpt_evl_analysis_cmpt" method="getAnalysisCmpt" class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlAnalysisCmpt.jsp</result>
+        </action>
+        
+        <!-- 역량진단 역량별 분석 정보 조회 -->
+        <action name="cmpt_evl_cmpt_analysis" method="getCmptEvlCmptAnaly"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 역량성장도  화면 이동 -->
+        <action name="cmpt_evl_analysis_cmpt_grow" method="getAnalysisCmpt"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlAnalysisCmptGrow.jsp</result>
+        </action>
+        <!-- 역량진단 역량성장도  역량 목록 조회 -->
+        <action name="cmpt_evl_analysis_cmpt_grow_list"  method="getCmptEvlGrowCmptList"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 역량별 역량성장도  조회 -->
+        <action name="cmpt_evl_analysis_cmpt_grow_analysis"  method="getCmptEvlGrowInfo"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 추천교육  화면 이동 -->
+        <action name="cmpt_evl_analysis_cm_edu" method="getAnalysisCmpt"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlAnalysisCmEdu.jsp</result>
+        </action>
+        <!-- 역량진단 추천교육 목록 정보 조회 -->
+        <action name="cmpt_evl_recomm_edu_list" method="getCmptEvlRecommEduList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount, items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 추천교육 목록 정보 조회 (출력용) -->
+        <action name="cmpt_evl_recomm_edu_print_list" method="getCmptEvlRecommEduPrintList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount, items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 바로가기 URL 조회 -->
+        <action name="cmpt_evl_recomm_edu_url_info" method="getCmptEvlRecommEduUrlInfo"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        <!-- 추천교육 상세정보 조회 -->
+        <action name="cmpt_evl_recomm_edu_detail_info" method="getCmptEvlRecommEduDetail"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 진단자 코멘트  화면 이동 -->
+        <action name="cmpt_evl_analysis_user_cmt" method="getAnalysisCmpt"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlAnalysisUserCmt.jsp</result>
+        </action>
+        <!-- 역량진단 진단자 코멘트 정보 조회 -->
+        <action name="cmpt_evl_user_cmt_analysis" method="getCmptEvlUserCmtAnaly"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 역량성장도 진단횟수 조회 -->
+        <action name="cmpt_evl_grow_list_cnt" method="getCmptEvlGrowListCnt"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <action name="cmpt_continue_func" method="getCmptContinue"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+        
+        <!-- 역량진단 자가진단 문항 조회 -->
+        <action name="cmpt_evl_self_exec_bhvlist" method="getCmptEvlSelfExecBhvList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단분석 결과 조회 -->
+        <action name="cmpt_evl_print" method="getCmptRunPrint"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlAnalysisPop.jsp</result>
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 다면역량진단 이력 조회 -->
+        <action name="cmpt_evl_msd_run_list" method="getCmptEvlMsdRunList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 다면역량진단 피진단자 목록 화면 이동 -->
+        <action name="cmpt_evl_msd_exed_pg" method="getCmptEvlMsdExedPg"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlMsdExedList.jsp</result>
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 다면역량진단 진단 화면 이동 -->
+        <action name="cmpt_evl_msd_self_exec" method="getCmptEvlMsdSelfExec"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/user/cmptEvl/cmptEvlMsdSelfExec.jsp</result>
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+        
+    </package>
+    
+    
+    
+    <!-- 역량진단 부서장 package  -->
+    <package name="cam-deptmgr-actions" namespace="/deptmgr/cam" extends="framework-default">
+        
+        <!-- 부서원역량진단  목록 화면 이동(부서장) -->
+        <action name="dept_cmpt_evl_run_pg"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlRunList.jsp</result>
+        </action>
+        <!-- 부서원역량진단 목록 조회 (부서장) -->
+        <action name="dept_cmpt_evl_run_list" method="getDeptMgrCmptEvlRunList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 실시별 피진단자목록 화면 이동 -->
+        <action name="dept_cmpt_evl_exed_pg" method="getDeptMgrCmptEvlExedPg"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlExedList.jsp</result>
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 진단별 진단자 목록 조회 (부서장) -->
+        <action name="dept_cmpt_evl_exec_user_list" method="getDeptMgrCmptEvlExecUserList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 진단별 피진단자 목록 조회 (부서장) -->
+        <action name="dept_cmpt_evl_exed_list" method="getDeptMgrCmptEvlExedList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 진단 화면 이동 -->
+        <action name="dept_cmpt_evl_exec" method="getDeptCmptEvlExec"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlExec.jsp</result>
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 진단 문항 조회 -->
+        <action name="dept_cmpt_evl_exec_bhvlist" method="getCmptDeptEvlExecBhvList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 진단저장 -->
+        <action name="dept_cmpt_evl_save" method="cmptEvlSave"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 역량별분석  화면 이동 -->
+        <action name="dept_cmpt_evl_analysis_cmpt"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlAnalysisCmpt.jsp</result>
+        </action>
+        <!-- 부서원역량진단 피진단자 정보 조회 -->
+        <action name="dept_cmpt_evl_user_exed_info" method="getCmptEvlUserExedInfo"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 진단기본정보 조회 -->
+        <action name="dept_cmpt_evl_run_info" method="getCmptRunInfo"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 역량별 분석 정보 조회 -->
+        <action name="dept_cmpt_evl_cmpt_analysis" method="getCmptEvlCmptAnaly"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount, items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 역량성장도  화면 이동 -->
+        <action name="dept_cmpt_evl_analysis_cmpt_grow"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlAnalysisCmptGrow.jsp</result>
+        </action>
+        <!-- 부서원역량진단 역량성장도  역량 목록 조회 -->
+        <action name="dept_cmpt_evl_analysis_cmpt_grow_list"  method="getCmptEvlGrowCmptList"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 역량별 역량성장도  조회 -->
+        <action name="dept_cmpt_evl_analysis_cmpt_grow_analysis"  method="getCmptEvlGrowInfo"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원역량진단 추천교육  화면 이동 -->
+        <action name="dept_cmpt_evl_analysis_cm_edu"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlAnalysisCmEdu.jsp</result>
+        </action>
+        <!-- 부서원역량진단 추천교육 목록 정보 조회 -->
+        <action name="dept_cmpt_evl_recomm_edu_list" method="getCmptEvlRecommEduList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 추천교육 목록 정보 조회 (출력용) -->
+        <action name="dept_cmpt_evl_recomm_edu_print_list" method="getCmptEvlRecommEduPrintList"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount, items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 바로가기 URL 조회 -->
+        <action name="dept_cmpt_evl_recomm_edu_url_info" method="getCmptEvlRecommEduUrlInfo"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 - 추천교육 상세정보 조회 -->
+        <action name="dept_cmpt_evl_recomm_edu_detail_info" method="getCmptEvlRecommEduDetail"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원역량진단 진단자 코멘트  화면 이동 -->
+        <action name="dept_cmpt_evl_analysis_user_cmt"  class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="success">/includes/jsp/deptmgr/cmptEvl/deptCmptEvlAnalysisUserCmt.jsp</result>
+        </action>
+        <!-- 부서원역량진단 진단자 코멘트 정보 조회 -->
+        <action name="dept_cmpt_evl_user_cmt_analysis" method="getCmptEvlUserCmtAnaly"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount, items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 부서원역량진단 역량성장도 진단횟수 조회 -->
+        <action name="dept_cmpt_evl_grow_list_cnt" method="getCmptEvlGrowListCnt"   class="kr.podosoft.ws.service.cam.action.CAMServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        
+    </package>
+    
+    
+</struts>

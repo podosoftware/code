@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+
+    <!--  멘토링  2014-10-28 htkim -->
+    <package name="mtr-service-actions" namespace="/service/mtr" extends="framework-default">
+
+        <!-- 멘토링 목록 화면 이동 -->
+        <action name="mtr_run_list_pg" method="getMtrRunListPg"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="success">/includes/jsp/user/mtr/userMtrList.jsp</result>
+        </action>
+        
+        <!-- 멘토링승인 목록 화면 이동 -->
+        <action name="mtr_run_app_list_pg" method="getMtrRunAppListPg"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="success">/includes/jsp/user/mtr/userMtrapprovalList.jsp</result>
+        </action>
+        
+        <!-- 멘토링관리 목록 화면 이동 -->
+        <action name="mtr_run_admin_list_pg" method="getMtrRunAdminListPg"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="success">/includes/jsp/user/mtr/userMtrAdminList.jsp</result>
+        </action>
+        
+        
+        <!-- 멘토링 리스트  -->
+        <action name="mtr_run_list" method="getMtrRunList"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 멘토링 승인 리스트  -->
+        <action name="mtr_run_app_list" method="getMtrRunAppList"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+         <!-- 멘토링 관리 리스트  -->
+        <action name="mtr_run_admin_list" method="getMtrRunAdminList"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 멘티조회 조회 -->
+        <action name="mtr_mentee_list" method="getMtrMenteeList"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        
+         <!-- 멘토링  생성요청 -->
+        <action name="save_my_mtr" method="saveMyMtr" class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+ 		<!-- 멘토링승인  승인결재 -->
+        <action name="mtr_app_save" method="saveAppMtr" class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 멘토링승인  미승인결재 -->
+        <action name="mtr_not_app_save" method="saveNotAppMtr" class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  멘토링 날짜 수정 -->
+         <action name="modify_my_mtr" method="modifyMyMtr" class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 멘토링관리  최종승인-->
+        <action name="mtr_last_app_save" method="saveLastAppMtr" class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+         <!-- 년도 조회 -->
+        <action name="mtr_year_list" method="getMtrYearList"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 임직원 검색 -->
+        <action name="find-emp-list" method="getEmployeelist"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 인정직급 목록 -->
+        <action name="find-gradeNm-list" method="getGradeNamelist"   class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  멘토링 삭제   -->
+        <action name="delete_my_mtr" method="deleteMyMtr" class="kr.podosoft.ws.service.mtr.action.MtrServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+
+    </package>
+    
+    
+</struts>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+
+    <!--  역량진단결과  2014-10-29 sylee -->
+    <package name="car-service-actions" namespace="/service/car" extends="framework-default">
+
+        <!-- 진단실시현황 목록 화면 이동 -->
+        <action name="assm_exct_sts_pg" method="getAssmExctStsListPg"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/assmExctStsList.jsp</result>
+        </action>
+        
+        <!-- 진단실시 년도 조회 -->
+        <action name="get_run_yyyy_list" method="getRunYyyyList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 진단실시 목록 조회 -->
+        <action name="get_run_history_list" method="getRunHistoryList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 진단실시현황 조회 -->
+        <action name="get_assm_exct_sts_list" method="getAssmExctStsList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 재진단 가능하도록 상태변경 -->
+        <action name="change_assm_sts" method="changeAssmStatus"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 진단현황 리스트 엑셀다운로드 -->
+        <action name="assm_exct_sts_excel_list" method="getAssmExctStsExcelList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 진단현황 메일발송 -->
+        <action name="encourage_mail_send" method="encourageMailSend"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 진단현황 SMS발송 -->
+        <action name="encourage_sms_send" method="encourageSmsSend"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 소속별 응답현황 목록 화면 이동 -->
+        <action name="division_exec_sts_pg" method="getDivisionExecStsListPg"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/divisionExecStsList.jsp</result>
+        </action>
+        
+        <!-- 소속별 응답현황 조회 -->
+        <action name="get_division_exec_sts_list" method="getDivisionExecStsList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 소속별응답현황 리스트 엑셀다운로드 -->
+        <action name="division_exec_sts_excel_list" method="getDivisionExecStsExcelList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 직무별응답현황 목록 화면 이동 -->
+        <action name="job_exec_sts_pg" method="getJobExecStsListPg"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/jobExecStsList.jsp</result>
+        </action>
+        
+        <!-- 직무별 응답현황 조회 -->
+        <action name="get_job_exec_sts_list" method="getJobExecStsList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--직무별응답현황 리스트 엑셀다운로드 -->
+        <action name="job_exec_sts_excel_list" method="getJobExecStsExcelList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 역량별 직무/계급 점수 화면 이동 -->
+        <action name="cmpt_job_leadership_sco_pg" method="getCmptJobLeadershipScoListPg"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/cmptJobLeadershipScoList.jsp</result>
+        </action>
+        
+        <!-- 직무, 계급 목록 조회 -->
+        <action name="get_job_leadership_list" method="getJobLeadershipList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량별 직무/계급 점수 조회 -->
+        <action name="cmpt_job_leadership_sco_list" method="getCmptJobLeadershipScoList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--역량별 직무/계급 점수 리스트 엑셀다운로드 -->
+        <action name="cmpt_job_leadership_sco_excel_list" method="getCmptJobLeadershipScoExcelList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 역량별 점수 화면 이동 -->
+        <action name="cmpt_user_sco_list_pg" method="getCmptUserScoListPg"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/cmptUserScoList.jsp</result>
+        </action>
+        
+        <!-- 역량별 점수 조회 -->
+        <action name="cmpt_user_sco_list" method="getCmptUserScoList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--역량별점수 리스트 엑셀다운로드 -->
+        <action name="cmpt_user_sco_excel_list" method="getCmptUserScoExcelList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 종합진단결과 화면 이동 -->
+        <action name="cmpt_user_total_sco_list_pg" method="getCmptUserTotalScoListPg"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/cmptUserTotalScoList.jsp</result>
+        </action>
+        
+        <!-- 종합진단결과 조회 -->
+        <action name="cmpt_user_total_sco_list" method="getCmptUserTotalScoList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--종합진단결과 리스트 엑셀다운로드 -->
+        <action name="cmpt_user_total_sco_excel_list" method="getCmptUserTotalScoExcelList"   class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 종합진단결과 > 사용자별 역량진단 역량별분석  화면 이동 -->
+        <action name="car_analysis_cmpt" method="getCarAnalysisCmpt" class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/carAnalysisCmpt.jsp</result>
+        </action>
+        <!-- 종합진단결과 > 사용자별 역량성장도  화면 이동 -->
+        <action name="car_analysis_cmpt_grow" method="getCarAnalysisCmpt"  class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/carAnalysisCmptGrow.jsp</result>
+        </action>
+        <!-- 종합진단결과 > 사용자별 추천교육  화면 이동 -->
+        <action name="car_analysis_cm_edu" method="getCarAnalysisCmpt"  class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/carAnalysisCmEdu.jsp</result>
+        </action>
+        <!-- 종합진단결과 > 사용자별 역량진단 진단자 코멘트  화면 이동 -->
+        <action name="car_analysis_user_cmt" method="getCarAnalysisCmpt"  class="kr.podosoft.ws.service.car.action.CarServiceAction">
+            <result name="success">/includes/jsp/user/car/carAnalysisUserCmt.jsp</result>
+        </action>
+        
+        
+        
+        
+    </package>
+    
+    
+</struts>

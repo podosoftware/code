@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+	<!-- 교육훈련 나의강의실 Start -->
+	<package name="em-service-actions" namespace="/service/em" extends="framework-default">
+		<!-- 교육훈련  나의강의실 메인 -->
+		<action name="my-class-main" method="viewMyClassMain" class="kr.podosoft.ws.service.em.action.EmMainAction">
+			<result name="success">/includes/jsp/user/em/myClassMain.jsp</result>
+		</action>
+		<!-- 교육훈련  나의강의실 학습현황 엑셀다운로드 -->
+		<action name="down-es-list-excel" method="downEduSttByExcel" class="kr.podosoft.ws.service.em.action.EmMainAction">
+            <result name="success" type="stream">
+	            <param name="contentType">${targetAttachmentContentType}</param>
+	            <param name="contentLength">${targetAttachmentContentLength}</param>
+	            <param name="inputName">targetAttachmentInputStream</param>
+	            <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+	            <param name="bufferSize">1024</param>
+           	</result>
+        </action>
+        <!-- 교육훈련  나의강의실 보훈직무필수교육 엑셀다운로드 -->
+		<action name="down-vare-list-excel" method="downVeterAsseReqEduByExcel" class="kr.podosoft.ws.service.em.action.EmMainAction">
+            <result name="success" type="stream">
+	            <param name="contentType">${targetAttachmentContentType}</param>
+	            <param name="contentLength">${targetAttachmentContentLength}</param>
+	            <param name="inputName">targetAttachmentInputStream</param>
+	            <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+	            <param name="bufferSize">1024</param>
+           	</result>
+        </action>
+        <!-- 교육훈련 나의강의실 이수현황 조회 -->
+        <action name="select-te-list" method="selectTakeEduList" class="kr.podosoft.ws.service.em.action.ajax.EmServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    item.*,items1.*,items2.*
+                </param>
+            </result>
+        </action>
+		<!-- 교육훈련 나의강의실 학습현황/보훈직무필수교육 목록조회 -->
+        <action name="select-es-list" method="selectEduSttList" class="kr.podosoft.ws.service.em.action.ajax.EmServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 나의강의실 학습현황/보훈직무필수교육 상세조회 -->
+        <action name="select-es-dtl" method="selectEduSttDtl" class="kr.podosoft.ws.service.em.action.ajax.EmServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    item.*
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 나의강의실 교육 취소 -->
+        <action name="update-edu-cncl" method="updateEduCancel" class="kr.podosoft.ws.service.em.action.ajax.EmServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 나의강의실 - 학습 도움  역량 저장 -->
+        <action name="update-edu-cmpnumber" method="updateEduCmpnumber" class="kr.podosoft.ws.service.em.action.ajax.EmServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+	</package>
+	<!-- 교육훈련 나의강의실 End -->
+	<!-- 교육훈련 교육신청 Start -->
+	<package name="emapply-service-actions" namespace="/service/emapply" extends="framework-default">
+		<!-- 교육훈련  교육신청 메인 -->
+		<action name="sbjct-apply-main" method="viewSbjctApplyMain" class="kr.podosoft.ws.service.em.action.EmApplyMainAction">
+			<result name="success">/includes/jsp/user/em/sbjctApplyMain.jsp</result>
+		</action>
+		
+		<!-- 교육훈련 교육신청 역량진단 결과정보 조회 -->
+        <action name="select-mcs-list" method="selectMyCarScrList" class="kr.podosoft.ws.service.em.action.ajax.EmApplyServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 교육신청 과정목록 조회 -->
+        <action name="select-so-list" method="selectSbjctOpenList" class="kr.podosoft.ws.service.em.action.ajax.EmApplyServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 교육신청 과정 상세정보 조회 -->
+        <action name="select-so-dtl" method="selectSbjctOpenDtl" class="kr.podosoft.ws.service.em.action.ajax.EmApplyServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    item.*
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 교육신청 교육신청 처리 -->
+        <action name="update-sbjct-apply" method="updateSbjctApply" class="kr.podosoft.ws.service.em.action.ajax.EmApplyServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+	</package>
+	<!-- 교육훈련 교육신청 End -->
+	
+	<!-- 교육훈련 상시학습 Start -->
+	<package name="emalw-service-actions" namespace="/service/emalw" extends="framework-default">
+	   <!-- 교육훈련 상시학습 - 연간인정시간 체크 -->
+	   <action name="year_recog_limit_check" method="yearRecogLimitCheck" class="kr.podosoft.ws.service.em.action.ajax.EmAlwServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+		<!-- 교육훈련 상시학습 메인 -->
+		<action name="main" method="viewMain" class="kr.podosoft.ws.service.em.action.EmAlwMainAction">
+			<result name="success">/includes/jsp/user/em/myAlwClassMain.jsp</result>
+		</action>
+		
+		<!-- 교육훈련  상시학습현황 엑셀다운로드 -->
+		<action name="down-list-excel" method="downByExcel" class="kr.podosoft.ws.service.em.action.EmAlwMainAction">
+            <result name="success" type="stream">
+	            <param name="contentType">${targetAttachmentContentType}</param>
+	            <param name="contentLength">${targetAttachmentContentLength}</param>
+	            <param name="inputName">targetAttachmentInputStream</param>
+	            <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+	            <param name="bufferSize">1024</param>
+           	</result>
+        </action>
+		<!-- 교육훈련 상시학습 목록조회 -->
+        <action name="select-list" method="selectAlwList" class="kr.podosoft.ws.service.em.action.ajax.EmAlwServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 상시학습 상세조회 -->
+        <action name="select-dtl" method="selectAlwDtl" class="kr.podosoft.ws.service.em.action.ajax.EmAlwServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    item.*
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 상시학습 등록 -->
+        <action name="insert-alw-inf" method="insertAlwInf" class="kr.podosoft.ws.service.em.action.ajax.EmAlwServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        <!-- 교육훈련 상시학습 취소 -->
+        <action name="update-alw-cncl" method="updateEduCancel" class="kr.podosoft.ws.service.em.action.ajax.EmAlwServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+	</package>
+	<!-- 교육훈련 상시학습 End -->
+	
+	<!-- 교육훈련 상시학습관리 Start -->
+	<package name="emadmin-service-actions" namespace="/service/emadmin" extends="framework-default">
+		<!-- 교육훈련  상시학습 관리 메인 -->
+		<action name="my-class-admin-main" method="viewMyClassAdminMain" class="kr.podosoft.ws.service.em.action.EmMainAction">
+			<result name="success">/includes/jsp/user/em/myClassAdmin.jsp</result>
+		</action>
+		 <!-- 교육훈련 상시학습관리 목록조회 -->
+        <action name="alw-admin-list" method="getAlwAdminList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+        
+        <!-- 교육훈련 상시학습관리 상세 정보 -->
+        <action name="alw-admin-info" method="getAlwAdminInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		 <!-- 교육훈련 상시학습관리 부서원 정보 -->
+        <action name="alw_emp_list" method="getAlwAdminEmpList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		 <!--교육훈련 상시학습관리 년도 조회 -->
+        <action name="alw_year_list" method="getAlwYearList"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련 상시학습관리 등록 /승인요청 -->
+        <action name="save-alw-req" method="saveAlwReq" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련 상시학습관리 저장-->
+        <action name="save-alw-info" method="saveAlwInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+         <!-- 교육훈련 상시학습관리 인정직급 수정-->
+        <action name="update-grade-info" method="updateGradeInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련 상시학습관리 저장-->
+        <action name="cencle-alw-req" method="cencleAlwReq" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>      
+         <!-- 교육훈련 상시학습관리 삭제-->
+        <action name="del-alw-req" method="deleteAlwReq" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 운영관리 - 수료관리 엑셀 다운로드 -->
+        <action name="alw-list-excel" method="downAlwClassAdminByExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+	</package>
+	
+</struts>

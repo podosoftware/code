@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+	<package name="baUser-operator-actions" namespace="/operator/baUser" extends="framework-default">
+	
+		<action name="user-main" method="getUserMain" class="kr.podosoft.ws.service.ba.action.BaUserMainAction">
+			<result name="success">/includes/jsp/operator/baUserMainAdmin.jsp</result>
+		</action>
+	
+		<action name="user-list" method="getUserList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="user-info" method="getMgmtUserInfo" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		
+		<action name="user-update" method="updateUser" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				saveCount
+				</param>
+			</result>
+		</action>
+		
+		<action name="user-password-update" method="updateUserPassword" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		<action name="user-competence-background-list" method="userCompetenceBackgroundList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		<action name="chk-userid" method="getChkId" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				statement
+				</param>
+			</result>
+		</action>
+		
+		<action name="chk-user" method="getChkUser" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				statement
+				</param>
+			</result>
+		</action>
+
+		<!-- USER GROUPS MNG -->
+		<action name="get-groups" method="getGroupList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="get-user-groups" method="getUserSetGroupList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="set-user-groups" method="setUserGroup" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				statement
+				</param>
+			</result>
+		</action>
+		
+		<action name="get-user-info" method="getUserInfo" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*
+				</param>
+			</result>
+		</action>
+		<action name="set-user-sdvisible" method="setUserInfoSdVisible" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				statement
+				</param>
+			</result>
+		</action>
+		<action name="set-user-img" method="setUserImg" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*,statement
+				</param>
+			</result>
+		</action>
+		
+		<action name="get-user-dept-list" method="getUserDeptList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*
+				</param>
+			</result>
+		</action>
+		
+		
+		<action name="get-user-job-list" method="getUserJobList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*
+				</param>
+			</result>
+		</action>
+		
+		<action name="get-user-Ldr-list" method="getUserLdrList" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+				items.*
+				</param>
+			</result>
+		</action>
+		
+		<!--  사용자관리 엑셀 다운로드 -->
+		<action name="ba_user_list_excel" method="getUserListExcel" class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 사용자관리 엑셀 업로드 -->
+        <action name="ba_user_list_excel_upload" method="setUserListExcelUpload"   class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+        	<result name="success">/includes/jsp/operator/baUserMainAdmin.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 사용자관리 엑셀 업로드 -->
+        <action name="upload_user_list_excel" method="upLoadUserListExcel"   class="kr.podosoft.ws.service.ba.action.ajax.BaUserAction">
+            <result name="json-success" type="json">
+                <param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>             
+		
+	</package>
+	
+</struts>

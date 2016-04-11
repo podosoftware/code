@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+    <!-- 로그인 페이지 : 도메인 체크 및 로고 , 테마 조회 -->
+	<package name="common-login" namespace="/dmInfo" extends="framework-default">
+        <!-- 접속 Url info -->
+        <action name="urlInfo" class="kr.podosoft.ws.service.common.action.CommonAction">
+            <result name="success">/urlInfo.jsp</result>
+        </action>
+        
+	    <!-- 비번 찾기 -->
+        <action name="pwdSearch" class="kr.podosoft.ws.service.common.action.CommonAction">
+            <result name="success">/pw_search.jsp</result>
+        </action>
+
+        <action name="getPwdSearch" method="getPwdSearch" class="kr.podosoft.ws.service.common.action.CommonAction">
+             <result name="success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+																
+		<action name="getDomain" method="getDomainChk" class="kr.podosoft.ws.service.common.action.CommonAction">
+     		 <result name="success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+		</action>
+		
+		<action name="image_view" method="imageFileView"  class="kr.podosoft.ws.service.common.action.CommonAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+		<action name="get-company-type" method="getCompanyType" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+			</result>
+		</action>
+		
+		<action name="get-portal-req-data" method="getPortalReqData" class="kr.podosoft.ws.service.common.action.CommonAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    approval, board, edu
+                </param>
+            </result>
+        </action>
+        
+
+	</package>
+
+	<package name="common-actions" namespace="/service/common" extends="framework-default">
+		
+		<action name="get-img-thumbnail" method="getImgThumbnail" class="kr.podosoft.ws.service.common.action.CommonAction">
+			<result name="success" type="stream">
+				<param name="contentType">${targetAttachmentContentType}</param>
+				<param name="contentLength">${targetAttachmentContentLength}</param>
+				<param name="inputName">targetAttachmentInputStream</param>
+				<param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="get-file-size" method="getFileSize" class="kr.podosoft.ws.service.common.action.CommonAction">
+            <result name="success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    filesize
+                </param>
+            </result>
+        </action>
+
+	</package>
+	
+	<!-- 메인페이지 -->
+	<package name="main-actions" namespace="/service/main" extends="framework-default">
+		<!-- 메인페이지 화면 이동 -->
+        <action name="mainpg" method="getMain"  class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="success">/includes/jsp/user/main/main_page.jsp</result>
+        </action>
+        
+        <!-- 부서원 직무관리 -->
+        <action name="job_admin" method="getJobAdmin" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원 직무관리 -->
+        <action name="job_admin_list" method="getJobAdminList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원 직무변경 -->
+        <action name="set_job_admin" method="setJobAdmin" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 계획대비 실행율 -->
+        <action name="cdp_plan_state_rate" method="getCdpPlanStateRate" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 param -->
+        <action name="main-run-num" method="getMainCamUserInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 역량진단 결과 -->
+        <action name="main-cam-res" method="getMainCamRes" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 연간상시학습 이수현황 -->
+        <action name="alw-edu-list" method="getAlwEduList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 부처지정학습 이수현황 -->
+        <action name="req-list" method="getReqList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 승인/요청처리현황 > 교육  -->
+        <action name="edu-app-data" method="getEduAppData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*,items2.*
+                </param>
+            </result>
+        </action>
+        <!-- 승인/요청처리현황 > 경력개발계획 -->
+        <action name="cdp-app-data" method="getCdpAppData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+         <!-- 승인/요청처리현황 > 경력개발계획 -->
+        <action name="cdp-app-cnt-data" method="getCdpAppCntData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 승인/요청처리현황 > 멘토링 -->
+        <action name="mtr-app-data" method="getMtrAppData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+         <!-- 요청건수현황 > 멘토링 -->
+        <action name="mtr-cnt-data" method="getMtrData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육추천승인건수 -->
+        <action name="edu-recomm-app-cnt-data" method="getEduRecommAppCntData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육승인건수 -->
+        <action name="edu-app-cnt-data" method="getEduAppCntData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 메인하단 quick_menu_list -->
+        <action name="quick-menu-data" method="getQmenuData" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 메인하단 quick_menu_insert -->
+        <action name="quick-menu-sel" method="selectQuickMenu" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!-- 메인하단 quick_menu_delete -->
+        <action name="quick-menu-del" method="deleteQuickMenu" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+		<!-- main-quick-menu-popup -->
+        <action name="main-menu-popup" method="getMainMenuPop" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        <!-- 성과평가 정보 -->
+        <action name="main-otc-info" method="getMainOtcInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 성과평가 현황 차트정보 -->
+        <action name="main-chart-info" method="getMainChartInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 게시판 목록 정보 -->
+        <action name="main-board-list" method="getMainBoardList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원역량평가 현황 정보 -->
+        <action name="main-dept-cmpt-info" method="getMainDeptCmptInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원 성과평가 요청 정보 -->
+        <action name="main-dept-otc-req-info" method="getMainDeptOtcReqInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서 평가 현황 정보 -->
+        <action name="main-dept-tt-info" method="getMainDeptTtInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서 평가 현황 점수 -->
+        <action name="main-dept-tt-score" method="getMainDeptTtScore" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 나의 역량평가 현황 -->
+        <action name="main-my-cmpt-info" method="getMainMyCmptInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 나의  실적평가 정보 -->
+        <action name="main-my-otc-run-info" method="getMainMyOtcRunInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 나의  설문목록 정보 -->
+        <action name="main-my-sv-list" method="getMainMySvList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 비밀번호 변경 -->
+        <action name="save-my-pwd" method="saveMainPwd" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+		<!--  권한위임 리스트 정보 -->
+        <action name="main_edu_admin_req_list" method="getMainAdminReqList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 권한위임 요청 -->
+        <action name="main_edu_admin_req_save" method="mainEduAdminReq" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 권한위임 승인 -->
+        <action name="main_edu_admin_app_save" method="mainEduAdminApp" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 권한위임 취소 -->
+        <action name="main_edu_admin_app_delete" method="mainEduAdminDel" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        
+        <!--  권한위임 관리자 리스트 카운트 -->
+        <action name="main_edu_app_cnt" method="getMainAdminEduCnt" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		
+		<!--  권한위임 관리자 추가요청 중복체크 -->
+        <action name="main_edu_admin_insert_chk" method="getMainAdminEduInsertCnt" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+        
+        
+        <!--  권한위임 관리자 리스트 정보 -->
+        <action name="edu_change_list" method="getMainAdminEduReqList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		
+		<!--  권한위임 관리자 리스트 정보 -->
+        <action name="edu_insert_list" method="getMainAdminEduReqList" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+        
+        
+		<!-- 
+		<action name="main-ca-rslt" method="getMainCaRslt" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*,items2.*
+				</param>
+			</result>
+		</action>
+		<action name="main-wrk-info" method="getMainWorkInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		<action name="main-cmmnt-info" method="getMainCommunityInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		<action name="main-clndr" method="getMyCalender" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		<action name="main-clndr-info" method="getMyCalenderInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		<action name="add-shcdl" method="addSchedule" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					statement
+				</param>
+			</result>
+		</action>
+		<action name="set-shcdl" method="setSchedule" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					statement
+				</param>
+			</result>
+		</action>
+		<action name="del-shcdl" method="delSchedule" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					statement
+				</param>
+			</result>
+		</action>
+		<action name="main-info" method="getMainInfo" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*,items2.*,items3.*,items4.*,items5.*
+				</param>
+			</result>
+		</action>
+		<action name="main-timeline" method="getMainTimeline" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*,totalItems1Count,sdClass
+				</param>
+			</result>
+		</action>
+		<action name="main-srch-student" method="mainSrchStudent" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*,totalItems1Count
+				</param>
+			</result>
+		</action>
+		<action name="main-srch-act" method="mainSrchAct" class="kr.podosoft.ws.service.common.action.ajax.MainAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items1.*,totalItems1Count
+				</param>
+			</result>
+		</action>
+		 -->
+		 
+	</package>
+	
+</struts>

@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+
+    <!--  경력개발계획  2014-10-21 sylee -->
+    <package name="cdp-service-actions" namespace="/service/cdp" extends="framework-default">
+    
+        <!-- 승인 / 미승인 처리 -->
+        <action name="cdp_plan_appr_req" method="cdpPlanApprReq" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>    
+
+        <!-- 경력개발계획 계획승인 - 승인팝업 승인요청자 계획정보 -->
+        <action name="get_cdp_plan_appr_reqinfo" method="getCdpPlanApprReqInfo"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>    	
+        
+        <!-- 경력개발계획 계획승인 - 승인팝업 승인요청자 자격증계획정보 -->
+        <action name="get_cdp_plan_appr_reqinfo_cert" method="getCdpPlanApprReqInfoCert"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>    	
+        <!-- 경력개발계획 계획승인 - 승인팝업 승인요청자 어학계획정보 -->
+        <action name="get_cdp_plan_appr_reqinfo_lang" method="getCdpPlanApprReqInfoLang"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>    	
+        <!-- 경력개발계획 계획승인 - 승인팝업 승인요청자 교육계획정보 -->
+        <action name="get_cdp_plan_appr_reqinfo_edu" method="getCdpPlanApprReqInfoEdu"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>    	
+
+        <!-- 경력개발계획 계획승인 화면 이동 -->
+        <action name="cdp_plan_approval_list_pg" method="getCdpPlanApprovalListPg"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success">/includes/jsp/user/cdp/userCdpPlanApprovalList.jsp</result>
+        </action>
+        
+       	<!-- 경력개발계획 계획승인 목록 -->
+        <action name="cdp_plan_approval_list" method="getCdpPlanApprovalList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action> 
+        
+        <!-- 경력개발계획 수립 현황 엑셀다운로드 -->
+        <action name="cdp_plan_approval_list_excel" method="getCdpPlanApprovalListExcel"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>    
+        
+              
+        
+        <!-- 경력개발계획  계획대비실행율 화면 이동 -->
+        <action name="cdp_plan_state_rate_list_pg" method="getCdpPlanStateRateListPg"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success">/includes/jsp/user/cdp/userCdpPlanStateRateList2.jsp</result>
+        </action>
+        
+        <!-- 경력개발계획 계획대비실행율 조회 -->
+        <action name="cdp_plan_state_rate_list" method="getCdpPlanStateRateList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 계획대비실행율 상세보기 -->
+        <action name="cdp_plan_state_rate_detail" method="getCdpPlanStateRateDetail"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 계획대비실행율 엑셀다운로드 -->
+        <action name="cdp_plan_state_rate_list_excel" method="getCdpPlanStateRateListExcel"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>            
+        
+        
+               
+        
+
+        <!-- 경력개발계획  계획수립현황 화면 이동 -->
+        <action name="cdp_plan_state_list_pg" method="getCdpPlanStateListPg"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success">/includes/jsp/user/cdp/userCdpPlanStateList.jsp</result>
+        </action>
+        
+        <!-- 경력개발계획 년도 조회 -->
+        <action name="get_run_yyyy_list_cdp" method="getRunYyyyListCDP"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 목록 조회 -->
+        <action name="get_run_history_list_cdp" method="getRunHistoryListCDP"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>     
+        
+       	<!-- 경력개발계획 수립 현황 조회 -->
+        <action name="cdp_plan_state_list" method="getCdpPlanStateList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 수립 현황 엑셀다운로드 -->
+        <action name="cdp_plan_state_list_excel" method="getCdpPlanStateListExcel"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>       
+        
+        <!-- 경력개발계획 교육 수립 현황 엑셀다운로드 -->
+        <action name="cdp_edu_plan_state_list_excel" method="getCdpEduPlanStateListExcel"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>   
+        
+        
+        
+        <!-- 경력개발계획 목록 화면 이동 -->
+        <action name="cdp_run_list_pg" method="getCdpRunListPg"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success">/includes/jsp/user/cdp/userCdpList.jsp</result>
+        </action>
+        
+        
+        <!-- 경력개발계획 이력 조회 -->
+        <action name="cdp_run_list" method="getCdpRunList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 수립 화면 이동 -->
+        <action name="user_cdp_exec_pg" method="getUserCdpExecPg"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success">/includes/jsp/user/cdp/userCdpExec.jsp</result>
+        </action>
+        
+        <!-- 경력개발계획 수립내용 조회 -->
+        <action name="get_my_cdp_info" method="getMyCdpInfo"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 직무목록 조회 -->
+        <action name="get_job_list" method="getJobList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 희망부서 검색 -->
+        <action name="get-dept-list" method="getDeptMngList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 자격증 목록 조회 -->
+        <action name="get_cert_list" method="getCertList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 자격증 계획 목록 조회 -->
+        <action name="get_cert_plan_list" method="getCertPlanList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 어학 목록 조회 -->
+        <action name="get_lang_list" method="getLangList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 어학 계획 목록 조회 -->
+        <action name="get_lang_plan_list" method="getLangPlanList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 공통코드 리스트 -->
+        <action name="get_common_code" method="getCommonCode"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 필수계획현황 리스트 -->
+        <action name="get_required_plan" method="getReqPlan"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 기관성과평가교육계획현황 리스트 -->
+        <action name="get_perf_plan" method="getPerfPlan"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육계획목록 리스트 -->
+        <action name="get_edu_plan" method="getEduPlanList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단 이력 리스트 -->
+        <action name="get_cmp_run_list" method="getCmpRunList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단결과 리스트 -->
+        <action name="get_cmp_run_result" method="getCmpRunResult"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량진단결과와 매핑된 교육과정목록 조회 -->
+        <action name="get_cmp_subject_map_list" method="getCmpSubjectMapList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 과정 상세정보 조회 -->
+        <action name="get_sbjct_info" method="getSbjctInfo" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 - 일반과정검색 팝업 사용하는 과정목록 조회 -->
+        <action name="get_normal_subject_list" method="getNormalSbjctList" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 - 승인자 검색 -->
+        <action name="get_appr_user_req_search_list" method="getApprUserReqSearchList" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 - 최근 승인요청건 검색 -->
+        <action name="get_my_latest_appr_info" method="getLatestApprReqList" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 - 승인요청 라인 검색 -->
+        <action name="get_appr_req_line_list" method="getApprReqLineList" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 - 승인요청 -->
+        <action name="save_my_cdp" method="saveMyCdp" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 경력개발계획 - 승인요청 -->
+        <action name="get_appr_sts_list" method="getApprStsList" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인요청 취소처리 -->
+        <action name="cancel_appr_req" method="cancelApprReq" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        
+    </package>
+    
+    <package name="cdp-operator-actions" namespace="/operator/cdp" extends="framework-default">
+        
+    <!-- 핵심인재관리 ================================================================================================================================== START -->
+    
+        <!-- 교육관리 - 핵심인재관리 -->
+        <action name="core_person_manage_list_pg" method="goCorePersonManageListPg"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success">/includes/jsp/operator/baCorePersonManage.jsp</result>
+        </action>
+        
+        <!-- 교육관리 - 핵심인재관리 엑셀다운로드 -->
+        <action name="core_person_manage_list_excel" method="goCorePersonManageListExcel"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>  
+        
+        <!-- 교육관리 - 핵심인재관리 엑셀업로드 -->
+        <action name="upload_core_person_list_excel" method="upLoadCorePersonListExcel" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육관리 - 핵심인재관리 저장 -->
+        <action name="save-mjr-tlnt-userInfo" method="saveMjrTlntUserInfo" class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육관리 - 핵심인재관리 핵심인재 상세정보 -->
+        <action name="get_core_person_manage_user_detail" method="getCorePersonManageUserDetail"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>       
+        
+        <!-- 교육관리 - 핵심인재관리 리스트 -->
+        <action name="get_core_person_manage_list" method="getCorePersonManageList"   class="kr.podosoft.ws.service.cdp.action.CdpServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>       
+    
+    <!-- 핵심인재관리 ================================================================================================================================== END -->
+    
+    </package>
+</struts>

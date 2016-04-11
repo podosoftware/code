@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+    <package name="ba-education-service-action" namespace="/service/sbjct" extends="framework-default">
+        <!-- 상시학습 - 수료기준 목록 조회 -->
+        <action name="alw-std-type" method="getAlwStdTypeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+
+        <!-- 상시학습 시간 가중치 시간계산 -->
+        <action name="ba_autotime" method="getAutoRecogTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인하기 - 교육추천승인 페이지 이동 -->
+        <action name="ba-edu-recomm-appr-main"  class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/user/em/eduRecommApprMain.jsp</result>
+        </action>
+        
+        <!-- 승인하기 - 교육추천승인 목록 조회 -->
+        <action name="edu-recomm-appr-list" method="getEduRecommApprList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인하기 - 교육승인 페이지 이동 -->
+        <action name="ba-edu-appr-main"  class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/user/em/eduApprMain.jsp</result>
+        </action>
+        
+        <!-- 승인하기 - 교육승인 목록 조회 -->
+        <action name="edu-appr-list" method="getEduApprList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인하기 - 교육추천승인 상세 조회 -->
+        <action name="edu-recomm-detail-info" method="getEduRecommDetailInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, items2.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인하기 - 교육승인 상세 조회 -->
+        <action name="edu-detail-info" method="getEduDetailInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, items2.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인하기 - 교육승인 엑셀 다운로드 -->
+        <action name="edu-appr-list-excel" method="getEduApprListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 승인하기- 교육추천승인 - 승인처리 -->
+        <action name="save-cls-recomm-req" method="saveClsRecommReq" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 승인하기- 교육승인 - 승인처리 -->
+        <action name="save-cls-apply-req" method="saveClsApplyReq" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        <!-- 승인하기- 교육승인 - 수정팝업 - 승인처리 -->
+        <action name="save-cls-apply-req-popup" method="saveClsApplyReqPopup" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+         <!-- 수료증 출력  -->
+        <action name="edu-certificate-print" method="eduCretificatePrint" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+    </package>
+    
+	<package name="ba-education-mgmt-action" namespace="/operator/sbjct" extends="framework-default">
+
+        <!-- 운영관리 - 수료관리 엑셀 다운로드 -->
+        <action name="edu_cmplt_list_excel" method="eduCmpltListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 수료 처리 -->
+        <action name="save-open-cmplt" method="saveOpenCmplt" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리 - 수료관리 대상자 조회 -->
+        <action name="edu-cmplt-list" method="getEduTargetList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리 - 수료관리 직급목록 조회 -->
+        <action name="grade-change-list" method="getGradeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리 - 수강생 증빙자료 다운로드 -->
+        <action name="download_attachments" method="downloadAttachments" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 운영관리 - 교육 확정 대상자 역량진단 결과 엑셀 다운로드 -->
+        <action name="edu_target_cmpt_result_list_excel" method="eduTargetCmptResultListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        
+        <!-- 운영관리 - 대상자 추천순위 엑셀 다운로드 -->
+        <action name="edu_target_recomm_list_excel" method="eduTargetRecommListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 운영관리 - 수강생 엑셀 다운로드 -->
+        <action name="edu_target_list_excel" method="eduTargetListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 대상자 엑셀업로드 -->
+        <action name="save-target-user-excel" method="saveTargetUserUpload" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+			    <param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+			    <param name="excludeProperties">targetAttachment.inputStream, targetAttachments</param>     
+			    <param name="excludeNullProperties">true</param>        
+			    <param name="includeProperties">
+			        statement
+			    </param>
+			</result>
+        </action>
+        
+        <!--  운영관리 - 대상확정자 목록 조회 -->
+        <action name="edu-target-list" method="getEduTargetList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 운영관리- 대상확정 추천순위 승인요청 처리 -->
+        <action name="save-open-recomm-target" method="saveOpenRecommTarget" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 대상확정 저장 처리 -->
+        <action name="save-open-target" method="saveOpenTarget" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  운영관리 - 대상확정이 필요한 신청자 목록 조회 -->
+        <action name="confirm-the-target-list" method="getConfirmTheTargetList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 차수 변경 처리 -->
+        <action name="change-user-chasu" method="changeUserChasu" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 인정직급 변경 처리 -->
+        <action name="change-user-grade" method="changeUserGrade" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 인정시간 재계산 처리 -->
+        <action name="change-user-recogTime" method="changeUserRecogTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  운영관리 - 동일과정의 다른 차수 목록 조회 -->
+        <action name="same-subject-chasu-list" method="getSameSubjectChasuList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 운영관리- 사용자 삭제 -->
+        <action name="sbjct-open-run-user-attendstate-change" method="openRunUserAttendStateChange" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 운영관리- 사용자 삭제 -->
+        <action name="sbjct-open-run-user_del" method="openRunUserDel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  운영관리 - 운영현황 목록 조회 -->
+        <action name="sbjct-open-run-attend-list" method="getSubjectOpenRunAttendList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  운영관리 - 운영현황 조회 -->
+        <action name="sbjct-open-run-attend-curr" method="getSubjectOpenRunAttendCur" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!--  운영관리 - 운영과정 목록 조회 -->
+        <action name="sbjct-open-run-list" method="getSubjectOpenRunList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 운영관리- 메모 저장 -->
+        <action name="change-user-memo" method="changeUserMemo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리 - 메인화면 -->
+        <action name="ba-cource-open-run-main"  class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/operator/baOperatorCourseOpenRunMain.jsp</result>
+        </action>
+        
+        <!-- 차수관리- 폐강처리 -->
+        <action name="close-sbjct-open-info" method="closeSbjctOpenInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리- 차수번호 유효성 검사 -->
+        <action name="chk-chasu" method="chkChasu" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리 - 차수정보 상세조회 -->
+        <action name="sbjct-open-info" method="getMgmtSbjctOpenInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,items2.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리- 차수저장 -->
+        <action name="save-sbjct-open-info" method="saveSbjctOpenInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리- 일괄 차수삭제 -->
+        <action name="several-del-sbjct-open-info" method="severalDelSbjctOpenInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리- 차수삭제 -->
+        <action name="del-sbjct-open-info" method="delSbjctOpenInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리 - 과정검색 팝업 - 사용하는 과정목록 조회 -->
+        <action name="sbjct-use-list" method="getSbjctUseList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!--  차수관리 - 차수 목록 조회 -->
+        <action name="sbjct-open-list" method="getSubjectOpenList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 차수관리 - 차수정보 엑셀 다운로드 -->
+        <action name="sbjct-open-list-excel" method="downSbjctOpenListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 차수관리 - 차수 엑셀 업로드 -->
+        <action name="sbjct-open-excel-upload" method="upLoadSbjctOpenListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 과정관리 - 메인화면 -->
+        <action name="ba-cource-open-main" method="goCourceOpenMain" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/operator/baOperatorCourseOpenMain.jsp</result>
+        </action>
+        
+        <!-- 과정관리- 과정저장 -->
+        <action name="save-sbjct-info" method="saveSbjctInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 과정관리 - 수료기준 목록 조회 -->
+        <action name="alw-std-type" method="getAlwStdTypeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 과정관리 - 과정 엑셀 업로드 -->
+        <action name="sbjct-excel-upload" method="upLoadSbjctListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+
+            <result name="json-success" type="json">
+            	<param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        <!-- 과정관리 - 역량매핑 엑셀 업로드 -->
+        <action name="sbjct-cmmapping-excel-upload" method="upLoadSbjctCmmappingListExcel"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+
+        <!-- 과정관리 - 엑셀 다운로드 -->
+        <action name="sbjct-list-excel" method="downSbjctListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+		<!-- 과정관리 - 년도 -->
+		<action name="sbjct-year-list" method="getMgmtSbjctYearList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="sbjct-list" method="getMgmtSbjctList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="sbjct-info" method="getMgmtSbjctInfo" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		<action name="sbjct-cm-map-list" method="getSbjctCmMapList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		<action name="cm-list" method="getCmList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*,totalItemCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 과정관리> 수료기준 목록 조회 -->
+        <action name="sbjct-cmplt-stnd" method="getSbjctCmpltStndList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+		
+		<!-- 과정관리 메인화면 -->
+        <action name="ba-cource-main" method="goCourceMain" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/operator/baOperatorCourseMain.jsp</result>
+        </action>
+
+        <!-- 교육이수기준관리 메인화면 -->
+        <action name="ba-recog-base-mgmt-main" method="getRecogBaseMgmtMain" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/operator/baRecogBaseMgmtMain.jsp</result>
+        </action>
+        
+        <!-- 직급별 이수시간 조회 -->
+        <action name="grade-recog-base-time-list" method="getGradeRecogBaseTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 직급별 이수시간 저장 -->
+        <action name="save-grade-recog-time" method="saveGradeRecogTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 기관성과평가 필수교육 이수시간 조회 -->
+        <action name="perfasse-recog-base-time-list" method="getPerfAsseRecogBaseTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 기관성과평가 필수교육 이수시간 저장 -->
+        <action name="save-perfasse-recog-time" method="savePerfAsseRecogTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 기관성과평가 - 부처지정구분코드 조회 -->
+        <action name="get-user-dept-designation-code" method="getDeptDesignationCodeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 기관성과평가 - 부처지정구분코드 조회 -->
+        <action name="get-user-perf-asse-code" method="getPerfAsseCodeList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원 필수교육 이수시간 조회 -->
+        <action name="user-recog-base-time-list" method="getUserRecogBaseTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원 필수교육 이수시간 엑셀다운로드 -->
+        <action name="user-recog-base-time-excel" method="getUserRecogBaseTimeExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 부서원별 기준 데이터를 통한 이수시간 저장 -->
+        <action name="save-all-user-recog-time" method="saveAllUserRecogTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 부서원 교육 이수시간 저장 -->
+        <action name="save-user-recog-time" method="saveUserRecogTime" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        
+	</package>
+	
+	<!-- 사용자 : 교육훈련결과 Start -->
+	<package name="ba-education-deptmgr-action" namespace="/deptmgr/sbjct" extends="framework-default">
+	
+		<!-- 교육훈련결과 : 부서원교육현황 : 페이지 이동 -->
+        <action name="ba-edu-result-main" method="getEduResultPage" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/user/em/deptEduResList.jsp</result>
+        </action>
+        
+        <!-- 교육훈련결과 : 부서원교육현황 : 목록 조회   -->
+        <action name="edu-result-list" method="getEduResultList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+					items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+
+		<!-- 교육훈련결과 : 부서원교육현황 : 엑셀 다운로드 -->
+        <action name="edu_result_list_excel" method="eduResultListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+		<!-- 교육훈련결과 : 부서원교육현황 : 이사람연동 용 교육현황 목록 조회 -->
+        <action name="sync_edurslt_list" method="syncEdursltList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+					items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련결과 : 부서원교육현황 : 이사람연동 용 교육현황 엑셀 다운로드 -->
+        <action name="sync_edurslt_list_excel" method="syncEdursltListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련결과 : 부서원상시학습달성현황 : 페이지 이동 -->
+        <action name="ba-alw-edu-result-main" method="getAlwEduResultPage" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/user/em/deptAlwEduResList.jsp</result>
+        </action>
+        
+        <!--교육훈련결과 : 부서원상시학습달성현황 : 년도 조회 -->
+        <action name="alw_edu_res_year_list" method="getAlwEduResYearList"   class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련결과 : 부서원상시학습달성현황 : 목록 조회   -->
+        <action name="alw-edu-result-list" method="getAlwEduResultList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+					items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+
+		<!-- 교육훈련결과 : 부서원상시학습달성현황 : 엑셀 다운로드 -->
+        <action name="alw-edu_result_list_excel" method="eduAlwResultListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련결과 : 부서원상시학습달성현황 : 상세 교육  이력 조회   -->
+        <action name="alw-edu-result-list-detail" method="getAlwEduResultDetailList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련결과 : 부서원상시학습달성현황 : 상세 교육  이력 엑셀 다운로드   -->
+        <action name="alw-edu-result-list-detail-excel" method="getAlwEduResultDetailListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        
+        
+        <!-- 교육훈련결과 : 승진교육달성현황 : 페이지 이동 -->
+        <action name="ptmtn-edu-rslt-main" method="selectDeptPrmtnEduMain" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success">/includes/jsp/user/em/deptPrmtnEduResList.jsp</result>
+        </action>
+        
+        <!-- 교육훈련결과 : 승진교육달성현황 : 목록 조회   -->
+        <action name="ptmtn-edu-rslt-list" method="selectDeptPrmtnEduList" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+					items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 교육훈련결과 : 승진교육달성현황 : 엑셀 다운로드 -->
+        <action name="ptmtn-edu-rslt-list_excel" method="selectDeptPrmtnEduListExcel" class="kr.podosoft.ws.service.ba.action.admin.BaMgmtSubjectAction">
+            <result name="success" type="stream">
+                <param name="contentType">${targetAttachmentContentType}</param>
+                <param name="contentLength">${targetAttachmentContentLength}</param>
+                <param name="inputName">targetAttachmentInputStream</param>
+                <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                <param name="bufferSize">1024</param>
+            </result>
+        </action>
+        
+        
+	</package>
+	<!-- 사용자 : 교육훈련결과 End -->
+	
+</struts>

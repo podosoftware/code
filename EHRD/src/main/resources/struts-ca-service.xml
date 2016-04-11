@@ -1,0 +1,1724 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+	<package name="ca_operator_actions" namespace="/operator/ca" extends="framework-default">
+	
+	
+	   <!-- 공통코드 엑셀 다운로드 -->
+        <action name="ca_common_operator_excel" method="getCommonOperatorExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+	
+	   <!-- KPI POOL 관리 - 지표리스트  -->
+        <action name="ca_kpi_list" method="getKpiList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        
+	    <!-- 역량pool 관리(고객사) - 메인 -->
+        <action name="ca_cmpt_operator_main" method="getOperatorCompetencyMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caOperatorCmptMain.jsp</result>
+        </action>
+        
+        <!-- 행동지표관리(고객사) -->
+         <action name="ca_operator_indc_main" method="getOperatorIndicatorMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caOperatorIndcMgmtMain.jsp</result>
+        </action>
+        
+        <!-- KPI POOL 관리(성과관리) - 메인(고객사) -->
+        <action name="ca_operator_kpi_main" method="getOperatorKpiMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caOperatorKpiMgmtMain.jsp</result>
+        </action>
+        
+   		<!-- 역량평가자 생성/관리 -->
+		<action name="ca_cmpt_admin_main" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="success">/includes/jsp/operator/caCmptAdminMain.jsp</result>
+		</action>
+        
+  	 	<!-- 역량 매핑 관리(고객사) - 메인 -->
+        <action name="ca_operator_cmpt_mapp_main" method="getOperatorCompetencyMappingMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caOperatorCmptMappMain.jsp</result>
+        </action>
+        
+        <!-- 성과 매핑 (고객사) - 메인 -->
+        <action name="ca_operator_kpi_mapp_main" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caOperatorKpiMappMain.jsp</result>
+        </action>
+        
+        <!-- 진단&CDP 실시관리 대상자관리 -->
+		<action name="ca_cmpt_object_main" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="success">/includes/jsp/operator/caCmptObjectMain.jsp</result>
+		</action>
+		
+    	<!-- 역량진단관리 진단자 관리 -->
+		<action name="ca_cmpt_direction_main" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="success">/includes/jsp/operator/caCmptDirectionMain.jsp</result>
+		</action>
+		
+		<!-- 역량진단관리 진단자 관리 -->
+		<action name="ca_cmpt_target_main" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="success">/includes/jsp/operator/caCmptDirectionMain.jsp</result>
+		</action>
+
+		
+		<!-- 역량진단 관리 진단현황 -->
+		<action name="ca_cmpt_statistics_main" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="success">/includes/jsp/operator/caCmptStatistics.jsp</result>
+		</action>
+	
+		<!-- 설문관리 - 메인 -->
+        <action name="ca_serv_main" method="getSruvMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caOperatorSurveyMain.jsp</result>
+        </action>
+        
+        <!-- 설문관리 - 메인 -->
+        <action name="core_cmpt_edu_manage_main" method="getCoreCmptEduMngMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/operator/caCoreCmptEduMngMain.jsp</result>
+        </action>
+        
+        <!-- 설문관리 - 년도 -->
+		<action name="ca_serv_yeal_list" method="getSurvYealList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 리스트 -->
+		<action name="ca_serv_list" method="getSurvList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 설문문항 리스트 -->
+		<action name="ca_serv_qstn" method="getSurvQstn" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items2.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 설문결과 객관식 유무 확인 -->
+		<action name="ca_serv_rst_count" method="getSurvRstCount" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items6.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 설문결과 리스트 -->
+		<action name="ca_serv_rst" method="getSurvRst" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items5.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 대상자 리스트 -->
+		<action name="ca_serv_targ" method="getSurvTarg" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items3.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 설문문항 POOL 리스트 -->
+		<action name="ca_serv_qstn_pool" method="getSurvQstnPool" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items1.*
+				</param>
+			</result>
+		</action>
+		
+
+		
+		<!-- 설문관리 - 설문문항 POOL 리스트 - 엑셀다운로드 -->
+        <action name="ca_serv_qstn_pool_excel" method="getSurvQstnPoolExcel" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 역량pool관리 - 엑셀업로드 -->
+        <action name="ca_serv_excel_upload" method="servExcelUpload" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/operator/caOperatorSurveyMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action> 
+		
+		<!-- 설문관리 - 사용자  리스트 -->
+		<action name="ca_serv_user" method="getSurvUser" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items4.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 설문문항 POOL 저장 --> 
+		<action name="ca_qstn_pool_save" method="getQstnPoolSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result> 
+		</action>
+		
+		<!-- 설문관리 - 설문문항 POOL Bind 저장 -->
+		<action name="ca_qstn_bind_save" method="getQstnBindSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result> 
+		</action>
+		
+		<!-- 설문관리 - 대상관리 사용자 Bind 저장 -->
+		<action name="ca_user_bind_save" method="getUserBindSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 단건 삭제 POOL 저장 -->
+		<action name="ca_qstn_pool_del" method="getQstnPoolDel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 -  리스트 삭제 -->
+		<action name="ca_qstn_del" method="getQstnDel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문지 -  리스트 삭제 -->
+		<action name="ca_serv_Pp_del" method="getServPpDel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 -  대상자 리스트 삭제 -->
+		<action name="ca_serv_user_del" method="getQstnUserDel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		
+		<!-- 설문관리 총 저장 -->
+		<action name="ca_serv_all_save" method="getServAllSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		
+		<!-- 설문관리 결과 - 엑셀다운로드 -->
+        <action name="ca_serv_list_excel" method="getServListExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action> 
+        
+        <!--  안내 메일 발송 -->
+        <action name="info_mail_send" method="infoMailSend" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount.*
+                </param>
+            </result>
+        </action>
+     
+        <!-- 역량pool관리 - 역량군관리 - 역량군 목록 조회 -->
+        <action name="ca_cmpgroup_list" method="getCmpgroupList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량pool관리 - 엑셀다운로드 -->
+        <action name="ca_cmpt_list_excel" method="getOperatorCmptListExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+
+        <!-- 성과관리 - 회사지표로 사용(고객사) -->
+        <action name="ca_operator_kpi_change_regtype_save" method="operatorKpiChangeRegTypeSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+       
+        <!-- 성과관리 - 지표저장(고객사) -->
+        <action name="ca_operator_kpi_save" method="operatorKpiSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- KPI POOL관리 - 엑셀다운로드 -->
+        <action name="ca_kpi_list_excel" method="getkpiListExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- KPI POOL관리 - 엑셀다운로드(고객사) -->
+        <action name="ca_operator_kpi_list_excel" method="getOperatorKpiListExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        
+        <!-- KPI POOL관리 - 엑셀업로드 -->
+        <action name="ca_kpi_excel_upload" method="kpiExcelUpload" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/caKpiMgmtMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount 
+                </param>
+            </result>
+        </action>
+       
+        
+        <!-- 일관성 척도 관련문항 -->
+        <action name="ca_consistency_list" method="consistencyList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 엑셀업로드 - 행동지표 -->
+        <action name="ca_indc_excel_upload" method="indcExcelUpload" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/caIndcMgmtMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표저장 -->
+        <action name="ca_indc_save" method="indicatorSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표저장(고객사) -->
+        <action name="ca_operator_indc_save" method="operatorIndicatorSave" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>       
+        
+        <!-- 행동지표별 보기문항 리스트 -->
+        <action name="ca_indc_exam_list" method="getIndicatorExampleList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    subItems.*
+                </param>
+            </result>
+        </action>
+        
+           <!-- 행동지표별 보기문항 리스트(고객사) -->
+        <action name="ca_operator_indc_exam_list" method="getOperatorIndicatorExampleList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    subItems.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표 리스트 엑셀다운로드 -->
+        <action name="ca_indc_list_excel" method="getOperatorIndicatorListExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        
+         <!-- kpi매핑 리스트 엑셀다운로드 -->
+        <action name="ca_operator_kpi_mapp_excel" method="caOperatorKpiMappExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+         <!-- 역량매핑 리스트 엑셀다운로드 -->
+        <action name="ca_operator_cmpt_mapp_excel" method="caOperatorCmptMappExcel" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 행동지표 리스트 -->
+        <action name="ca_indc_list" method="getIndicatorList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표 리스트(고객사) -->
+        <action name="ca_operator_indc_list" method="getOperatorIndicatorList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 계층 리스트 -->
+        <action name="get-ldr-list" method="getLdrList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표에 맵핑된 계층 리스트 -->
+        <action name="get-bhid-ldr-list" method="getBhidLdrList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량콤보박스 리스트 -->
+        <action name="ca_competency_combo_list" method="getCompetencyComboList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* 
+                </param>
+            </result>
+        </action>
+        
+   
+        
+        <!-- 역량pool관리(고객사) - 상세화면의 행동지표목록 조회 -->
+         <action name="ca_cmtp_operator_bhv_list" method="getOperatorBhvList" class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* 
+                </param>
+            </result>
+        </action>
+         
+
+        
+        <!-- 역량pool관리(고객사) - 역량리스트  -->
+        <action name="ca_cmpt_operator_list" method="getOperatorCompetencyList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 공통코드리스트 -->
+        <action name="ca_commonCode_list" method="getCommonCodeList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!--고객사관리자 삭제(공통) -->
+        <action name="ca_common_del" method="caCommonDel"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량pool관리(고객사) - 역량저장 -->
+        <action name="ca_operator_cmpt_save" method="operatorCompetencySave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+       
+        
+        <!-- 역량pool관리 - 엑셀업로드 -->
+        <action name="ca_cmpt_excel_upload" method="cmptExcelUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/caCmptMgmtMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+
+        
+        <!-- 역량pool관리(고객사) - 역량군저장 - 역량군 목록 저장 -->
+        <action name="ca_operator_cmpgroup_save" method="operatorCmpGroupSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- kpi 매핑 관리(고객사) - 리스트  -->
+        <action name="ca_operator_kpi_mapp_list" method="getOperatorKpiMappingList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량 매핑 관리(고객사) - 리스트  -->
+        <action name="ca_operator_cmpt_mapp_list" method="getOperatorCompetencyMappingList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+		<action name="save-sbjct-cm-detail" method="setSbjctCmDetail" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					statement
+				</param>
+			</result>
+		</action>
+
+		
+		<action name="del-sbjct-open" method="delSbjectOpen" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					statement
+				</param>
+			</result>
+		</action>
+		
+		<!-- kpi 매핑 관리 저장(고객사) - 저장 -->
+		<action name="ca_operator_kpi_mapp_save" method="operatorKpiMappingSave"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		<!-- 역량 매핑 관리 저장(고객사) - 저장 -->
+        <action name="ca_operator_cmpt_mapp_save" method="getOperatorCompetencyMappingSave"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+		<!-- 고객사 관리 KPI ADD버튼 체크 제어 - (고객사) -->
+        <action name="ca_kpi_add_check" method="kpiAddCheck"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 고객사 관리 역량관리 ADD버튼 체크 제어 - (고객사) -->
+        <action name="ca_cmpt_add_check" method="cmptAddCheck"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 진단현황 초기화 -->
+        <action name="cmpt_diag_initializaion" method="cmptDiagInitialization"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount.*
+                </param>
+            </result> 
+        </action>
+        
+        <!-- 진단현황 리스트 엑셀다운로드 -->
+        <action name="cmpt_statistics_excel_list" method="cmptStatisticsListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 진단현황 리스트 -->
+        <action name="cmpt_statistics_list_main" method="cmptStatisticsList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 리스트 엑셀다운로드 -->
+        <action name="cmpt_target_excel_list" method="cmptTargetListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+                <!-- 역량평가자 리스트 엑셀다운로드 v2-->
+        <action name="cmpt_target_excel_list_v2" method="cmptTargetListExcelV2"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+         <!-- 역량평가자 설정 단일 저장 -->
+        <action name="cmpt_single_target_save" method="cmptSingleTargetSave"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+                 <!-- 역량평가자 설정 단일 저장 -->
+        <action name="cmpt_single_target_save_v2" method="cmptSingleTargetSaveV2"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+         <!-- 역량평가자 설정 단일 삭제 -->
+        <action name="cmpt_single_target_del" method="cmptSingleTargetDel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+                 <!-- 역량평가자 설정 단일 삭제 -->
+        <action name="cmpt_single_target_del_v2" method="cmptSingleTargetDelV2"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 설정 저장 개발 -->
+        <action name="cmpt_target_save" method="cmptTargetSave"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    result
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 설정 역량진단 콤보박스 리스트 -->
+        <action name="cmpt_diagnosis_list" method="cmptDiagnosisList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 설정 역량진단 콤보박스 리스트 (대상자관리) -->
+        <action name="cmpt_diagnosis_obj_list" method="cmptDiagnosisObjList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 설정 대상자리스트 -->
+        <action name="cmpt_target_list_main" method="cmptTargetList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items2.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+                <!-- 역량평가자 설정 대상자리스트 -->
+        <action name="cmpt_target_list_main_v2" method="cmptTargetListV2"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items2.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 설정 대상자리스트(평가자 리스트 1차,2차) -->
+        <action name="cmpt_target_user" method="cmptTargetUser"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+                <!-- 역량평가자 설정 대상자리스트(평가자 리스트 1차,2차) -->
+        <action name="cmpt_target_user_v2" method="cmptTargetUserV2"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량평가자 설정 대상자리스트(평가자 리스트 동료,부하) -->
+        <action name="cmpt_list_user" method="cmptListUser"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+                <!-- 역량평가자 설정 대상자리스트(평가자 리스트 동료,부하) -->
+        <action name="cmpt_list_user_v2" method="cmptListUserV2"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items1.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 평가생성/관리 리스트 -->
+        <action name="cmpt_admin_list_main" method="cmptAdminList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 가중치 리스트 -->
+        <action name="cmtp_weight_list" method="cmtpWeightList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+         
+        <!-- 실시관리 저장 -->
+        <action name="cmpt_admin_save" method="cmptAdminSave"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    result
+                </param>
+            </result>
+        </action>
+                
+        <!--실시관리 공통 역량군 리스트  -->
+         <action name="cmpt_admin_cmp_group_list" method="getCmpGroupList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!--실시관리 공통 역량군 삭제  -->
+         <action name="cmpt_admin_cmp_group_del" method="getCmpGroupDel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+	
+        <!-- 평가생성/관리 - 엑셀다운로드 -->
+        <action name="cmpt_admin_list_main_excel" method="cmptAdminListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+
+        <!-- 역량평가자 설정 - 엑셀업로드 -->
+        <action name="cmpt_target_excel_upload" method="cmptTargetExcelUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success">/includes/jsp/operator/caCmptTargetMainV2.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- kpi매핑 관리 - 엑셀업로드 -->
+        <action name="ca_operator_kpi_mapp_upload" method="caOperatorKpiMappUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success">/includes/jsp/operator/caOperatorKpiMappMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량매핑 관리 - 엑셀업로드 -->
+        <action name="ca_operator_cmpt_mapp_upload" method="caOperatorCmptMappUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success">/includes/jsp/operator/caOperatorCmptMappMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 평가년도 리스트 -->
+        <action name="evl_year_list" method="getEvlYearList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+         <!-- 대상자관리  대상자 목록 리스트 -->
+        <action name="ca_run_target_list" method="runTargetList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 대상자관리 대상자 저장 -->
+		<action name="ca_run_target_save" method="setRunTargetSave" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					result
+				</param>
+			</result>
+		</action>
+		
+		<!-- 방향설정  목록 리스트 -->
+        <action name="ca_run_dir_list" method="runDirList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*,totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 방향설정  임직원 목록 -->
+        <action name="ca_run_dir_emp_list" method="dirEmployeeList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                   items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 방향설정  진단자 목록 -->
+        <action name="ca_run_dir_user_list" method="dirUserList"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" 
+            type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 방향설정  진단자 설정 저장 -->
+        <action name="ca_run_dir_save" method="saveDirUser" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 방향설정  자동 설정 저장 -->
+        <action name="ca_run_dir_auto_save" method="saveDirAutoUser" class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+         
+		<!-- 핵심역량실적관리 리스트-->
+        <action name="core_cmpt_edu_mng_list" method="getCoreCmptEduMngList"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 핵심역량실적관리 저장 -->
+        <action name="ca_core_cmpt_edu_mng_save" method="saveCmptEduMng" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 핵심역량실적관리 삭제 -->
+        <action name="ca_core_cmpt_edu_mng_del" method="deleteCmptEduMng" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+          <!-- 핵심역량교육실적관리 엑셀다운로드 -->
+        <action name="core_cmpt_edu_mng_excel" method="getCmptEduMngListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 핵심역량교육실적관리 엑셀 업로드 -->
+        <action name="core-cmpt-edu-excel-upload" method="upLoadCoreCmptEduListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+            	<param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 대상자관리 엑셀다운로드 -->
+        <action name="ca_object_list_excel" method="getCmptObjListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 대상자관리 엑셀 업로드 -->
+        <action name="ca-cmpt-obj-excel-upload" method="upLoadCaCmptObjListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+            	<param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 방향설정 엑셀 업로드 -->
+        <action name="ca-cmpt-dir-excel-upload" method="upLoadCaCmptDirListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+            	<param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 상시학습관리 엑셀 업로드 -->
+        <action name="em-admin-class-excel-upload" method="upLoadEmAdminClassListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="json-success" type="json">
+            	<param name="contentType">text/html; charset=UTF-8</param><!-- ie9이하버전에서 리턴메세지를 파일다운로드 형식으로 안되게 처리 -->
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+        <!-- 방향설정 엑셀다운로드(목록) -->
+        <action name="ca_direction_list_excel" method="getCmptDirListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        <!-- 방향설정 엑셀다운로드(설정) -->
+        <action name="ca_direction_dir_excel" method="getCmptDirExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAAdminAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+    </package>	
+	
+
+	<package name="ca_admin_actions" namespace="/admin/ca" extends="framework-default">
+	
+	   <!-- 역량pool관리 - 엑셀업로드 -->
+        <action name="ca_cmpt_excel_upload" method="cmptExcelUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/caCmptMgmtMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- KPI POOL관리 - 엑셀업로드 -->
+        <action name="ca_kpi_excel_upload" method="kpiExcelUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/caKpiMgmtMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+       
+       
+        <!-- KPI POOL관리 - 엑셀다운로드 -->
+        <action name="ca_kpi_list_excel" method="getkpiListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+         <!-- KPI POOL 관리 - 지표리스트  -->
+        <action name="ca_kpi_list" method="getKpiList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- KPI POOL 관리 - 지표분류관리 - 지표분류 목록 조회 -->
+        <action name="ca_kpigroup_list" method="getKpigroupList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- KPI POOL 관리 - 지표분류관리 - 지표군분류 저장 조회 -->
+        <action name="ca_kpigroup_save" method="kpiGroupSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- KPI POOL관리 - 지표저장 -->
+        <action name="ca_kpi_save" method="kpiSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량pool관리 - 엑셀다운로드 -->
+        <action name="ca_cmpt_list_excel" method="getCmptListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        
+        <!-- 엑셀업로드 - 행동지표 -->
+        <action name="ca_indc_excel_upload" method="indcExcelUpload"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success">/includes/jsp/caIndcMgmtMain.jsp</result>
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표저장 -->
+        <action name="ca_indc_save" method="indicatorSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표 리스트 엑셀다운로드 -->
+        <action name="ca_indc_list_excel" method="getIndicatorListExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        
+        <!-- 역량콤보박스 리스트 -->
+        <action name="ca_competency_combo_list" method="getCompetencyComboList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* 
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 행동지표 리스트 -->
+        <action name="ca_indc_list" method="getIndicatorList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 공통코드리스트 -->
+        <action name="ca_commonCode_list" method="getCommonCodeList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+         <!-- 공통코드 엑셀 다운로드 -->
+        <action name="ca_common_excel" method="getCommonExcel"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="success" type="stream">
+                    <param name="contentType">${targetAttachmentContentType}</param>
+                    <param name="contentLength">${targetAttachmentContentLength}</param>
+                    <param name="inputName">targetAttachmentInputStream</param>
+                    <param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+                    <param name="bufferSize">1024</param>
+                </result>
+        </action>
+        
+        
+	   <!-- 역량pool관리 - 역량군관리 - 역량군 목록 조회 -->
+        <action name="ca_cmpgroup_list" method="getCmpgroupList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+	   <!-- 역량pool 관리 - 메인 -->
+        <action name="ca_cmpt_main" method="getCompetencyMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/caCmptMgmtMain.jsp</result>
+        </action>
+        
+       <!-- 역량pool관리 - 상세화면의 행동지표목록 조회 -->
+         <action name="ca_cmtp_bhv_list" method="getBhvList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* 
+                </param>
+            </result>
+        </action>
+        
+      <!-- 역량pool관리 - 역량리스트  -->
+        <action name="ca_cmpt_list" method="getCompetencyList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* , totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량pool관리 - 역량저장 -->
+        <action name="ca_cmpt_save" method="competencySave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 관리자 삭제(공통) -->
+        <action name="ca_common_del" method="caCommonDel"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+       
+        
+        <!-- 역량pool관리 - 역량군저장 - 역량군 목록 저장 -->
+        <action name="ca_cmpgroup_save" method="cmpGroupSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량군 추가 이름 체크 -->
+        <action name="ca_commonCode_chk" method="getCommonCodeChk"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        <!-- 행동지표관리 -->
+        <action name="ca_indc_main" method="getIndicatorMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/caIndcMgmtMain.jsp</result>
+        </action>
+        
+        <!-- KPI POOL 관리 - 메인 -->
+        <action name="ca_kpi_main" method="getKpiMain" class="kr.podosoft.ws.service.ca.action.CAAction">
+            <result name="success">/includes/jsp/caKpiMgmtMain.jsp</result>
+        </action>
+        
+	</package>
+
+    
+    <!--  역량평가 일반사용자 2014-04-11  sylee -->
+    <package name="ca-service-actions" namespace="/service/ca" extends="framework-default">
+        <!-- 나의 역량 목록  -->
+        <action name="ca_my_competency_combo_list" method="getMyCmptList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* 
+                </param>
+            </result>
+        </action>
+        
+        <!-- 역량콤보박스 리스트 -->
+        <action name="ca_competency_combo_list" method="getCmptList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.* 
+                </param>
+            </result>
+        </action>
+        
+        <!-- 성과관리 - 지표생성(일반사용자) -->
+        <action name="ca_user_kpi_save" method="userKpiSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 공통코드리스트 -->
+        <action name="ca_commonCode_list" method="getCommonCodeList"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*
+                </param>
+            </result>
+        </action>
+        
+        
+        <!-- 성과관리 -  지표추가 버튼 제어 - (고객사) -->
+        <action name="ca_kpi_add_check" method="kpiAddCheck"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    statement
+                </param>
+            </result>
+        </action>
+        
+    	<!-- 설문 - 설문 저장 -->
+		<action name="ca_qstn_rst_save" method="getQstnRstSave"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success" 
+			type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 설문관리 - 설문문항 리스트 -->
+		<action name="ca_serv_qstn" method="getSurvQstn"   class="kr.podosoft.ws.service.ca.action.admin.CAMgmtAction">
+			<result name="json-success"  type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items2.*
+				</param>
+			</result>
+		</action>
+    	
+    	<!-- 고객센터 -->
+		<action name="cstm_cntr_main" method="getCstmCntr" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+			<result name="success">/includes/jsp/user/cstmCntr/cstmCntrMain.jsp</result>
+		</action>
+    	
+    	<!-- 일반게시판 -->
+		<!-- <action name="brd_main" method="getBrdMain" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+				<result name="success">/includes/jsp/user/brd/caBrdMain.jsp</result>
+		</action> -->
+		
+		<!-- 게시판 공지사항 메인 -->
+		<action name="brd_notice_main" method="getBrdNoticeMain" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+				<result name="success">/includes/jsp/user/brd/caBoardMain.jsp</result>
+		</action>
+		<!-- 게시판 질문과답변 메인 -->
+		<action name="brd_qna_main" method="getBrdQnaMain" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+				<result name="success">/includes/jsp/user/brd/caBoardMain.jsp</result>
+		</action>
+		<!-- 게시판 교육안내 메인 -->
+		<action name="brd_edu_info_main" method="getBrdEduInfoMain" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+				<result name="success">/includes/jsp/user/brd/caBoardMain.jsp</result>
+		</action>
+		
+        <!-- 일반게시판 상세 -->
+        <action name="brd_detail" method="getBrdDetail"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="success">/includes/jsp/user/brd/caBoardDetail.jsp</result>
+        </action>
+		
+    	<!-- 일반게시판 저장,수정 페이지 -->
+		<action name="brd_update" method="getBrdUpdate" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+				<result name="success">/includes/jsp/user/brd/caBoardUpdate.jsp</result>
+		</action>
+		
+		<!-- 일반게시판 저장,수정 -->
+		<action name="brd_cont_save" method="brdContSave" class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+			<result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+		</action>
+		
+		<!-- 게시글 삭제 -->
+        <action name="brd_del" method="getBrdDel"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+		
+    	<!-- 일반게시판 리스트-->
+        <action name="brd_list" method="getBrdList"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items3.*, totalItemCount
+                </param>
+            </result>
+        </action>
+       
+        
+      	<!-- 일반게시판 코멘트-->
+        <action name="brd_comment_list" method="getBrdComent"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success"  type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    items.*, totalItemCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 코멘트 저장 -->
+        <action name="brd_coment_save" method="getBrdComentSave"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+        
+        <!-- 코멘트 삭제 -->
+        <action name="brd_coment_del" method="getBrdComentDel"   class="kr.podosoft.ws.service.ca.action.ajax.CAServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">false</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+		
+
+    </package>
+    
+    
+</struts>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+	<!-- 게시판 관리자 -->
+	<package name="brd-mgmt-action"  namespace="/mgmt/brd" extends="framework-default">
+	
+		<action name="brd-mgmt-main" class="kr.podosoft.ws.service.brd.action.BRDAction">
+			<result name="success">/includes/jsp/brdMgmtMain.jsp</result>
+		</action>
+		
+		<action name="brd_file_delete" method="fileDelete"  class="kr.podosoft.ws.service.brd.action.admin.BRDMgmtAction">
+			<result name="success">/includes/jsp/brdExec01.jsp</result>
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<action name="image_file_view" method="imageFileView"  class="kr.podosoft.ws.service.brd.action.admin.BRDMgmtAction">
+			<result name="success" type="stream">
+				<param name="contentType">${targetAttachmentContentType}</param>
+				<param name="contentLength">${targetAttachmentContentLength}</param>
+				<param name="inputName">targetAttachmentInputStream</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="file_download" method="fileDownLoad"  class="kr.podosoft.ws.service.brd.action.admin.BRDMgmtAction">
+			<result name="success" type="stream">
+				<param name="contentType">${targetAttachmentContentType}</param>
+				<param name="contentLength">${targetAttachmentContentLength}</param>
+				<param name="inputName">targetAttachmentInputStream</param>
+				<param name="contentDisposition">attachment;filename="${targetAttachmentFileName}"</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+
+		<!-- 게시판 삭제  -->
+		<action name="brd-community-delete" method="deleteCommunity"   class="kr.podosoft.ws.service.brd.action.admin.BRDMgmtAction">
+			<result name="success">/includes/jsp/brdExec01.jsp</result>
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 게시판 파일리스트  -->
+		<action name="brd-file-list" method="getCommunityFileList"   class="kr.podosoft.ws.service.brd.action.admin.BRDMgmtAction">
+			<result name="success">/includes/jsp/brdExec01.jsp</result>
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 게시판 리스트  -->
+		<action name="brd_mgmt_list" method="getCommunityList"   class="kr.podosoft.ws.service.brd.action.admin.BRDMgmtAction">
+			<result name="success">/includes/jsp/brdExec01.jsp</result>
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					items.*, totalItemCount
+				</param>
+			</result>
+		</action>
+	</package>
+	
+	<!-- 게시판 사용자 -->
+	<package name="brd-service-actions" namespace="/service/brd" extends="framework-default">
+	
+		<!-- 게시판 리스트 -->
+		<action name="brd_board_list" method="getBoardList" class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*, totalItemCount, cmpList.*
+				</param>
+			</result>
+		</action>
+	
+		<!-- 게시판 상세보기 -->
+		<action name="brd_board_detail" method="getBoardDetail" class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">false</param>
+				<param name="includeProperties">
+					items.*, fileList.*, selectCmpList.*
+				</param>
+			</result>
+		</action>
+		
+		<!-- 게시판 글쓰기 -->
+		<action name="brd_board_create" method="boardCreate" class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 게시판 수정  -->
+		<action name="brd_board_modify" method="boardUpdate"   class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 게시판 삭제  -->
+		<action name="brd_board_remove" method="boardDelete"   class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 게시판 답글 달기  -->
+		<action name="brd_board_reply_create" method="boardReplyCreate"   class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					saveCount
+				</param>
+			</result>
+		</action>
+		
+		<!-- 첨부파일 업로드 -->
+		<action name="brd_file_upload" method="fileUpload" class="kr.podosoft.ws.service.brd.action.ajax.BRDServiceAction">
+            <result name="json-success" type="json">
+                <param name="enableGZIP">true</param>
+                <param name="excludeNullProperties">true</param>
+                <param name="includeProperties">
+                    saveCount
+                </param>
+            </result>
+        </action>
+		
+	</package>
+
+</struts>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	
+	<!-- 커뮤니티 관리자 -->
+	<package name="sso-action"  namespace="/accounts/sso" extends="framework-default">
+		
+		<!-- podo login page -->
+        <action name="podo_login" method="loginPodo"  class="kr.podosoft.ws.service.login.action.SsoLoginAction">
+            <result name="success">/login_podo.jsp</result>
+        </action>
+		
+		
+		<action name="loginchk" method="loginchk" class="kr.podosoft.ws.service.login.action.SsoLoginAction">
+			<result name="json-success" type="json">
+				<param name="enableGZIP">true</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="includeProperties">
+					error
+				</param>
+			</result>
+		</action>
+		
+		<!-- 로그인 -->
+		<action name="login" method="login" class="kr.podosoft.ws.service.login.action.SsoLoginAction">
+			<result name="success">/main.jsp</result>
+			<result name="login">/index.jsp</result>
+			<result name="error">/index.jsp</result>
+		</action>
+		<action name="ssologin" method="ssologin" class="kr.podosoft.ws.service.login.action.SsoLoginAction">
+			<result name="success">/main.jsp</result>
+			<result name="login">/index.jsp</result>
+			<result name="error">/index.jsp</result>
+            <result name="cmpt">/link_cmpt.jsp</result>
+            <result name="cdp">/link_cdp.jsp</result>
+            <result name="board">/link_board.jsp</result>
+            <result name="edu">/link_edu.jsp</result>
+		</action>
+		
+		 <action name="logoutpg" class="kr.podosoft.ws.service.login.action.SsoLoginAction">
+            <result name="success">/logout.jsp</result>
+        </action>
+        
+	</package>
+
+</struts>
