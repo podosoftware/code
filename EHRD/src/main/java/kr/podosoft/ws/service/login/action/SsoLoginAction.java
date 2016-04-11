@@ -6,17 +6,13 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
-import kr.podosoft.ws.service.ba.BaService;
-import kr.podosoft.ws.service.utils.AuthenticationHelper;
-import kr.podosoft.ws.service.utils.CommonUtils;
-
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import architecture.ee.web.struts2.action.support.FrameworkActionSupport;
 import architecture.ee.web.util.ParamUtils;
-
-import SafeSignOn.SSO;
+import kr.podosoft.ws.service.ba.BaService;
+import kr.podosoft.ws.service.utils.AuthenticationHelper;
 
 public class SsoLoginAction extends FrameworkActionSupport {
 
@@ -73,42 +69,6 @@ public class SsoLoginAction extends FrameworkActionSupport {
 			}else{
 				error = "No data";
 			}
-		}else{
-			//운영서버용.. ssotoken의 유효성을 통해 로그인 체크..
-			String ssoToken = null;
-			int ssoResult = 0;
-			int ssoLastErr = 0;		
-			String ssoLastErrMsg = null;
-			SSO context = new SSO(API_KEY);
-			//context.setHostName("was21.knu.ac.kr"); // 테스트 용
-			
-			ssoToken = CommonUtils.getCookieValue(request, "ssotoken");
-			
-			if ( ssoToken == null || ssoToken.length() < 1 ) {
-				//쿠키값이 없으면 hi.knu.ac.kr 페이지에서 인증받도록 이동..
-				//System.out.println("SSO Cookie not exist");
-
-		        log.debug("### SSO Cookie not exist ");
-		        
-				error = "SSO Cookie not exist";
-			} else {
-				ssoResult = context.verifyToken(ssoToken, request.getRemoteAddr());
-			    if ( ssoResult < 0 ) {
-			    	//결과값이 없으면 hi.knu.ac.kr 페이지에서 인증받도록 이동..
-			    	
-			        ssoLastErr = context.getLastError();
-			        ssoLastErrMsg = context.getLastErrorMsg();
-			        
-			        log.debug("#############sso error..... "+ssoLastErr + " : " + ssoLastErrMsg);
-			    	error = ssoLastErr + " : " + ssoLastErrMsg;
-			    } else {
-			    	ssoStuPersnlNbr = context.getValue("USER_HRSSID"); //교직원번호 empno로 사용됨..
-					
-					userList = baSrv.queryForList("BA.SELECT_LOGIN_CHK_USER_LIST", 
-							new Object[] {ssoStuPersnlNbr, 1}, 
-							new int[] {Types.VARCHAR, Types.NUMERIC});
-			    }
-			}
 		}
 		
 		//에러가 없으면... 정상적으로 사용자데이터 체크..
@@ -157,41 +117,7 @@ public class SsoLoginAction extends FrameworkActionSupport {
 				return LOGIN;
 			}
 		}else{
-			//운영서버용.. ssotoken의 유효성을 통해 로그인 체크..
-			String ssoToken = null;
-			int ssoResult = 0;
-			int ssoLastErr = 0;		
-			String ssoLastErrMsg = null;
-			SSO context = new SSO(API_KEY);
-			//context.setHostName("was21.knu.ac.kr"); // 테스트 용
 			
-			ssoToken = CommonUtils.getCookieValue(request, "ssotoken");
-			
-			if ( ssoToken == null || ssoToken.length() < 1 ) {
-				//쿠키값이 없으면 hi.knu.ac.kr 페이지에서 인증받도록 이동..
-				//System.out.println("SSO Cookie not exist");
-
-		        log.debug("#############ssoToken ==null ");
-		        
-				return LOGIN;
-			} else {
-				ssoResult = context.verifyToken(ssoToken, request.getRemoteAddr());
-			    if ( ssoResult < 0 ) {
-			    	//결과값이 없으면 hi.knu.ac.kr 페이지에서 인증받도록 이동..
-			    	
-			        ssoLastErr = context.getLastError();
-			        ssoLastErrMsg = context.getLastErrorMsg();
-			        
-			        log.debug("#############sso error..... "+ssoLastErr + " : " + ssoLastErrMsg);
-			    	return LOGIN;
-			    } else {
-			    	ssoStuPersnlNbr = context.getValue("USER_HRSSID"); //교직원번호 empno로 사용됨..
-					
-					userList = baSrv.queryForList("BA.SELECT_LOGIN_CHK_USER_LIST", 
-							new Object[] {ssoStuPersnlNbr, 1}, 
-							new int[] {Types.VARCHAR, Types.NUMERIC});
-			    }
-			}
 		}
 		
 		if(userList!=null && userList.size()>0) {
@@ -245,7 +171,7 @@ public class SsoLoginAction extends FrameworkActionSupport {
 	 * @return
 	 * @throws Exception
 	 */
-	public String ssologin() throws Exception {
+	/*public String ssologin() throws Exception {
 		
 		log.info("Call sso login start");
 
@@ -337,7 +263,7 @@ public class SsoLoginAction extends FrameworkActionSupport {
 				}
 		    }
 		}
-	}
+	}*/
 	
 	
 }
