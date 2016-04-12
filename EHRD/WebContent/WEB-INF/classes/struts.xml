@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+    
+     <constant name="struts.devMode" value="false" />
+     <constant name="struts.multipart.maxSize" value="10485760" />
+     
+    <include file="struts-framework-default.xml"/>	
+    <include file="struts-framework-user.xml"/>	 
+    <include file="struts-framework-system.xml"/>	 
+    
+    <include file="struts-ba-service.xml"/>
+    <include file="struts-baSubject-admin.xml"/><!-- 교육관리 -->
+    <include file="struts-baUser-admin.xml"/>
+    <include file="struts-brd-service.xml"/><!-- 게시판 -->
+    <include file="struts-ca-service.xml"/> <!-- 역량관리 -->
+    <include file="struts-cam-service.xml"/> <!-- 역량진단 -->
+    <include file="struts-cdp-service.xml"/> <!-- 경력개발계획 -->
+    <include file="struts-mtr-service.xml"/> <!-- 멘토링 -->
+    <include file="struts-car-service.xml"/> <!-- 역량진단결과 -->
+    <include file="struts-em-service.xml"/> <!-- 학사운영 -->
+    <include file="struts-common-service.xml"/>
+    <include file="struts-sso-service.xml"/>
+    
+    
+<!-- 
+    <include file="struts-ba-sync-admin.xml"/>
+    <include file="struts-ba-education-service.xml"/>
+    <include file="struts-assessment-admin.xml"/>
+    <include file="struts-sa-service.xml"/>
+    <include file="struts-mp-service.xml"/>
+    <include file="struts-sd-service.xml"/>
+    <include file="struts-cnsl-service.xml"/>
+    <include file="struts-rcmmnd-dctn-service.xml"/>
+    <include file="struts-pec-service.xml"/>
+-->
+    
+</struts>

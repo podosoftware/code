@@ -1,0 +1,105 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:c="http://www.springframework.org/schema/c" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:lang="http://www.springframework.org/schema/lang" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd 
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+	<description>
+	<![CDATA[
+        Define  Security 
+	]]>
+	</description>
+    
+    <security:http pattern="/favicon.ico"             security="none" />
+    <security:http pattern="/decorators/**"          security="none" /> 
+    <security:http pattern="/images/**"              security="none" />
+    <security:http pattern="/includes/**"             security="none" /> 
+    <security:http pattern="/js/**"                      security="none" /> 
+    <security:http pattern="/css/**"                    security="none" />
+    <security:http pattern="/styles/**"                 security="none" />
+    <security:http pattern="/404.jsp*"                 security="none" />
+    <security:http pattern="/500.jsp*"                 security="none" />
+    <security:http pattern="/login.jsp*"               security="none" />
+    <security:http pattern="/view-image*"           security="none" />
+    <security:http pattern="/admin/css/**"          security="none" />
+    <security:http pattern="/admin/images/**"     security="none" />
+    <security:http pattern="/admin/js/**"             security="none" />
+    
+    <security:http pattern="/accounts/login.do*"  security="none" />    
+    <security:http pattern="/index.jsp"                security="none" />
+    <security:http pattern="/link_cmpt.jsp"                security="none" />
+    <security:http pattern="/link_cdp.jsp"                security="none" />
+    <security:http pattern="/manage**"               security="none" />
+    <security:http pattern="/manage/index.jsp"    security="none" />
+        
+    <security:http entry-point-ref="authenticationEntryPoint">
+        <security:intercept-url pattern="/main.do*"                access="IS_AUTHENTICATED_ANONYMOUSLY"/>    
+        <security:intercept-url pattern="/mpvaMain.do*"           access="IS_AUTHENTICATED_ANONYMOUSLY"/>    
+        <security:intercept-url pattern="/accounts/*"              access="IS_AUTHENTICATED_ANONYMOUSLY" />    
+        <security:intercept-url pattern="/accounts/sso/**"       access="IS_AUTHENTICATED_ANONYMOUSLY" />
+        <security:intercept-url pattern="/dmInfo/**"               access="IS_AUTHENTICATED_ANONYMOUSLY" />
+        
+        <security:intercept-url pattern="/admin/**"                access="ROLE_SYSTEM" />
+        <security:intercept-url pattern="/operator/**"             access="ROLE_SYSTEM,ROLE_OPERATOR" />
+        <security:intercept-url pattern="/deptmgr/**"             access="ROLE_SYSTEM,ROLE_OPERATOR,ROLE_MANAGER" />
+        <security:intercept-url pattern="/**"                          access="ROLE_USER" />
+        
+        <security:request-cache ref="authenticationRequestCache" />        
+    	<security:logout invalidate-session="true" logout-url="/logout" logout-success-url="/accounts/sso/logoutpg.do" />
+    	<security:form-login 
+    	    login-page="/accounts/login.do" 
+    	    login-processing-url="/login" 
+    	    username-parameter="username" 
+    	    password-parameter="password" 
+    	    authentication-failure-handler-ref="authenticationFailureHandler" 
+    	    authentication-success-handler-ref="authenticationSuccessHandler" />
+    	<security:access-denied-handler error-page="/includes/jsp/unauthorized.jsp" />   
+    	<security:anonymous enabled="true" username="ANONYMOUS" />
+    	<security:session-management session-fixation-protection="newSession" />
+    	
+    </security:http>
+
+    <security:authentication-manager>
+		<security:authentication-provider ref="daoAuthenticationProvider" />
+	</security:authentication-manager>
+
+	<bean id="loginUrlAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+		<constructor-arg value="/accounts/login.do" />
+	</bean>	
+	
+	<bean id="ajaxAuthenticationEntryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" />
+	
+	<bean id="nonAjaxRequestMatcher" class="architecture.ee.web.security.spring.util.NonAjaxRequestMatcher" />
+	
+    <bean id="authenticationRequestCache" class="org.springframework.security.web.savedrequest.HttpSessionRequestCache">
+	    <property name="requestMatcher" ref="nonAjaxRequestMatcher" />
+    </bean>
+	
+	<bean id="authenticationEntryPoint" class="org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint">
+		<constructor-arg>
+			<map>
+				<entry key-ref="nonAjaxRequestMatcher" value-ref="loginUrlAuthenticationEntryPoint" />
+			</map>
+		</constructor-arg>
+		<property name="defaultEntryPoint" ref="ajaxAuthenticationEntryPoint" />
+	</bean>
+	
+	<bean id="authenticationSuccessHandler" class="architecture.ee.web.security.spring.authentication.ExtendedAuthenticationSuccessHandler" p:defaultTargetUrl="/main.do" />
+	
+	<bean id="authenticationFailureHandler"  class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" p:defaultFailureUrl="/includes/jsp/error.jsp" p:useForward="true" />
+	
+	<bean id="daoAuthenticationProvider" class="architecture.user.security.spring.authentication.ExtendedAuthenticationProvider"  p:saltSource-ref="passwordSaltSource"  p:passwordEncoder-ref="passwordEncoder" p:userDetailsService-ref="userDetailsService" p:userManager-ref="userManager"/>
+
+	<bean id="userDetailsService" class="architecture.user.security.spring.userdetails.ExtendedUserDetailsService"  p:userManager-ref="userManager" p:roleManager-ref="roleManager" >
+	<constructor-arg><value>false</value></constructor-arg>
+	</bean>
+  
+</beans>

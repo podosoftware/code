@@ -1,0 +1,1389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>KPI</name>
+    <version>2.0</version>
+    <description>KPI 모듈을 위한 쿼리</description>
+
+    <!-- 부서장 START -->
+
+    <sql-query name="GET_OTC_AVG_NO_REG_LIST" description="관리유형이 평균인 지표의 실적 미등록 조회 " ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_OTC_AVG_NO_REG_LIST
+     
+SELECT UD.KPI_NO, KPI_NM
+FROM(
+    SELECT KM.COMPANYID, KM.RUN_NUM, KM.USERID, KM.KPI_NO, KPI_NM, MEA_EVL_CYC, MON.MON
+    FROM TB_KPI_USER_MAP KM,
+        (
+        SELECT COMPANYID, KPI_NO, KPI_NM, MEA_EVL_CYC, MON
+        FROM(
+            SELECT MON
+            FROM(
+                SELECT 1 MON FROM DUAL UNION ALL
+                SELECT 2 FROM DUAL UNION ALL
+                SELECT 3 FROM DUAL UNION ALL
+                SELECT 4 FROM DUAL UNION ALL
+                SELECT 5 FROM DUAL UNION ALL
+                SELECT 6 FROM DUAL UNION ALL
+                SELECT 7 FROM DUAL UNION ALL
+                SELECT 8 FROM DUAL UNION ALL
+                SELECT 9 FROM DUAL UNION ALL
+                SELECT 10 FROM DUAL UNION ALL
+                SELECT 11 FROM DUAL UNION ALL
+                SELECT 12 FROM DUAL
+                ),
+                TB_CAM_RUN_L CR
+            WHERE CR.COMPANYID = ? AND CR.RUN_NUM = ?
+                AND MON IN (
+                    CASE WHEN EVL_PRD_CD = '1' THEN 1 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 2 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 3 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 4 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 5 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 6 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 7 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 8 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 9 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 10 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 11 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 12 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 1 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 2 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 3 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 4 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 5 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 6 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 7 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 8 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 9 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 10 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 11 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 12 ELSE NULL END
+                )
+            ),
+            TB_KPI KI
+        WHERE KI.USEFLAG = 'Y'
+            AND KI.EVL_HOW = '2' -- 관리유형이 평균인 지표
+            AND KI.COMPANYID = ?
+            --실적 등록 주기에따라 등록해야하는 월 조회
+            AND MON IN (
+                CASE WHEN MEA_EVL_CYC = '1' THEN 1 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 2 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 3 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 4 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 5 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 6 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 7 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 8 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 9 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 10 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 11 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 12 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 3 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 6 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 9 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 12 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '3' THEN 6 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '3' THEN 12 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '4' THEN 12 ELSE NULL END
+            )
+        ) MON
+    WHERE KM.COMPANYID = MON.COMPANYID AND KM.KPI_NO = MON.KPI_NO 
+        AND KM.COMPANYID = ? AND KM.RUN_NUM = ? AND KM.USERID = ?
+        AND KM.USEFLAG = 'Y'
+    ) UD,
+    (
+    SELECT COMPANYID, RUN_NUM, USERID, KPI_NO, MON, PRF, APPR_REQ_STS
+    FROM TB_KPI_OTCEVL_PRF_MGMT
+    WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+        AND USEFLAG = 'Y'
+    ) PM
+WHERE UD.COMPANYID = PM.COMPANYID(+)
+    AND UD.RUN_NUM = PM.RUN_NUM(+)
+    AND UD.USERID = PM.USERID(+)
+    AND UD.KPI_NO = PM.KPI_NO(+)
+    AND UD.MON = PM.MON(+)
+    AND APPR_REQ_STS IS NULL  and 1=2
+GROUP BY UD.KPI_NO, UD.KPI_NM
+    ]]></sql-query>
+    
+    
+    <sql-query name="GET_DEPT_TT_YEAR_LIST" description="부서원종합평가 년도 목록 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_DEPT_TT_YEAR_LIST
+     
+SELECT DISTINCT EVL_YYYY, EVL_YYYY||'년' TEXT
+FROM TB_TT_EVL
+WHERE COMPANYID = ?
+    AND PUBL_YN = 'Y'
+    AND USEFLAG = 'Y'
+ORDER BY EVL_YYYY DESC
+    ]]></sql-query>
+
+    <sql-query name="GET_DEPT_TT_RUN_LIST" description="부서원종합평가 평가 목록 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_DEPT_TT_RUN_LIST
+     
+SELECT EVL_YYYY, TT_EVL_NO, TT_EVL_NM, EVL_TARG_CNT, PUBL_YN, TO_CHAR(CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME
+FROM TB_TT_EVL
+WHERE COMPANYID = ?
+    AND PUBL_YN = 'Y'
+    AND USEFLAG = 'Y'
+ORDER BY EVL_YYYY DESC, TT_EVL_NO DESC
+    ]]></sql-query>
+    
+    <sql-query name="GET_DEPT_TT_RUN_RESULT" description="부서원종합평가 평가 결과 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_DEPT_TT_RUN_RESULT
+     
+SELECT DVS_NAME, NAME, EMPNO,
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM,
+    NVL(TO_CHAR(TT_SCO), '-') TT_SCO, 
+    CASE WHEN OTC1_SCO IS NOT NULL THEN OTC1_SCO||'('||OTC1_APL_WEI||'%)' 
+    ELSE '-'
+    END OTC1_SCO, 
+    CASE WHEN OTC2_SCO IS NOT NULL THEN OTC2_SCO||'('||OTC2_APL_WEI||'%)' 
+    ELSE '-'
+    END OTC2_SCO, 
+    CASE WHEN CMPT1_SCO IS NOT NULL THEN CMPT1_SCO||'('||CMPT1_APL_WEI||'%)' 
+    ELSE '-'
+    END CMPT1_SCO, 
+    CASE WHEN CMPT2_SCO IS NOT NULL THEN CMPT2_SCO||'('||CMPT2_APL_WEI||'%)' 
+    ELSE '-'
+    END CMPT2_SCO,
+    ROW_NUMBER() OVER(ORDER BY NVL(TT_SCO, 0) DESC, NAME) RNUM
+FROM TB_BA_USER BU, TB_TT_EVL_USER EU, TB_BA_DIVISION BD
+WHERE BU.COMPANYID = EU.COMPANYID AND BU.USERID = EU.USERID
+    AND BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND EU.COMPANYID = ?
+    AND EU.TT_EVL_NO = ?
+    AND EU.USEFLAG = 'Y' AND BD.USEFLAG = 'Y' AND BU.USEFLAG = 'Y'
+    AND (BU.COMPANYID, BU.DIVISIONID) IN (
+        SELECT COMPANYID, DIVISIONID
+        FROM TB_BA_DIVISION
+        WHERE COMPANYID = ?
+            AND USEFLAG = 'Y'
+        START WITH DIVISIONID = (SELECT DIVISIONID FROM TB_BA_USER WHERE COMPANYID = ? AND USERID = ?)
+        CONNECT BY PRIOR COMPANYID = COMPANYID AND PRIOR DIVISIONID = HIGH_DVSID
+        )
+    ]]></sql-query>
+    
+
+    <sql-query name="UPDATE_NOW_PRF" description="실적 데이터 MERGE"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : UPDATE_NOW_PRF
+    
+MERGE INTO TB_KPI_USER_MAP A
+USING(
+    SELECT COMPANYID, RUN_NUM, USERID, KPI_NO, NOW_TARG, ROUND(PRF, 2) PRF, ROUND(PRF/NOW_TARG*100, 2) ACHR
+    FROM(
+        SELECT KU.COMPANYID, KU.RUN_NUM, KU.USERID, TK.KPI_NO, MAX(NOW_TARG) NOW_TARG,
+            CASE WHEN MAX(TK.EVL_HOW) = 1 THEN SUM(UM.PRF) 
+                 WHEN MAX(TK.EVL_HOW) = 2 THEN AVG(UM.PRF) 
+                 WHEN MAX(TK.EVL_HOW) = 3 THEN MAX(UM.PRF) 
+            END PRF
+        FROM TB_KPI TK, TB_KPI_USER_MAP KU, TB_KPI_OTCEVL_PRF_MGMT UM
+        WHERE TK.COMPANYID = KU.COMPANYID AND TK.KPI_NO = KU.KPI_NO
+            AND KU.COMPANYID = UM.COMPANYID AND KU.KPI_NO = UM.KPI_NO AND KU.RUN_NUM = UM.RUN_NUM AND KU.USERID  = UM.USERID
+            AND TK.USEFLAG = 'Y' AND KU.USEFLAG = 'Y' AND UM.USEFLAG = 'Y'
+            AND KU.COMPANYID = ? AND KU.RUN_NUM = ? AND KU.USERID = ? AND KU.KPI_NO = ?
+            AND APPR_REQ_STS = '2'
+        GROUP BY KU.COMPANYID, KU.RUN_NUM, KU.USERID, TK.KPI_NO
+        )
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID  = B.USERID AND A.KPI_NO = B.KPI_NO )
+WHEN MATCHED THEN 
+    UPDATE SET
+        A.NOW_PRF = B.PRF,
+        A.ACHR = B.ACHR
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_DEPT_TB_KPI_OTCEVL_PRF_MGMT" description=" 부서장 실적 데이터 MERGE"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : MERGE_DEPT_TB_KPI_OTCEVL_PRF_MGMT
+    
+MERGE INTO TB_KPI_OTCEVL_PRF_MGMT A
+USING(
+    SELECT
+        ? COMPANYID,
+        ? RUN_NUM,
+        ? USERID, 
+        ? KPI_NO,
+        ? MON,
+        ? PRF,
+        'Y' USEFLAG,
+        '2' APPR_REQ_STS,
+        SYSDATE CREATETIME,
+        ? CREATER
+    FROM DUAL
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.KPI_NO = B.KPI_NO AND A.MON = B.MON )
+WHEN NOT MATCHED THEN
+    INSERT(A.COMPANYID, A.RUN_NUM, A.USERID, A.KPI_NO, A.MON, A.PRF, A.USEFLAG, A.APPR_REQ_STS, A.CREATETIME, A.CREATER)
+    VALUES(B.COMPANYID, B.RUN_NUM, B.USERID, B.KPI_NO, B.MON, B.PRF, B.USEFLAG, B.APPR_REQ_STS, B.CREATETIME, B.CREATER)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.PRF = B.PRF,
+        A.USEFLAG = B.USEFLAG,
+        A.APPR_REQ_STS = B.APPR_REQ_STS,
+        A.MODIFYTIME = A.CREATETIME,
+        A.MODIFIER = A.CREATER
+    ]]></sql-query>
+    
+    <sql-query name="APPR_CONF_TB_KPI_OTCEVL_PRF_MGMT" description="실적데이터 승인처리"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : APPR_CONF_TB_KPI_OTCEVL_PRF_MGMT
+
+begin
+
+UPDATE TB_KPI_OTCEVL_PRF_MGMT
+SET APPR_REQ_STS = '2'
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ? 
+    AND USEFLAG = 'Y' 
+    AND APPR_REQ_STS = '1';
+    
+MERGE INTO TB_KPI_USER_MAP A
+USING(
+    SELECT COMPANYID, RUN_NUM, USERID, KPI_NO, NOW_TARG, ROUND(PRF, 2) PRF, ROUND(PRF/NOW_TARG*100, 2) ACHR
+    FROM(
+        SELECT KU.COMPANYID, KU.RUN_NUM, KU.USERID, TK.KPI_NO, MAX(NOW_TARG) NOW_TARG,
+            CASE WHEN MAX(TK.EVL_HOW) = 1 THEN SUM(UM.PRF) 
+                 WHEN MAX(TK.EVL_HOW) = 2 THEN AVG(UM.PRF) 
+                 WHEN MAX(TK.EVL_HOW) = 3 THEN MAX(UM.PRF) 
+            END PRF
+        FROM TB_KPI TK, TB_KPI_USER_MAP KU, TB_KPI_OTCEVL_PRF_MGMT UM
+        WHERE TK.COMPANYID = KU.COMPANYID AND TK.KPI_NO = KU.KPI_NO
+            AND KU.COMPANYID = UM.COMPANYID AND KU.KPI_NO = UM.KPI_NO AND KU.RUN_NUM = UM.RUN_NUM AND KU.USERID  = UM.USERID
+            AND TK.USEFLAG = 'Y' AND KU.USEFLAG = 'Y' AND UM.USEFLAG = 'Y'
+            AND KU.COMPANYID = ? AND KU.RUN_NUM = ? AND KU.USERID = ?
+            AND APPR_REQ_STS = '2'
+        GROUP BY KU.COMPANYID, KU.RUN_NUM, KU.USERID, TK.KPI_NO
+        )
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID  = B.USERID AND A.KPI_NO = B.KPI_NO )
+WHEN MATCHED THEN 
+    UPDATE SET
+        A.NOW_PRF = B.PRF,
+        A.ACHR = B.ACHR;
+        
+end;
+    ]]></sql-query>
+    
+    <sql-query name="GET_DEPT_RUN_INFO" description="부서장 성과평가 성과평가 기본정보 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_DEPT_RUN_INFO
+     
+SELECT ROW_NUMBER() OVER(ORDER BY RUN_START DESC) RNUM,
+    CR.RUN_NUM, CR.RUN_NAME, CR.RUN_START, CR.RUN_END, YYYY, 
+    SCLASS, ACLASS, BCLASS, CCLASS, DCLASS, CR.COMPANYID, EVL_PRD_CD
+FROM TB_CAM_RUN_L CR
+WHERE CR.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+    AND CR.RUN_NUM = ?
+    ]]></sql-query>
+        
+    <sql-query name="GET_DEPT_USER_OTC_LIST" description="부서장 성과평가 평가별 대상자 목록 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_DEPT_USER_OTC_LIST
+     
+SELECT ROW_NUMBER() OVER(ORDER BY CMPT_EVL_CMPL_FLAG, NAME ) RNUM, CR.RUN_NUM,
+    CR.COMPANYID, RT.USERID, BU.NAME, BU.EMPNO, 
+    CASE WHEN BD.HIGH_DVSID IS NOT NULL THEN 
+        (SELECT DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = RT.COMPANYID AND DIVISIONID = BD.HIGH_DVSID)||'>'
+    END||
+    DVS_NAME DVS_NAME,
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = RT.COMPANYID AND JOBLDR_NUM = RT.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = RT.COMPANYID AND JOBLDR_NUM = RT.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM,
+    EVL_TOTAL_SCORE, FUN_COMMON_CODE(RT.COMPANYID, 'C114', NVL(CMPT_EVL_CMPL_FLAG, '3')) EVL_STS
+FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT, TB_BA_USER BU, TB_BA_DIVISION BD
+WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+    AND RT.COMPANYID = BU.COMPANYID AND RT.USERID = BU.USERID
+    AND BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND CR.USEFLAG = 'Y'
+    AND RT.USEFLAG = 'Y'
+    AND BU.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+    AND RT.RUN_NUM = ?
+    AND RT.USERID != ?
+    AND (BU.COMPANYID, BU.DIVISIONID) IN (
+        SELECT COMPANYID, DIVISIONID
+        FROM TB_BA_DIVISION
+        WHERE COMPANYID = ?
+            AND USEFLAG = 'Y'
+        START WITH DIVISIONID = (SELECT DIVISIONID FROM TB_BA_USER WHERE COMPANYID = ? AND USERID = ?)
+        CONNECT BY PRIOR COMPANYID = COMPANYID AND PRIOR DIVISIONID = HIGH_DVSID
+        )
+    ]]></sql-query>
+
+    <sql-query name="GET_DEPT_OTC_YEAR_LIST" description="부서장 성과평가 평가년도 목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_DEPT_OTC_YEAR_LIST
+
+SELECT  DISTINCT(NVL(YYYY, TO_CHAR(SYSDATE, 'YYYY'))) YYYY 
+FROM TB_CAM_RUN_L CR
+WHERE CR.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+ORDER BY YYYY DESC
+    ]]></sql-query>
+    
+    <sql-query name="GET_DEPT_USER_OTC_RUN_LIST" description="부서장 성과평가 목록조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_DEPT_USER_OTC_RUN_LIST
+     
+SELECT ROW_NUMBER() OVER(ORDER BY RUN_START DESC) RNUM,
+    CR.RUN_NUM, CR.RUN_NAME, CR.RUN_START, CR.RUN_END, YYYY, 
+    SCLASS, ACLASS, BCLASS, CCLASS, DCLASS, CR.COMPANYID, EVL_PRD_CD
+FROM TB_CAM_RUN_L CR
+WHERE CR.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+    ]]></sql-query>
+    
+    
+    
+    <!-- 부서장 END -->
+    
+    
+    
+    <!-- 일반사용자 START -->
+
+    <sql-query name="SELECT_KPI_ARITH_CFS_INFO" description="지표별"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : SELECT_KPI_ARITH_CFS_INFO
+    
+SELECT *
+FROM TB_KPI
+WHERE COMPANYID = ? AND KPI_NO = ?
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_OTC_EVL_STATUS" description="성과평가 현상태 수정"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : UPDATE_OTC_EVL_STATUS
+    
+UPDATE TB_CAM_RUNTARGET_I
+SET CMPT_EVL_CMPL_FLAG = ?,
+    OTC_EVL_APPR_REQ_DATE = SYSDATE
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+    ]]></sql-query>
+    
+    <sql-query name="GET_RUN_EVL_STS" description="성과평가 현상태 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_RUN_EVL_STS
+    
+SELECT NVL(CMPT_EVL_CMPL_FLAG, '3') STS
+FROM TB_CAM_RUNTARGET_I
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+    ]]></sql-query>
+    
+    <sql-query name="APPR_REQ_TB_KPI_OTCEVL_PRF_MGMT" description="실적데이터 승인요청"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : APPR_REQ_TB_KPI_OTCEVL_PRF_MGMT
+    
+UPDATE TB_KPI_OTCEVL_PRF_MGMT
+SET APPR_REQ_STS = '1'
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ? 
+    AND USEFLAG = 'Y' 
+    AND APPR_REQ_STS IS NULL
+    ]]></sql-query>
+    
+    <sql-query name="USEFLAG_N_TB_KPI_OTCEVL_PRF_MGMT" description="실적데이터 사용여부 N처리"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : USEFLAG_N_TB_KPI_OTCEVL_PRF_MGMT
+    
+UPDATE TB_KPI_OTCEVL_PRF_MGMT
+SET USEFLAG = 'N'
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ? AND KPI_NO = ?
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_TB_KPI_OTCEVL_PRF_MGMT" description="실적 데이터 MERGE"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : MERGE_TB_KPI_OTCEVL_PRF_MGMT
+    
+MERGE INTO TB_KPI_OTCEVL_PRF_MGMT A
+USING(
+    SELECT
+        ? COMPANYID,
+        ? RUN_NUM,
+        ? USERID, 
+        ? KPI_NO,
+        ? MON,
+        ? PRF,
+        'Y' USEFLAG,
+        SYSDATE CREATETIME,
+        ? CREATER
+    FROM DUAL
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.KPI_NO = B.KPI_NO AND A.MON = B.MON )
+WHEN NOT MATCHED THEN
+    INSERT(A.COMPANYID, A.RUN_NUM, A.USERID, A.KPI_NO, A.MON, A.PRF, A.USEFLAG, A.CREATETIME, A.CREATER)
+    VALUES(B.COMPANYID, B.RUN_NUM, B.USERID, B.KPI_NO, B.MON, B.PRF, B.USEFLAG, B.CREATETIME, B.CREATER)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.PRF = B.PRF,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = A.CREATETIME,
+        A.MODIFIER = A.CREATER
+    ]]></sql-query>
+    
+    <sql-query name="GET_MONTH_PRF_LIST" description="웗별 실적 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_MONTH_PRF_LIST
+
+SELECT A.NOW_TARG, A.NOW_PRF, A.ACHR, B.*, C.YYYY, TO_CHAR(SYSDATE, 'YYYYMM') YYYYMM
+FROM TB_KPI_USER_MAP A, 
+    (
+    SELECT COMPANYID, RUN_NUM, USERID, KPI_NO,
+        MAX(PRF_1) PRF_1,
+        MAX(PRF_2) PRF_2,
+        MAX(PRF_3) PRF_3,
+        MAX(PRF_4) PRF_4,
+        MAX(PRF_5) PRF_5,
+        MAX(PRF_6) PRF_6,
+        MAX(PRF_7) PRF_7,
+        MAX(PRF_8) PRF_8,
+        MAX(PRF_9) PRF_9,
+        MAX(PRF_10) PRF_10,
+        MAX(PRF_11) PRF_11,
+        MAX(PRF_12) PRF_12,
+        MAX(STS_1) STS_1,
+        MAX(STS_2) STS_2,
+        MAX(STS_3) STS_3,
+        MAX(STS_4) STS_4,
+        MAX(STS_5) STS_5,
+        MAX(STS_6) STS_6,
+        MAX(STS_7) STS_7,
+        MAX(STS_8) STS_8,
+        MAX(STS_9) STS_9,
+        MAX(STS_10) STS_10,
+        MAX(STS_11) STS_11,
+        MAX(STS_12) STS_12
+    FROM(
+        SELECT MON.COMPANYID, MON.RUN_NUM, MON.USERID, MON.KPI_NO, MON.MON,
+            DECODE(MON.MON, 1, PM.PRF) PRF_1,
+            DECODE(MON.MON, 2, PM.PRF) PRF_2,
+            DECODE(MON.MON, 3, PM.PRF) PRF_3,
+            DECODE(MON.MON, 4, PM.PRF) PRF_4,
+            DECODE(MON.MON, 5, PM.PRF) PRF_5,
+            DECODE(MON.MON, 6, PM.PRF) PRF_6,
+            DECODE(MON.MON, 7, PM.PRF) PRF_7,
+            DECODE(MON.MON, 8, PM.PRF) PRF_8,
+            DECODE(MON.MON, 9, PM.PRF) PRF_9,
+            DECODE(MON.MON, 10, PM.PRF) PRF_10,
+            DECODE(MON.MON, 11, PM.PRF) PRF_11,
+            DECODE(MON.MON, 12, PM.PRF) PRF_12,
+            DECODE(MON.MON, 1, PM.APPR_REQ_STS) STS_1,
+            DECODE(MON.MON, 2, PM.APPR_REQ_STS) STS_2,
+            DECODE(MON.MON, 3, PM.APPR_REQ_STS) STS_3,
+            DECODE(MON.MON, 4, PM.APPR_REQ_STS) STS_4,
+            DECODE(MON.MON, 5, PM.APPR_REQ_STS) STS_5,
+            DECODE(MON.MON, 6, PM.APPR_REQ_STS) STS_6,
+            DECODE(MON.MON, 7, PM.APPR_REQ_STS) STS_7,
+            DECODE(MON.MON, 8, PM.APPR_REQ_STS) STS_8,
+            DECODE(MON.MON, 9, PM.APPR_REQ_STS) STS_9,
+            DECODE(MON.MON, 10, PM.APPR_REQ_STS) STS_10,
+            DECODE(MON.MON, 11, PM.APPR_REQ_STS) STS_11,
+            DECODE(MON.MON, 12, PM.APPR_REQ_STS) STS_12
+        FROM(
+            SELECT *
+            FROM(
+                SELECT ? COMPANYID, ? RUN_NUM, ? USERID, ? KPI_NO FROM DUAL
+                ),
+                (
+                SELECT 1 MON FROM DUAL UNION ALL
+                SELECT 2 FROM DUAL UNION ALL
+                SELECT 3 FROM DUAL UNION ALL
+                SELECT 4 FROM DUAL UNION ALL
+                SELECT 5 FROM DUAL UNION ALL
+                SELECT 6 FROM DUAL UNION ALL
+                SELECT 7 FROM DUAL UNION ALL
+                SELECT 8 FROM DUAL UNION ALL
+                SELECT 9 FROM DUAL UNION ALL
+                SELECT 10 FROM DUAL UNION ALL
+                SELECT 11 FROM DUAL UNION ALL
+                SELECT 12 FROM DUAL
+                )
+            ) MON,
+            (
+            SELECT COMPANYID, RUN_NUM, USERID, KPI_NO, MON, PRF, APPR_REQ_STS
+            FROM TB_KPI_OTCEVL_PRF_MGMT
+            WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ? AND KPI_NO = ?
+                AND USEFLAG = 'Y'
+            ) PM
+        WHERE MON.MON = PM.MON(+)
+        )
+    GROUP BY COMPANYID, RUN_NUM, USERID, KPI_NO
+    ) B, TB_CAM_RUN_L C
+WHERE A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.KPI_NO = B.KPI_NO
+    AND A.COMPANYID = C.COMPANYID AND A.RUN_NUM = C.RUN_NUM
+    ]]></sql-query>
+    
+    <sql-query name="GET_OTC_YEAR_LIST" description="평가년도 목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_OTC_YEAR_LIST
+
+SELECT  DISTINCT(NVL(YYYY, TO_CHAR(SYSDATE, 'YYYY'))) YYYY 
+FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT
+WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND RT.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+    AND RT.USERID = ?
+ORDER BY YYYY DESC
+    ]]></sql-query>
+    
+    <sql-query name="GET_USER_OTC_RUN_LIST" description="성과평가 목록조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_USER_OTC_RUN_LIST
+     
+SELECT ROW_NUMBER() OVER(ORDER BY RUN_START DESC) RNUM,
+    CR.RUN_NUM, CR.RUN_NAME, CR.RUN_START, CR.RUN_END, YYYY, 
+    SCLASS, ACLASS, BCLASS, CCLASS, DCLASS, CR.COMPANYID, RT.USERID, EVL_PRD_CD
+FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT
+WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND RT.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+    AND RT.USERID = ?
+    ]]></sql-query>
+    
+    <sql-query name="GET_COMMON_CODE_LIST" description="공통코드 조회"><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_COMMON_CODE_LIST
+
+SELECT COMMONCODE VALUE, CMM_CODENAME TEXT, PARENT_COMMONCODE P_VALUE
+FROM TB_BA_COMMONCODE
+WHERE STANDARDCODE = ?
+AND USEFLAG = 'Y'
+AND COMPANYID = ?
+       ]]>
+    </sql-query>
+    
+    <!-- 일반사용자 END -->
+    
+    
+    <!-- 고객사운영자 START -->
+    <sql-query name="GET_EVL_YEAR_LIST" description="평가년도 목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_EVL_YEAR_LIST
+
+    SELECT  DISTINCT(NVL(YYYY, TO_CHAR(SYSDATE, 'YYYY'))) YYYY  , NVL(YYYY, TO_CHAR(SYSDATE, 'YYYY'))||'년' TEXT
+    FROM TB_CAM_RUN_L CR
+    WHERE  CR.EVL_TYPE_CD = ?
+        AND  CR.COMPANYID = ?
+        AND USEFLAG = 'Y'
+        AND DEL_YN = 'N'
+    ORDER BY YYYY DESC
+    ]]></sql-query>
+    
+    <sql-query name="GET_KPI_RUN_LIST" description="직원별KPI관리 성과평가 목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_KPI_RUN_LIST
+
+SELECT ROW_NUMBER() OVER(ORDER BY RUN_START DESC) RNUM,
+    CR.RUN_NUM, CR.RUN_NAME, CR.RUN_START, CR.RUN_END, YYYY, 
+    SCLASS, ACLASS, BCLASS, CCLASS, DCLASS,
+    SELF_WEIGHT, ONE_WEIGHT, TWO_WEIGHT, COL_WEIGHT, SUB_WEIGHT, EVL_PRD_CD
+FROM TB_CAM_RUN_L CR
+WHERE CR.EVL_TYPE_CD = '2' AND CR.COMPANYID = ?
+    AND USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="GET_KPI_USER_LIST" description="직원별KPI관리 사용자 목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_KPI_USER_LIST
+
+SELECT '' CHK, BU.USERID, 
+    DVS_NAME, BU.NAME, BU.EMPNO, CJ.JOBLDR_NAME JOB_NM, CL.JOBLDR_NAME LEADERSHIP_NM,
+    DECODE(TU.USERID, NULL, 'N', 'Y') SETTING_FLAG,
+    CASE WHEN TU.USERID IS NOT NULL THEN EVL_TOTAL_SCORE
+    ELSE NULL
+    END EVL_TOTAL_SCORE,
+    ROW_NUMBER() OVER(ORDER BY DECODE(TU.USERID, NULL, '', 'Y'), BU.NAME ) RNUM, CMPT_EVL_CMPL_FLAG
+FROM TB_BA_USER BU, TB_BA_DIVISION BD, TB_CM_JOB_LDR_I CJ, TB_CM_JOB_LDR_I CL,
+    (
+    SELECT CR.COMPANYID, CR.RUN_NUM, RT.USERID, RT.EVL_TOTAL_SCORE, CMPT_EVL_CMPL_FLAG
+    FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT
+    WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+        AND CR.COMPANYID = ?
+        AND CR.RUN_NUM = ?
+        AND RT.USEFLAG = 'Y'
+    ) TU
+WHERE BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND BU.COMPANYID = CJ.COMPANYID(+) AND BU.JOB = CJ.JOBLDR_NUM(+) AND CJ.JOBLDR_FLAG(+) = 'J'
+    AND BU.COMPANYID = CL.COMPANYID(+) AND BU.LEADERSHIP = CL.JOBLDR_NUM(+) AND CL.JOBLDR_FLAG(+) = 'L'
+    AND BU.COMPANYID = TU.COMPANYID(+) AND BU.USERID = TU.USERID(+)
+    AND BU.COMPANYID = ? AND BU.USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="GET_KPI_USER_MAP_LIST" description="직원별KPI관리 사용자 KPI 지표 매핑 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_KPI_USER_MAP_LIST
+
+SELECT CR.COMPANYID, CR.RUN_NUM, CR.USERID, KP.KPI_TYPE, FUN_COMMON_CODE(CR.COMPANYID, 'C106', KP.KPI_TYPE) KPI_TYPE_NM,
+    KU.KPI_NO, KP.KPI_NM, KP.UNIT, FUN_COMMON_CODE(CR.COMPANYID, 'C110', KP.UNIT) UNIT_NM, BEF_PRF, NOW_TARG, NOW_PRF, PRIO, DIFF, WEI,
+    KP.MEA_EVL_CYC, FUN_COMMON_CODE(CR.COMPANYID, 'C107', KP.MEA_EVL_CYC) MEA_EVL_CYC_NM,
+    SCLS_ST, ACLS_ST, ACLS_ED, BCLS_ST, BCLS_ED, CCLS_ST, CCLS_ED, DCLS_ED, EVLCLS,
+    MOD(ROW_NUMBER() OVER(ORDER BY KU.KPI_NO ),2) ODDEVEN, 
+    ROW_NUMBER() OVER(ORDER BY KP.KPI_NM )-1 RNUM,
+    EVL_HOW, FUN_COMMON_CODE(CR.COMPANYID, 'C109', KP.EVL_HOW) EVL_HOW_NM,
+    NVL(CMPT_EVL_CMPL_FLAG, '3') CMPT_EVL_CMPL_FLAG,
+    NVL((
+    SELECT SUM(DECODE(APPR_REQ_STS, NULL, 1)) NCNT
+    FROM TB_KPI_OTCEVL_PRF_MGMT
+    WHERE COMPANYID = CR.COMPANYID AND RUN_NUM = CR.RUN_NUM AND USERID = CR.USERID AND KPI_NO = KU.KPI_NO
+        AND USEFLAG = 'Y'
+    ), 0) NCNT, CR.EVL_TOTAL_SCORE,
+    NVL((
+    SELECT SUM(DECODE(APPR_REQ_STS, '1', 1)) NCNT
+    FROM TB_KPI_OTCEVL_PRF_MGMT
+    WHERE COMPANYID = CR.COMPANYID AND RUN_NUM = CR.RUN_NUM AND USERID = CR.USERID AND KPI_NO = KU.KPI_NO
+        AND USEFLAG = 'Y'
+    ), 0) QCNT, KU.REG_TYPE_CD, NVL(CMPT_EVL_CMPL_FLAG, '3') STS, KU.USEFLAG
+FROM TB_CAM_RUNTARGET_I CR, TB_KPI_USER_MAP KU, TB_KPI KP
+WHERE CR.COMPANYID = KU.COMPANYID AND CR.RUN_NUM = KU.RUN_NUM AND CR.USERID = KU.USERID
+    AND KU.COMPANYID = KP.COMPANYID AND KU.KPI_NO = KP.KPI_NO
+    AND CR.COMPANYID = ? AND CR.USERID = ? AND CR.RUN_NUM = ? 
+    AND CR.USEFLAG ='Y' 
+    AND KP.USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="GET_KPI_DEPT_USER_MAP_LIST" description="부서원성과관리 사용자 KPI 지표 매핑 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_KPI_DEPT_USER_MAP_LIST
+
+SELECT CR.COMPANYID, CR.RUN_NUM, CR.USERID, KP.KPI_TYPE, FUN_COMMON_CODE(CR.COMPANYID, 'C106', KP.KPI_TYPE) KPI_TYPE_NM,
+    KU.KPI_NO, KP.KPI_NM, KP.UNIT, FUN_COMMON_CODE(CR.COMPANYID, 'C110', KP.UNIT) UNIT_NM, BEF_PRF, NOW_TARG, NOW_PRF, PRIO, DIFF, WEI,
+    KP.MEA_EVL_CYC, FUN_COMMON_CODE(CR.COMPANYID, 'C107', KP.MEA_EVL_CYC) MEA_EVL_CYC_NM,
+    SCLS_ST, ACLS_ST, ACLS_ED, BCLS_ST, BCLS_ED, CCLS_ST, CCLS_ED, DCLS_ED, EVLCLS,
+    MOD(ROW_NUMBER() OVER(ORDER BY KU.KPI_NO ),2) ODDEVEN, 
+    ROW_NUMBER() OVER(ORDER BY KP.KPI_NM )-1 RNUM,
+    EVL_HOW, FUN_COMMON_CODE(CR.COMPANYID, 'C109', KP.EVL_HOW) EVL_HOW_NM,
+    NVL(CMPT_EVL_CMPL_FLAG, '3') CMPT_EVL_CMPL_FLAG,
+    NVL((
+    SELECT SUM(DECODE(APPR_REQ_STS, NULL, 1)) NCNT
+    FROM TB_KPI_OTCEVL_PRF_MGMT
+    WHERE COMPANYID = CR.COMPANYID AND RUN_NUM = CR.RUN_NUM AND USERID = CR.USERID AND KPI_NO = KU.KPI_NO
+        AND USEFLAG = 'Y'
+    ), 0) NCNT, CR.EVL_TOTAL_SCORE,
+    NVL((
+    SELECT SUM(DECODE(APPR_REQ_STS, '1', 1)) NCNT
+    FROM TB_KPI_OTCEVL_PRF_MGMT
+    WHERE COMPANYID = CR.COMPANYID AND RUN_NUM = CR.RUN_NUM AND USERID = CR.USERID AND KPI_NO = KU.KPI_NO
+        AND USEFLAG = 'Y'
+    ), 0) QCNT, KU.REG_TYPE_CD, NVL(CMPT_EVL_CMPL_FLAG, '3') STS, KU.USEFLAG
+FROM TB_CAM_RUNTARGET_I CR, TB_KPI_USER_MAP KU, TB_KPI KP
+WHERE CR.COMPANYID = KU.COMPANYID AND CR.RUN_NUM = KU.RUN_NUM AND CR.USERID = KU.USERID
+    AND KU.COMPANYID = KP.COMPANYID AND KU.KPI_NO = KP.KPI_NO
+    AND CR.COMPANYID = ? AND CR.USERID = ? AND CR.RUN_NUM = ? 
+    AND CR.USEFLAG ='Y' 
+    AND KU.USEFLAG = 'Y' 
+    AND KP.USEFLAG = 'Y'
+    ]]></sql-query>
+
+    <sql-query name="GET_KPI_USE_LIST" description="고객사 사용 KPI 목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_KPI_USE_LIST
+
+SELECT A.KPI_NO, A.KPI_NM,
+    FUN_COMMON_CODE(A.COMPANYID, 'C106', A.KPI_TYPE) KPI_TYPE_NM,
+    FUN_COMMON_CODE(A.COMPANYID, 'C107', A.MEA_EVL_CYC) MEA_EVL_CYC_NM,
+    FUN_COMMON_CODE(A.COMPANYID, 'C108', A.EVL_TYPE) EVL_TYPE_NM,
+    FUN_COMMON_CODE(A.COMPANYID, 'C109', A.EVL_HOW) EVL_HOW_NM,
+    FUN_COMMON_CODE(A.COMPANYID, 'C110', A.UNIT) UNIT_NM,
+    MEA_EVL_CYC,
+    ROW_NUMBER() OVER(ORDER BY A.KPI_NM) - 1 RNUM 
+FROM TB_KPI A
+WHERE A.USEFLAG = 'Y'
+    AND A.COMPANYID = ?
+    AND A.REG_TYPE_CD = '1'
+    AND A.KPI_TYPE IS NOT NULL
+    AND A.MEA_EVL_CYC IS NOT NULL
+    AND A.EVL_HOW IS NOT NULL
+    ]]></sql-query>
+    
+    <sql-query name="GET_KPI_USER_USE_LIST" description="고객사 사용 KPI 목록과 고객사 개인의 KPI목록 조회"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : GET_KPI_USER_USE_LIST
+
+SELECT ROW_NUMBER() OVER(ORDER BY AA.KPI_NM) - 1 RNUM, AA.*
+FROM( 
+    SELECT A.KPI_NO, A.KPI_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C106', A.KPI_TYPE) KPI_TYPE_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C107', A.MEA_EVL_CYC) MEA_EVL_CYC_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C108', A.EVL_TYPE) EVL_TYPE_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C109', A.EVL_HOW) EVL_HOW_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C110', A.UNIT) UNIT_NM,
+        MEA_EVL_CYC
+    FROM TB_KPI A
+    WHERE A.USEFLAG = 'Y'
+        AND A.COMPANYID = ?
+        AND A.REG_TYPE_CD = '1' -- 회사가 등록한 지표.
+        AND A.KPI_TYPE IS NOT NULL
+        AND A.MEA_EVL_CYC IS NOT NULL
+        AND A.EVL_HOW IS NOT NULL
+    UNION ALL
+    SELECT A.KPI_NO, A.KPI_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C106', A.KPI_TYPE) KPI_TYPE_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C107', A.MEA_EVL_CYC) MEA_EVL_CYC_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C108', A.EVL_TYPE) EVL_TYPE_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C109', A.EVL_HOW) EVL_HOW_NM,
+        FUN_COMMON_CODE(A.COMPANYID, 'C110', A.UNIT) UNIT_NM,
+        MEA_EVL_CYC
+    FROM TB_KPI A
+    WHERE A.USEFLAG = 'Y'
+        AND A.COMPANYID = ?
+        AND A.REG_TYPE_CD = '2' -- 개인이 등록한 지표.
+        AND A.CREATER = ?
+        AND A.KPI_TYPE IS NOT NULL
+        AND A.MEA_EVL_CYC IS NOT NULL
+        AND A.EVL_HOW IS NOT NULL
+    ) AA
+    ]]></sql-query>
+
+    <sql-query name="MERGE_TB_CAM_RUNTARGET_I" description="KPI 세팅 - 대상자 저장"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : MERGE_TB_CAM_RUNTARGET_I
+
+MERGE INTO TB_CAM_RUNTARGET_I A
+USING(
+    SELECT COMPANYID, ? RUN_NUM, USERID, DIVISIONID, JOB, LEADERSHIP, 
+        'Y' USEFLAG, SYSDATE CREATETIME, ? CREATER
+    FROM TB_BA_USER
+    WHERE COMPANYID = ? ]]><dynamic><![CDATA[ ${ TAG_WHERE_STR }]]></dynamic><![CDATA[
+        AND ROWNUM = 1
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID )
+WHEN NOT MATCHED THEN
+    INSERT(A.COMPANYID, A.RUN_NUM, A.USERID, A.DIVISION, A.JOB, A.LEADERSHIP, A.USEFLAG , A.CREATETIME, A.CREATER)
+    VALUES(B.COMPANYID, B.RUN_NUM, B.USERID, B.DIVISIONID, B.JOB, B.LEADERSHIP, B.USEFLAG , B.CREATETIME, B.CREATER)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.DIVISION = B.DIVISIONID, 
+        A.JOB = B.JOB, 
+        A.LEADERSHIP = B.LEADERSHIP,
+        A.USEFLAG = B.USEFLAG
+    ]]></sql-query>
+
+    <sql-query name="MERGE_TB_KPI_USER_MAP" description="KPI 세팅 - kpi 매핑정보 저장"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : MERGE_TB_KPI_USER_MAP
+
+MERGE INTO TB_KPI_USER_MAP A
+USING(
+    SELECT COMPANYID,
+        ? RUN_NUM,
+        ? USERID,
+        KPI_NO,
+        'Y' USEFLAG,
+        SYSDATE CREATETIME,
+        ? CREATER,
+        ? REG_TYPE_CD
+    FROM TB_KPI
+    WHERE COMPANYID = ? AND KPI_NO = ?
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.KPI_NO = B.KPI_NO )
+WHEN NOT MATCHED THEN
+    INSERT(A.COMPANYID, A.RUN_NUM, A.USERID, A.KPI_NO, A.USEFLAG, A.CREATETIME, A.CREATER, A.REG_TYPE_CD)
+    VALUES(B.COMPANYID, B.RUN_NUM, B.USERID, B.KPI_NO, B.USEFLAG, B.CREATETIME, B.CREATER, B.REG_TYPE_CD)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.REG_TYPE_CD = B.REG_TYPE_CD,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER
+    ]]></sql-query>
+    
+    <sql-query name="USE_N_TB_KPI_DEPT_USER_MAP" description="KPI 세팅 - kpi 사용안함처리"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : USE_N_TB_KPI_DEPT_USER_MAP
+
+UPDATE TB_KPI_USER_MAP
+SET USEFLAG = 'N'
+WHERE COMPANYID = ? 
+    AND RUN_NUM = ? 
+    AND USERID = ?
+    AND KPI_NO = ?
+    ]]></sql-query>
+    
+    <sql-query name="USE_N_TB_KPI_USER_MAP" description="KPI 세팅 - kpi 삭제처리"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : USE_N_TB_KPI_USER_MAP
+
+BEGIN
+DELETE FROM TB_KPI_USER_MAP
+WHERE COMPANYID = ? 
+    AND RUN_NUM = ? 
+    AND USERID = ?
+    AND KPI_NO = ?;
+
+UPDATE TB_CAM_RUNTARGET_I
+SET EVL_TOTAL_SCORE = null,
+    OTC_EVL_WEI_SCO = null,
+    USEFLAG = 'N',
+    MODIFYTIME = SYSDATE,
+    MODIFIER = ?
+WHERE COMPANYID = ?
+    AND RUN_NUM = ?
+    AND USERID = ?
+    AND (
+        EXISTS (
+            SELECT COMPANYID, RUN_NUM, USERID
+            FROM TB_KPI_USER_MAP
+            WHERE COMPANYID = ?
+                AND RUN_NUM = ?
+                AND USERID = ?
+            GROUP BY COMPANYID, RUN_NUM, USERID
+            HAVING COUNT(*) = SUM(DECODE(USEFLAG, 'N', 1))
+        OR
+        NOT EXISTS (
+            SELECT COMPANYID, RUN_NUM, USERID
+            FROM TB_KPI_USER_MAP
+            WHERE COMPANYID = ?
+                AND RUN_NUM = ?
+                AND USERID = ?)
+        )
+    );
+    
+END ;
+    ]]></sql-query>
+    
+    <sql-query name="SETTING_TB_KPI_USER_MAP" description="KPI 세팅 - kpi 매핑정보 저장"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : SETTING_TB_KPI_USER_MAP
+
+MERGE INTO TB_KPI_USER_MAP A
+USING(
+    SELECT COMPANYID,
+        ? RUN_NUM,
+        (SELECT MAX(USERID) FROM TB_BA_USER WHERE COMPANYID = ? ]]><dynamic><![CDATA[ ${ WHERE_STR }]]></dynamic><![CDATA[ ) USERID,
+        KPI_NO,
+        ? BEF_PRF,
+        ? NOW_TARG,
+        ? NOW_PRF,
+        ? PRIO,
+        'Y' USEFLAG,
+        SYSDATE CREATETIME,
+        ? CREATER,
+        ? REG_TYPE_CD
+    FROM TB_KPI
+    WHERE COMPANYID = ? AND KPI_NO = ?
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.KPI_NO = B.KPI_NO )
+--WHEN NOT MATCHED THEN
+--    INSERT(A.COMPANYID, A.RUN_NUM, A.USERID, A.KPI_NO, A.BEF_PRF, A.NOW_TARG, A.PRIO, A.USEFLAG, A.CREATETIME, A.CREATER, A.REG_TYPE_CD)
+--    VALUES(B.COMPANYID, B.RUN_NUM, B.USERID, B.KPI_NO, B.BEF_PRF, B.NOW_TARG, B.PRIO, B.USEFLAG, B.CREATETIME, B.CREATER, B.REG_TYPE_CD)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.BEF_PRF = B.BEF_PRF, 
+        A.NOW_TARG = B.NOW_TARG, 
+        A.PRIO = B.PRIO,
+--        A.REG_TYPE_CD = B.REG_TYPE_CD,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER
+    ]]></sql-query>
+    
+    <sql-query name="SETTING_MGR_TB_KPI_USER_MAP" description="KPI 세팅 - kpi 매핑정보 저장"><![CDATA[
+-- sql_file : kpi-sqlset.xml
+-- sql_name : SETTING_MGR_TB_KPI_USER_MAP
+
+MERGE INTO TB_KPI_USER_MAP A
+USING(
+    SELECT COMPANYID,
+        ? RUN_NUM,
+        (SELECT MAX(USERID) FROM TB_BA_USER WHERE COMPANYID = ? ]]><dynamic><![CDATA[ ${ WHERE_STR }]]></dynamic><![CDATA[ ) USERID,
+        KPI_NO,
+        ? BEF_PRF,
+        ? NOW_TARG,
+        ? NOW_PRF,
+        ? PRIO,
+        'Y' USEFLAG,
+        SYSDATE CREATETIME,
+        ? CREATER,
+        ? REG_TYPE_CD
+    FROM TB_KPI
+    WHERE COMPANYID = ? AND KPI_NO = ?
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.KPI_NO = B.KPI_NO )
+WHEN NOT MATCHED THEN
+    INSERT(A.COMPANYID, A.RUN_NUM, A.USERID, A.KPI_NO, A.BEF_PRF, A.NOW_TARG, A.PRIO, A.USEFLAG, A.CREATETIME, A.CREATER, A.REG_TYPE_CD)
+    VALUES(B.COMPANYID, B.RUN_NUM, B.USERID, B.KPI_NO, B.BEF_PRF, B.NOW_TARG, B.PRIO, B.USEFLAG, B.CREATETIME, B.CREATER, B.REG_TYPE_CD)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.BEF_PRF = B.BEF_PRF, 
+        A.NOW_TARG = B.NOW_TARG, 
+        A.PRIO = B.PRIO,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER
+    ]]></sql-query>
+    
+    <sql-query name="EXCUTE_PROC_USER_KPI_MAPPING" description="직원별 성과평가 결과 생성"><![CDATA[
+        --sql_file : kpi-sqlset.xml
+        --sql_name : "EXCUTE_PROC_USER_KPI_MAPPING"
+        CALL  PROC_USER_KPI_MAPPING(?, ?, ?, ?)
+    ]]></sql-query>
+
+    <sql-query name="INIT_USER_KPI_MAPPING" description="설정된 지표매핑 초기화"><![CDATA[
+        --sql_file : kpi-sqlset.xml
+        --sql_name : "INIT_USER_KPI_MAPPING"
+
+begin 
+UPDATE TB_KPI_USER_MAP
+SET BEF_PRF = null, 
+    NOW_TARG = null, 
+    PRIO = null, 
+    DIFF = null, 
+    WEI = null,
+    SCLS_ST = null, 
+    ACLS_ST = null, 
+    ACLS_ED = null, 
+    BCLS_ST = null, 
+    BCLS_ED = null, 
+    CCLS_ST = null, 
+    CCLS_ED = null, 
+    DCLS_ED = null,
+    USEFLAG = 'N',
+    MODIFYTIME = SYSDATE,
+    MODIFIER = ?
+WHERE COMPANYID = ? 
+    AND RUN_NUM = ? 
+    AND USERID = ?;
+    
+UPDATE TB_CAM_RUNTARGET_I
+SET EVL_TOTAL_SCORE = null,
+    OTC_EVL_WEI_SCO = null,
+    USEFLAG = 'N',
+    MODIFYTIME = SYSDATE,
+    MODIFIER = ?
+WHERE   COMPANYID = ? 
+    AND RUN_NUM = ? 
+    AND USERID = ?;  
+end ;
+        ]]></sql-query>
+
+    <sql-query name="USER_KPI_MAPPING_EXCEL" description="설정된 지표매핑 엑셀다운로드"><![CDATA[
+        --sql_file : kpi-sqlset.xml
+        --sql_name : "USER_KPI_MAPPING_EXCEL"
+
+SELECT CR.COMPANYID, CR.RUN_NUM, CR.USERID, BU.EMPNO, BU.NAME, KP.KPI_TYPE, FUN_COMMON_CODE(CR.COMPANYID, 'C106', KP.KPI_TYPE) KPI_TYPE_NM,
+    ku.kpi_no, KP.KPI_NM, BEF_PRF, NOW_TARG, NOW_PRF, PRIO,
+    ROW_NUMBER() OVER(PARTITION BY CR.USERID ORDER BY BU.NAME, CR.USERID, KU.KPI_NO ) RNUM
+FROM TB_CAM_RUNTARGET_I CR, TB_KPI_USER_MAP KU, TB_KPI KP, TB_BA_USER BU
+WHERE CR.COMPANYID = KU.COMPANYID AND CR.RUN_NUM = KU.RUN_NUM AND CR.USERID = KU.USERID
+    AND CR.USERID = BU.USERID
+    AND KU.COMPANYID = KP.COMPANYID AND KU.KPI_NO = KP.KPI_NO
+    AND CR.COMPANYID = ?
+    AND CR.RUN_NUM = ?
+    AND CR.USEFLAG ='Y' AND KU.USEFLAG = 'Y' AND KP.USEFLAG = 'Y' AND BU.USEFLAG = 'Y'
+    ]]></sql-query>
+            
+    <sql-query name="EXCUTE_PROC_ALL_USER_KPI_MAPPING" description="전직원 성과평가 결과 생성"><![CDATA[
+        --sql_file : kpi-sqlset.xml
+        --sql_name : "EXCUTE_PROC_ALL_USER_KPI_MAPPING"
+        
+        CALL  PROC_ALL_USER_KPI_MAPPING(?, ?, ?)
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_USER_INFO" description="사용자 정보 검색"><![CDATA[
+        --sql_file : kpi-sqlset.xml
+        --sql_name : "SELECT_USER_INFO"
+
+SELECT BU.USERID
+     , BU.ID
+     , BU.NAME
+     , BU.EMPNO
+     , BU.JOB
+     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NAME
+     , BU.LEADERSHIP
+     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NAME
+     , BD.DVS_NAME
+     , BU.GRADE_NM
+  FROM TB_BA_USER BU, TB_BA_DIVISION BD
+ WHERE BU.COMPANYID = BD.COMPANYID(+)
+   AND BU.DIVISIONID = BD.DIVISIONID(+)
+   AND BU.COMPANYID = ? AND BU.USERID = ?
+    ]]></sql-query>
+    
+
+    
+    <sql-query name="GET_SIMPLE_RUN_INFO" description="성과평가 기본정보 조회" ><![CDATA[
+
+        --sql_file : kpi-sqlset.xml
+        --sql_name : GET_SIMPLE_RUN_INFO
+     
+SELECT RUN_NAME, RUN_START, RUN_END, FUN_COMMON_CODE(COMPANYID, 'C112', EVL_PRD_CD) EVL_PRD_NM
+FROM TB_CAM_RUN_L
+WHERE COMPANYID = ? AND RUN_NUM = ?
+    ]]></sql-query>
+
+    <sql-query name="GET_TT_YEAR_LIST" description="종합평가 년도 목록 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_TT_YEAR_LIST
+     
+SELECT DISTINCT EVL_YYYY, EVL_YYYY||'년' TEXT
+FROM TB_TT_EVL
+WHERE COMPANYID = ?
+    AND USEFLAG = 'Y'
+ORDER BY EVL_YYYY DESC
+    ]]></sql-query>
+
+    <sql-query name="GET_TT_RUN_LIST" description="종합평가 평가 목록 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_TT_RUN_LIST
+     
+SELECT EVL_YYYY, TT_EVL_NO, TT_EVL_NM, EVL_TARG_CNT, PUBL_YN, TO_CHAR(CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME
+FROM TB_TT_EVL
+WHERE COMPANYID = ?
+    AND USEFLAG = 'Y'
+ORDER BY EVL_YYYY DESC, TT_EVL_NO DESC
+    ]]></sql-query>
+
+    <sql-query name="GET_TT_RUN_SET_INFO" description="종합평가 평가 구성 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_TT_RUN_SET_INFO
+     
+SELECT COMPANYID, TT_EVL_NO,  MAX(TT_EVL_NM) TT_EVL_NM, MAX(CREATETIME) CREATETIME, MAX(EVL_TARG_CNT) EVL_TARG_CNT,
+    NVL(MAX(OTC1), '없음') OTC1, NVL(MAX(OTC2), '없음') OTC2, NVL(MAX(CMPT1), '없음') CMPT1, NVL(MAX(CMPT2), '없음') CMPT2
+FROM(
+    SELECT A.COMPANYID, A.TT_EVL_NO, A.RUN_NUM,  C.TT_EVL_NM, TO_CHAR(C.CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME, EVL_TARG_CNT,
+        CASE WHEN A.WEI_APL_TARG = 1 THEN RUN_NAME
+        END OTC1, 
+        CASE WHEN A.WEI_APL_TARG = 2 THEN RUN_NAME
+        END OTC2, 
+        CASE WHEN A.WEI_APL_TARG = 3 THEN RUN_NAME
+        END CMPT1, 
+        CASE WHEN A.WEI_APL_TARG = 4 THEN RUN_NAME
+        END CMPT2
+    FROM TB_TT_EVL_RUN A, TB_CAM_RUN_L B, TB_TT_EVL C
+    WHERE A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM
+        AND A.COMPANYID = C.COMPANYID AND A.TT_EVL_NO = C.TT_EVL_NO
+        AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y'
+        AND A.COMPANYID = ?
+        AND A.TT_EVL_NO = ?
+    )
+GROUP BY COMPANYID, TT_EVL_NO
+    ]]></sql-query>
+
+    <sql-query name="GET_TT_RUN_RESULT" description="종합평가 평가 결과 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_TT_RUN_RESULT
+     
+SELECT DVS_NAME, NAME, EMPNO,
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM,
+    NVL(TO_CHAR(TT_SCO), '-') TT_SCO, 
+    CASE WHEN OTC1_SCO IS NOT NULL THEN OTC1_SCO||'('||OTC1_APL_WEI||'%)' 
+    ELSE '-'
+    END OTC1_SCO, 
+    CASE WHEN OTC2_SCO IS NOT NULL THEN OTC2_SCO||'('||OTC2_APL_WEI||'%)' 
+    ELSE '-'
+    END OTC2_SCO, 
+    CASE WHEN CMPT1_SCO IS NOT NULL THEN CMPT1_SCO||'('||CMPT1_APL_WEI||'%)' 
+    ELSE '-'
+    END CMPT1_SCO, 
+    CASE WHEN CMPT2_SCO IS NOT NULL THEN CMPT2_SCO||'('||CMPT2_APL_WEI||'%)' 
+    ELSE '-'
+    END CMPT2_SCO,
+    ROW_NUMBER() OVER(ORDER BY NVL(TT_SCO, 0) DESC, NAME) RNUM
+FROM TB_BA_USER BU, TB_TT_EVL_USER EU, TB_BA_DIVISION BD
+WHERE BU.COMPANYID = EU.COMPANYID AND BU.USERID = EU.USERID
+    AND BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND EU.COMPANYID = ?
+    AND EU.TT_EVL_NO = ?
+    AND EU.USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="SAVE_TT_EVL_PUBLIC" description="종합평가 정보 공개 설정" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : SAVE_TT_EVL_PUBLIC
+     
+UPDATE TB_TT_EVL
+SET PUBL_YN = 'Y',
+    MODIFYTIME = SYSDATE,
+    MODIFIER = ?
+WHERE COMPANYID = ?
+    AND TT_EVL_NO = ?
+    ]]></sql-query>
+    
+    <sql-query name="DEL_TT_EVL_PUBLIC" description="종합평가 삭제처리" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : DEL_TT_EVL_PUBLIC
+     
+UPDATE TB_TT_EVL
+SET USEFLAG = 'N',
+    MODIFYTIME = SYSDATE,
+    MODIFIER = ?
+WHERE COMPANYID = ?
+    AND TT_EVL_NO = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_YEAR_RUN_LIST" description="종합평가 년간 평가목록" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : SELECT_YEAR_RUN_LIST
+     
+SELECT RUN_NUM, RUN_NAME, 
+    CASE WHEN EVL_TYPE_CD = '1' THEN '역량'
+    ELSE '성과'
+    END EVL_TYPE_NM,
+    '' WEI_APL_TARG, '선택' WEI_APL_TARG_NM, NULL WEI,
+    ROW_NUMBER() OVER(ORDER BY RUN_NUM) RNUM
+FROM TB_CAM_RUN_L
+WHERE COMPANYID = ?
+    AND USEFLAG = 'Y'
+    AND YYYY = ?
+    ]]></sql-query>
+
+    <sql-query name="SELECT_TT_USER_LIST" description="종합평가 평가대상 직원목록" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : SELECT_TT_USER_LIST
+
+SELECT BU.USERID, DVS_NAME, NAME, EMPNO,
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM, 
+    NULL OTC1, NULL OTC2, 
+    NULL CMPT1, NULL CMPT2
+FROM TB_BA_USER BU, TB_BA_DIVISION BD
+WHERE BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND BU.COMPANYID = ?
+    AND BU.USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="MAX_TT_EVL_NO" description="max 종합평가번호 조회" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : MAX_TT_EVL_NO
+
+SELECT NVL(MAX(TT_EVL_NO), 0)+1 MAX_NO 
+FROM TB_TT_EVL
+WHERE COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_TB_TT_EVL" description="종합평가 저장" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : INSERT_TB_TT_EVL
+    
+INSERT INTO TB_TT_EVL(COMPANYID, TT_EVL_NO, EVL_YYYY, TT_EVL_NM, EVL_TARG_CNT, PUBL_YN, USEFLAG, CREATETIME, CREATER)
+VALUES(?, ?, ?, ?, ?, 'N', 'Y', SYSDATE, ?)
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_TB_TT_EVL_RUN" description="종합평가 적용 평가목록 저장" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : INSERT_TB_TT_EVL_RUN
+    
+INSERT INTO TB_TT_EVL_RUN(COMPANYID, TT_EVL_NO, RUN_NUM, WEI_APL_TARG, WEI, USEFLAG, CREATETIME, CREATER)
+VALUES(?, ?, ?, ?, ?, 'Y', SYSDATE, ?)
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_TB_TT_EVL_USER" description="종합평가 대상자 저장" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : INSERT_TB_TT_EVL_USER
+    
+INSERT INTO TB_TT_EVL_USER(COMPANYID, TT_EVL_NO, USERID, OTC1_WEI, OTC2_WEI, CMPT1_WEI, CMPT2_WEI, USEFLAG, CREATETIME, CREATER)
+VALUES(?, ?, ?, ?, ?, ?, ?, 'Y', SYSDATE, ?)
+    ]]></sql-query>
+
+    <sql-query name="UPDATE_TB_TT_EVL_USER" description="종합평가 대상자 종합점수 업데이트" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : UPDATE_TB_TT_EVL_USER
+    
+MERGE INTO TB_TT_EVL_USER A
+USING(
+    SELECT COMPANYID, TT_EVL_NO, USERID,
+        CASE WHEN OTC1_SCO IS NOT NULL THEN ROUND(OTC1_SCO*(OTC1_WEI/SUM_WEI), 2)
+        END OTC1,
+        CASE WHEN OTC2_SCO IS NOT NULL THEN ROUND(OTC2_SCO*(OTC2_WEI/SUM_WEI), 2)
+        END OTC2,
+        CASE WHEN CMPT1_SCO IS NOT NULL THEN ROUND(CMPT1_SCO*(CMPT1_WEI/SUM_WEI), 2)
+        END CMPT1,
+        CASE WHEN CMPT2_SCO IS NOT NULL THEN ROUND(CMPT2_SCO*(CMPT2_WEI/SUM_WEI), 2)
+        END CMPT2,
+        NVL(CASE WHEN OTC1_SCO IS NOT NULL THEN ROUND(OTC1_SCO*(OTC1_WEI/SUM_WEI), 2)
+        END, 0) +
+        NVL(CASE WHEN OTC2_SCO IS NOT NULL THEN ROUND(OTC2_SCO*(OTC2_WEI/SUM_WEI), 2)
+        END, 0) +
+        NVL(CASE WHEN CMPT1_SCO IS NOT NULL THEN ROUND(CMPT1_SCO*(CMPT1_WEI/SUM_WEI), 2)
+        END, 0) +
+        NVL(CASE WHEN CMPT2_SCO IS NOT NULL THEN ROUND(CMPT2_SCO*(CMPT2_WEI/SUM_WEI), 2)
+        END, 0) TT_SCO,
+        CASE WHEN OTC1_SCO IS NOT NULL THEN ROUND(OTC1_WEI/SUM_WEI*100, 2)
+        END OTC1_APL_WEI,
+        CASE WHEN OTC2_SCO IS NOT NULL THEN ROUND(OTC2_WEI/SUM_WEI*100, 2)
+        END OTC2_APL_WEI,
+        CASE WHEN CMPT1_SCO IS NOT NULL THEN ROUND(CMPT1_WEI/SUM_WEI*100, 2)
+        END CMPT1_APL_WEI,
+        CASE WHEN CMPT2_SCO IS NOT NULL THEN ROUND(CMPT2_WEI/SUM_WEI*100, 2)
+        END CMPT2_APL_WEI
+    FROM(
+        SELECT SD.COMPANYID, SD.TT_EVL_NO, SD.USERID,
+            MAX(OTC1_SCO) OTC1_SCO, MAX(OTC2_SCO) OTC2_SCO, MAX(CMPT1_SCO) CMPT1_SCO, MAX(CMPT2_SCO) CMPT2_SCO,
+            MAX(SD.OTC1_WEI) OTC1_WEI, MAX(SD.OTC2_WEI) OTC2_WEI, MAX(SD.CMPT1_WEI) CMPT1_WEI, MAX(SD.CMPT2_WEI) CMPT2_WEI,
+            NVL(CASE WHEN MAX(OTC1_SCO) IS NOT NULL THEN MAX(SD.OTC1_WEI)
+            END, 0) +
+            NVL(CASE WHEN MAX(OTC2_SCO) IS NOT NULL THEN MAX(SD.OTC2_WEI)
+            END, 0) +
+            NVL(CASE WHEN MAX(CMPT1_SCO) IS NOT NULL THEN MAX(SD.CMPT1_WEI)
+            END, 0) +
+            NVL(CASE WHEN MAX(CMPT2_SCO) IS NOT NULL THEN MAX(SD.CMPT2_WEI)
+            END, 0) SUM_WEI
+        FROM(
+            SELECT ZD.COMPANYID, ZD.TT_EVL_NO, ZD.USERID, 
+                CASE WHEN ZD.WEI_APL_TARG=1 THEN EVL_TOTAL_SCORE
+                END OTC1_SCO,
+                CASE WHEN ZD.WEI_APL_TARG=2 THEN EVL_TOTAL_SCORE
+                END OTC2_SCO,
+                CASE WHEN ZD.WEI_APL_TARG=3 THEN EVL_TOTAL_SCORE
+                END CMPT1_SCO,
+                CASE WHEN ZD.WEI_APL_TARG=4 THEN EVL_TOTAL_SCORE
+                END CMPT2_SCO, 
+                EU.OTC1_WEI, EU.OTC2_WEI, EU.CMPT1_WEI, EU.CMPT2_WEI
+            FROM(
+                SELECT ER.COMPANYID, ER.TT_EVL_NO, RT.USERID, ER.RUN_NUM, ER.WEI_APL_TARG, 
+                    CASE WHEN CR.EVL_TYPE_CD = 1 THEN RT.EVL_TOTAL_SCORE*20
+                    ELSE RT.EVL_TOTAL_SCORE
+                    END EVL_TOTAL_SCORE
+                FROM TB_TT_EVL_RUN ER, TB_CAM_RUNTARGET_I RT, TB_CAM_RUN_L CR
+                WHERE ER.COMPANYID = RT.COMPANYID AND ER.RUN_NUM = RT.RUN_NUM
+                    AND ER.COMPANYID = CR.COMPANYID AND ER.RUN_NUM = CR.RUN_NUM
+                    AND ER.COMPANYID = ?
+                    AND ER.TT_EVL_NO = ?
+                    AND ER.USEFLAG = 'Y'
+                    AND RT.USEFLAG = 'Y'
+                    AND CMPT_EVL_CMPL_FLAG IN ('Y', '5')
+                ) ZD, TB_TT_EVL_USER EU
+            WHERE ZD.COMPANYID  = EU.COMPANYID AND ZD.TT_EVL_NO = EU.TT_EVL_NO AND ZD.USERID = EU.USERID
+            ) SD
+        GROUP BY SD.COMPANYID, SD.TT_EVL_NO, SD.USERID
+        )
+) B
+ON (A.COMPANYID = B.COMPANYID AND A.TT_EVL_NO = B.TT_EVL_NO AND A.USERID = B.USERID )
+WHEN MATCHED THEN
+    UPDATE SET
+        A.TT_SCO = B.TT_SCO,
+        A.OTC1_SCO = B.OTC1,
+        A.OTC2_SCO = B.OTC2,
+        A.CMPT1_SCO = B.CMPT1,
+        A.CMPT2_SCO = B.CMPT2,
+        A.OTC1_APL_WEI = B.OTC1_APL_WEI,
+        A.OTC2_APL_WEI = B.OTC2_APL_WEI,
+        A.CMPT1_APL_WEI = B.CMPT1_APL_WEI,
+        A.CMPT2_APL_WEI = B.CMPT2_APL_WEI
+    ]]></sql-query>
+    
+    <sql-query name="GET_JOB_HIGH_USER_LIST" description="직무별고성과자" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_JOB_HIGH_USER_LIST
+    
+SELECT 
+    ROW_NUMBER() OVER(ORDER BY SUM(AVG_KPI_SCORE) DESC) RNUM
+    , A.USERID, A.NAME, A.DIVISIONID, B.DVS_NAME, A.EMPNO, A.JOB, C.JOBLDR_NAME, A.JOBLDR_NUM, ROUND(SUM(AVG_KPI_SCORE)) KPI_SCORE
+    , AVG(SUM(AVG_KPI_SCORE)) OVER(PARTITION BY  A.JOBLDR_NUM) job_avg
+    , MAX(KPI_CNT) KPI_CNT, MAX(CNT) CNT
+    , SUM(USER_WEI) USER_WEI_SUM
+    , AVG(SUM(USER_WEI)) OVER(PARTITION BY A.JOBLDR_NUM) USER_WEI_SUM_AVG
+    , SQRT(abs(SUM(USER_WEI) - ROUND(AVG(SUM(USER_WEI)) OVER(PARTITION BY A.JOBLDR_NUM), 2)))
+    , SUM(USER_WEI) - ROUND(AVG(SUM(USER_WEI)) OVER(PARTITION BY A.JOBLDR_NUM),2)
+FROM(
+    SELECT CR.COMPANYID, CT.USERID, BU.NAME, BU.DIVISIONID, BU.EMPNO, BU.JOB, KU.KPI_NO, KPJ.JOBLDR_NUM
+        , AVG(EVL_SCO*KPJ.WEI/KPJ.WEI_SUM*20) AVG_KPI_SCORE
+        , MAX(KPI_CNT) KPI_CNT
+        , COUNT(*) OVER(PARTITION BY CT.USERID) CNT
+        , MAX(KPJ.WEI) USER_WEI
+        , MAX(KPJ.WEI_SUM) WEI_SUM
+    FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I CT, TB_KPI_USER_MAP KU, 
+        (
+        SELECT KP.COMPANYID, KP.KPI_NO, KJ.JOBLDR_NUM, KJ.WEI, KJ.WEI_SUM, COUNT(*) OVER(PARTITION BY KJ.JOBLDR_NUM) KPI_CNT
+        FROM TB_KPI KP, TB_KPI_JOBLDR_MAP KJ
+        WHERE KP.COMPANYID = KJ.COMPANYID AND KP.KPI_NO = KJ.KPI_NO
+            AND KP.COMPANYID = ?
+            AND KJ.JOBLDR_NUM = ?
+            AND KP.USEFLAG = 'Y'
+            AND KJ.USEFLAG = 'Y'
+        ) KPJ, TB_BA_USER BU
+    WHERE CR.COMPANYID = CT.COMPANYID AND CR.RUN_NUM = CT.RUN_NUM 
+        AND CT.COMPANYID = KU.COMPANYID AND CT.RUN_NUM = KU.RUN_NUM AND CT.USERID = KU.USERID
+        AND KU.COMPANYID = KPJ.COMPANYID AND KU.KPI_NO = KPJ.KPI_NO
+        AND CT.COMPANYID = BU.COMPANYID AND CT.USERID = BU.USERID
+        AND CR.COMPANYID = ? AND CR.YYYY = ?
+        AND CR.EVL_TYPE_CD = '2'
+        AND CR.USEFLAG = 'Y'
+        AND CT.USEFLAG = 'Y'
+        AND KU.USEFLAG = 'Y'
+        AND BU.USEFLAG = 'Y'
+        AND CT.CMPT_EVL_CMPL_FLAG = '5'
+    GROUP BY CR.COMPANYID, CT.USERID, BU.NAME, BU.DIVISIONID, BU.EMPNO, BU.JOB, KU.KPI_NO, KPJ.JOBLDR_NUM
+    ) A, TB_BA_DIVISION B, TB_CM_JOB_LDR_I C
+WHERE A.COMPANYID = B.COMPANYID AND A.DIVISIONID = B.DIVISIONID
+    AND A.COMPANYID = C.COMPANYID AND A.JOB = C.JOBLDR_NUM
+GROUP BY A.COMPANYID, A.USERID, A.NAME, A.DIVISIONID, B.DVS_NAME, A.EMPNO, A.JOB, C.JOBLDR_NAME, A.JOBLDR_NUM
+ORDER BY KPI_SCORE DESC
+    ]]></sql-query>
+    
+    <sql-query name="GET_USER_JOB_SUIT_LIST" description="직원별직무적합도" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_USER_JOB_SUIT_LIST
+    
+SELECT A.COMPANYID, USERID, NAME, JOB, A.JOBLDR_NUM, C.JOBLDR_NAME, ROUND(SUM(EVL_SCO)) EVL_SCO
+    , RANK() OVER(ORDER BY ROUND(SUM(EVL_SCO)) DESC) RNUM
+    , DECODE(JOB, A.JOBLDR_NUM, '현직무') EFLAG, '' T_SCORE
+FROM(
+    SELECT COMPANYID, USERID, NAME, DIVISIONID, EMPNO, JOB, JOBLDR_NUM, SUM(EVL_SCO) EVL_SCO
+    FROM(
+        SELECT KPU.COMPANYID, KPU.USERID, BU.NAME, BU.DIVISIONID, BU.EMPNO, BU.JOB, KPU.KPI_NO, KJ.JOBLDR_NUM, KPU.EVL_SCO*KJ.WEI/KJ.WEI_SUM*20 EVL_SCO
+        FROM(
+            SELECT CR.COMPANYID, CT.USERID, KU.KPI_NO, AVG(KU.EVL_SCO) EVL_SCO
+            FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I CT, TB_KPI_USER_MAP KU, TB_KPI KP
+            WHERE CR.COMPANYID = CT.COMPANYID AND CR.RUN_NUM = CT.RUN_NUM 
+                AND CT.COMPANYID = KU.COMPANYID AND CT.RUN_NUM = KU.RUN_NUM AND CT.USERID = KU.USERID
+                AND KU.COMPANYID = KP.COMPANYID AND KU.KPI_NO = KP.KPI_NO
+                AND CR.COMPANYID = ? AND CR.YYYY = ?
+                AND CT.USERID = ?
+                AND CR.EVL_TYPE_CD = '2'
+                AND CR.USEFLAG = 'Y'
+                AND CT.USEFLAG = 'Y'
+                AND KU.USEFLAG = 'Y'
+                AND KP.USEFLAG = 'Y'
+                AND CT.CMPT_EVL_CMPL_FLAG = '5'
+            GROUP BY CR.COMPANYID, CT.USERID, KU.KPI_NO
+            ) KPU, TB_KPI_JOBLDR_MAP KJ, TB_BA_USER BU
+        WHERE KPU.COMPANYID = KJ.COMPANYID AND KPU.KPI_NO = KJ.KPI_NO
+            AND KPU.COMPANYID = BU.COMPANYID AND KPU.USERID = BU.USERID
+            AND KJ.USEFLAG = 'Y'
+            AND BU.USEFLAG = 'Y'
+        )
+    GROUP BY COMPANYID, USERID, NAME, DIVISIONID, EMPNO, JOB, JOBLDR_NUM
+    ) A, TB_CM_JOB_LDR_I C
+WHERE A.COMPANYID = C.COMPANYID AND A.JOBLDR_NUM = C.JOBLDR_NUM
+GROUP BY A.COMPANYID, USERID, NAME, JOB, A.JOBLDR_NUM, C.JOBLDR_NAME
+    ]]></sql-query>
+    
+    <sql-query name="GET_TARGET_USER_LIST" description="직원검색" ><![CDATA[
+--sql_file : kpi-sqlset.xml
+--sql_name : GET_TARGET_USER_LIST
+    
+        SELECT BU.USERID
+         , BU.ID
+         , BU.NAME
+         , BU.EMPNO
+         , BU.JOB
+         , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NAME
+         , BU.LEADERSHIP
+         , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NAME
+         , BD.DVS_NAME
+         , ROW_NUMBER() OVER(ORDER BY BU.NAME) RNUM
+      FROM TB_BA_USER BU, TB_BA_DIVISION BD
+      WHERE BU.COMPANYID = BD.COMPANYID
+       AND BU.DIVISIONID = BD.DIVISIONID
+       AND BU.COMPANYID = ?
+       AND BU.USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    
+    <!--  고객사운영자 END -->
+
+</sqlset>

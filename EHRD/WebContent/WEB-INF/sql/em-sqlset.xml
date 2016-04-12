@@ -1,0 +1,1184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>EM</name>
+    <version>2.0</version>
+    <description>EM(학사운영 영역) 모듈을 위한 쿼리</description>
+    
+    <!-- ==================================================================== -->
+	<!-- 학습현황  Start -->
+    
+	<sql-query name="SELECT_EDU_YYYY" description="나의강의실  학습현황  검색년도 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_EDU_YYYY
+		
+		SELECT (SELECT NVL(MIN(YYYY),TO_CHAR(SYSDATE,'YYYY')) AS YYYY
+		          FROM (
+				        SELECT BSO.YYYY
+				          FROM TB_BA_SBJCT_OPEN BSO,
+				               TB_BA_SBJCT_OPEN_CLASS BSOC
+				         WHERE BSOC.COMPANYID = ?
+				           AND BSOC.USERID = ?
+				           AND BSOC.COMPANYID = BSO.COMPANYID
+				           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+				         UNION 
+				        SELECT EAS.YYYY
+				          FROM TB_EM_ALW_STD_USER EASU,
+		                       TB_EM_ALW_STD EAS
+				         WHERE EASU.COMPANYID = ?
+			               AND EASU.USERID = ?
+			               AND EASU.USEFLAG = 'Y'
+			               AND EASU.COMPANYID = EAS.COMPANYID
+			               AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+			               AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+			               AND EAS.USEFLAG = 'Y'
+			               AND EAS.DEL_YN = 'N'
+			            )
+		       ) MIN_YYYY
+		     , TO_CHAR(SYSDATE,'YYYY')+1 AS MAX_YYYY
+		     , TO_CHAR(SYSDATE,'YYYY') AS YYYY
+		     , SUBSTR(TO_CHAR(SYSDATE,'YYYY-MM-DD'),1,7)||'-01' AS SRCH_FROM
+             , TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, 5)),'YYYY-MM-DD') AS SRCH_TO
+             , (SELECT NVL(MIN(EAS.YYYY),TO_CHAR(SYSDATE,'YYYY')) AS YYYY
+				  FROM TB_EM_ALW_STD_USER EASU,
+		               TB_EM_ALW_STD EAS
+				 WHERE EASU.COMPANYID = ?
+			       AND EASU.USERID = ?
+			       AND EASU.USEFLAG = 'Y'
+			       AND EASU.COMPANYID = EAS.COMPANYID
+			       AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+			       AND EAS.USEFLAG = 'Y'
+			       AND EAS.DEL_YN = 'N'
+                ) ALW_MIN_YYYY
+		  FROM DUAL
+	]]></sql-query>
+	
+	<sql-query name="SELECT_MY_REQ_SCR" description="나의강의실  이수현황 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_MY_REQ_SCR
+
+        SELECT SCR_CHK1 /* 필수이수 현황 */
+             , SCR_CHK2 /* 기관성과평가 현황 */
+             , CASE WHEN NVL(VETER_ASSE_TAKE_TIME,0) >  0 AND NVL(VETER_ASSE_REQ_TIME,0) <= NVL(VETER_ASSE_TAKE_TIME,0) THEN 'Y' ELSE 'N' END SCR_CHK3 /* 승진교육 이수 현황 */
+             , CASE WHEN VETER_ASSE_REQ_TIME > 0  THEN TRUNC(VETER_ASSE_REQ_TIME/60)||'시간 '||TRUNC(MOD(VETER_ASSE_REQ_TIME,60))||'분'
+                    ELSE '0시간 0분'
+                END VA_REQ_TIME /* 승진교육 필수시간 */
+             , CASE WHEN VETER_ASSE_TAKE_TIME > 0 THEN TRUNC(VETER_ASSE_TAKE_TIME/60)||'시간 '||TRUNC(MOD(VETER_ASSE_TAKE_TIME,60))||'분'
+                    ELSE '0시간 0분'
+                END VA_TAKE_TIME /* 승진교육 이수시간 */
+          FROM (
+                SELECT (
+                        SELECT NVL(MIN(CASE WHEN A.REQ_TIME > NVL(B.TAKE_TIME,0) THEN 'N' ELSE 'Y' END),'N') TAKE_YN
+                          FROM (
+                                /* 사용자별 지정학습 기준시간 */
+                                SELECT '0' AS DATA
+                                     , '총시간' AS LABEL
+                                     , UECT.TT_CMP_TIME_H*60 + (NVL(UECT.TT_CMP_TIME_M,0)) AS REQ_TIME
+                                  FROM TB_EM_USER_EDU_CMP_TIME UECT
+                                 WHERE UECT.USERID = ?
+                                   AND UECT.YYYY = ?
+                                   AND UECT.USEFLAG = 'Y'
+                                UNION ALL
+                                SELECT UDDT.DEPT_DESIGNATION_CD AS DATA
+                                     , UDDT.DEPT_DESIGNATION_NM AS LABEL
+                                     , UDDT.CMP_TIME_H*60 + (NVL(UDDT.CMP_TIME_M,0)) AS REQ_TIME
+                                  FROM TB_EM_USER_DEPT_DESI_TIME UDDT
+                                 WHERE UDDT.USERID = ?
+                                   AND UDDT.YYYY = ?
+                                   AND UDDT.USEFLAG = 'Y'
+                               ) A,
+                               (
+                                /* 필수 이수 = 교육 + 상시 */
+                                SELECT DEPT_DESIGNATION_CD AS DATA
+                                     , SUM(RFCOG_TIME) TAKE_TIME
+                                  FROM (
+                                        SELECT /* 교육개설 수료정보 */
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE BSOC.COMPANYID = ?
+                                           AND BSOC.USERID = ?
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.YYYY = ?
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                        UNION ALL
+                                        SELECT /* 교육개설 수료정보 : 부서지정학습 */
+                                               '001' DEPT_DESIGNATION_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE BSOC.COMPANYID = ?
+                                           AND BSOC.USERID = ?
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.YYYY = ?
+                                           AND BSO.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                        UNION ALL
+                                        SELECT /* 상시학습 : 총 */ 
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                          FROM TB_EM_ALW_STD_USER EASU,
+                                               TB_EM_ALW_STD EAS
+                                         WHERE EASU.COMPANYID = ?
+                                           AND EASU.USERID = ?
+                                           AND EASU.USEFLAG = 'Y'
+                                           AND EASU.COMPANYID = EAS.COMPANYID
+                                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                                           AND EAS.YYYY = ?
+                                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                                           AND EAS.USEFLAG = 'Y'
+                                           AND EAS.DEL_YN = 'N'
+                                        UNION ALL
+                                        SELECT /* 상시학습 : 부처지정학습 */ 
+                                               '001' AS DEPT_DESIGNATION_CD
+                                             , NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                          FROM TB_EM_ALW_STD_USER EASU,
+                                               TB_EM_ALW_STD EAS
+                                         WHERE EASU.COMPANYID = ?
+                                           AND EASU.USERID = ?
+                                           AND EASU.USEFLAG = 'Y'
+                                           AND EASU.COMPANYID = EAS.COMPANYID
+                                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                                           AND EAS.YYYY = ?
+                                           AND EAS.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                                           AND EAS.USEFLAG = 'Y'
+                                           AND EAS.DEL_YN = 'N'
+                                       )
+                                   GROUP BY DEPT_DESIGNATION_CD
+                               ) B
+                         WHERE A.DATA = B.DATA(+)
+                      ) SCR_CHK1
+                    , (
+                        SELECT NVL(MIN(CASE WHEN A.REQ_TIME > NVL(B.TAKE_TIME,0) THEN 'N' ELSE 'Y' END),'N') TAKE_YN
+                          FROM (
+                                /* 사용자별 기관성과평가 기준시간 */
+                                SELECT PERF_ASSE_SBJ_CD AS DATA
+                                     , PERF_ASSE_SBJ_NM AS LABEL
+                                     , CMP_TIME_H*60 + (NVL(CMP_TIME_M,0)) AS REQ_TIME
+                                  FROM TB_EM_USER_PERF_ASSE_TIME
+                                 WHERE USERID = ?
+                                   AND YYYY = ?
+                                   AND USEFLAG = 'Y'
+                               ) A,
+                               (
+                               /* 기관성과평가 이수 = 교육 + 상시 */
+                                SELECT PERF_ASSE_SBJ_CD AS DATA
+                                     , SUM(RFCOG_TIME) TAKE_TIME
+                                  FROM (
+                                        SELECT /* 교육개설 수료정보 : 부서지정학습 */
+                                               BSO.PERF_ASSE_SBJ_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE BSOC.COMPANYID = ?
+                                           AND BSOC.USERID = ?
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.YYYY = ?
+                                           AND BSO.PERF_ASSE_SBJ_CD IS NOT NULL /* 기관성과평가 코드 */
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                        UNION ALL
+                                        SELECT /* 상시학습 */ 
+                                               EAS.PERF_ASSE_SBJ_CD
+                                             , NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                          FROM TB_EM_ALW_STD_USER EASU,
+                                               TB_EM_ALW_STD EAS
+                                         WHERE EASU.COMPANYID = ?
+                                           AND EASU.USERID = ?
+                                           AND EASU.USEFLAG = 'Y'
+                                           AND EASU.COMPANYID = EAS.COMPANYID
+                                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                                           AND EAS.YYYY = ?
+                                           AND EAS.PERF_ASSE_SBJ_CD IS NOT NULL /* 기관성과평가 코드 */
+                                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                                           AND EAS.USEFLAG = 'Y'
+                                           AND EAS.DEL_YN = 'N'
+                                       )
+                                   GROUP BY PERF_ASSE_SBJ_CD
+                               ) B
+                         WHERE A.DATA = B.DATA(+)
+                      ) SCR_CHK2
+                    , (
+						SELECT 
+						    (
+						    CASE WHEN NOW_GRADE_APIT_DT IS NOT NULL THEN
+							    CASE WHEN LAST_DAY(TO_DATE(NOW_GRADE_APIT_DT,'YYYYMMDD'))-(TO_DATE(NOW_GRADE_APIT_DT,'YYYYMMDD')-1) >= 15 THEN 1
+							    ELSE 0
+							    END + -- 승진한 첫 달 15일 이상 근무했는지 체크
+							    TRUNC(
+							        MONTHS_BETWEEN( 
+							            TO_DATE(TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, -1)), 'YYYYMMDD'),'YYYYMMDD')+1, 
+							            TO_DATE(TO_CHAR(ADD_MONTHS(TO_DATE(NOW_GRADE_APIT_DT,'YYYYMMDD'), 1), 'YYYYMM')||'01', 'YYYYMMDD')
+							        )
+							    ) + --승진한 다음달 부터 SYSDATE기준으로 지난달까지의 개월수 
+							    CASE WHEN TRUNC(SYSDATE - (TO_DATE(TO_CHAR(SYSDATE, 'YYYYMM')||'01', 'YYYYMMDD' )-1 ) ) >= 15 THEN 1
+							    ELSE 0
+							    END
+							ELSE  0
+							END
+						    ) / 12 * (80*60) T_TIME
+						FROM TB_BA_USER 
+						WHERE USERID = ?
+                      ) AS VETER_ASSE_REQ_TIME
+                    , (
+                       /* 교육 + 상시 */
+                        SELECT SUM(RFCOG_TIME) TAKE_TIME
+                          FROM (
+                                SELECT /* 교육개설 수료정보 : 부서지정학습 */
+                                       NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                  FROM TB_BA_SBJCT BS,
+                                       TB_BA_SBJCT_OPEN BSO,
+                                       TB_BA_SBJCT_OPEN_CLASS BSOC,
+                                       TB_BA_USER BU
+                                 WHERE BSOC.USERID = ?
+                                   AND BSOC.COMPANYID = ?
+                                   AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                   AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                   AND BSOC.COMPANYID = BSO.COMPANYID
+                                   AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                   AND BSO.COMPANYID = BS.COMPANYID
+                                   AND BU.USERID = BSOC.USERID
+                                   AND BU.GRADE_NUM = BSOC.TIME_GRADE_NUM /* 현직급 동일 */
+                                   AND BS.USEFLAG = 'Y'
+                                   AND BS.DEL_YN = 'N'
+                                   AND BSO.USEFLAG = 'Y'
+                                   AND BSOC.USEFLAG = 'Y'
+                                UNION ALL
+                                SELECT /* 상시학습 */ 
+                                       NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RFCOG_TIME
+                                  FROM TB_EM_ALW_STD_USER EASU,
+                                       TB_EM_ALW_STD EAS,
+                                       TB_BA_USER BU
+                                 WHERE EASU.USERID = ?
+                                   AND EASU.COMPANYID = ?
+                                   AND BU.USERID = EASU.USERID
+                                   AND BU.GRADE_NUM = EASU.GRADE_NUM /* 현직급 동일 */
+                                   AND EASU.USEFLAG = 'Y'
+                                   AND EASU.COMPANYID = EAS.COMPANYID
+                                   AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                                   AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                                   AND EAS.USEFLAG = 'Y'
+                                   AND EAS.DEL_YN = 'N'
+                               )
+                      ) VETER_ASSE_TAKE_TIME
+                  FROM DUAL
+              )
+	]]></sql-query>
+	
+	<sql-query name="SELECT_MY_REQ_EDU_SCR_LIST" description="나의강의실  필수이수현황 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_MY_REQ_EDU_SCR_LIST
+
+        SELECT A.DATA, A.LABEL
+             , CASE WHEN A.REQ_TIME > 0  THEN TRUNC(A.REQ_TIME/60)||'시간 '||TRUNC(MOD(A.REQ_TIME,60))||'분'
+                    ELSE '-'
+                END REQ_TIME
+             , CASE WHEN B.TAKE_TIME > 0 THEN TRUNC(B.TAKE_TIME/60)||'시간 '||TRUNC(MOD(B.TAKE_TIME,60))||'분'
+                    ELSE '-'
+                END TAKE_TIME
+          FROM (
+                /* 사용자별 지정학습 기준시간 */
+                SELECT '0' AS DATA
+                     , '총시간' AS LABEL
+                     , UECT.TT_CMP_TIME_H*60 + (NVL(UECT.TT_CMP_TIME_M,0)) AS REQ_TIME
+                  FROM TB_EM_USER_EDU_CMP_TIME UECT
+                 WHERE UECT.USERID = ?
+                   AND UECT.YYYY= ?
+                   AND UECT.USEFLAG = 'Y'
+                UNION ALL
+                SELECT UDDT.DEPT_DESIGNATION_CD AS DATA
+                     , UDDT.DEPT_DESIGNATION_NM AS LABEL
+                     , UDDT.CMP_TIME_H*60 + (NVL(UDDT.CMP_TIME_M,0)) AS REQ_TIME
+                  FROM TB_EM_USER_DEPT_DESI_TIME UDDT
+                 WHERE UDDT.USERID = ?
+                   AND UDDT.YYYY= ?
+                   AND UDDT.USEFLAG = 'Y'
+               ) A,
+               (
+                /* 필수 이수 = 교육 + 상시 + 멘토링 */
+                SELECT DEPT_DESIGNATION_YN AS DATA
+                     , SUM(RFCOG_TIME) AS TAKE_TIME
+                  FROM (
+                        SELECT /* 교육개설 수료정보 : 총 */
+                               '0' AS DEPT_DESIGNATION_YN
+                             , NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RFCOG_TIME
+                          FROM TB_BA_SBJCT BS,
+                               TB_BA_SBJCT_OPEN BSO,
+                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                         WHERE BSOC.COMPANYID = ?
+                           AND BSOC.USERID = ?
+                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                           AND BSOC.COMPANYID = BSO.COMPANYID
+                           AND BSO.YYYY= ?
+                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                           AND BSO.COMPANYID = BS.COMPANYID
+                           AND BS.USEFLAG = 'Y'
+                           AND BS.DEL_YN = 'N'
+                           AND BSO.USEFLAG = 'Y'
+                           AND BSOC.USEFLAG = 'Y'
+                        UNION ALL
+                        SELECT /* 교육개설 수료정보 : 부서지정학습 */
+                               '001' DEPT_DESIGNATION_YN
+                             , NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RFCOG_TIME
+                          FROM TB_BA_SBJCT BS,
+                               TB_BA_SBJCT_OPEN BSO,
+                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                         WHERE BSOC.COMPANYID = ?
+                           AND BSOC.USERID = ?
+                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                           AND BSOC.COMPANYID = BSO.COMPANYID
+                           AND BSO.YYYY= ?
+                           AND BSO.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                           AND BSO.COMPANYID = BS.COMPANYID
+                           AND BS.USEFLAG = 'Y'
+                           AND BS.DEL_YN = 'N'
+                           AND BSO.USEFLAG = 'Y'
+                           AND BSOC.USEFLAG = 'Y'
+                        UNION ALL
+                        SELECT /* 상시학습 : 총 */ 
+                               '0' AS DEPT_DESIGNATION_YN
+                             , NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RFCOG_TIME
+                          FROM TB_EM_ALW_STD_USER EASU,
+                               TB_EM_ALW_STD EAS
+                         WHERE EASU.COMPANYID = ?
+                           AND EASU.USERID = ?
+                           AND EASU.USEFLAG = 'Y'
+                           AND EASU.COMPANYID = EAS.COMPANYID
+                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                           AND EAS.YYYY= ?
+                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                           AND EAS.USEFLAG = 'Y'
+                           AND EAS.DEL_YN = 'N'
+                        UNION ALL
+                        SELECT /* 상시학습 : 부처지정학습 */ 
+                               '001' DEPT_DESIGNATION_YN
+                             , NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RFCOG_TIME
+                          FROM TB_EM_ALW_STD_USER EASU,
+                               TB_EM_ALW_STD EAS
+                         WHERE EASU.COMPANYID = ?
+                           AND EASU.USERID = ?
+                           AND EASU.USEFLAG = 'Y'
+                           AND EASU.COMPANYID = EAS.COMPANYID
+                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                           AND EAS.YYYY= ?
+                           AND EAS.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                           AND EAS.USEFLAG = 'Y'
+                           AND EAS.DEL_YN = 'N'
+                       )
+                  GROUP BY DEPT_DESIGNATION_YN
+               ) B
+         WHERE A.DATA = B.DATA(+)
+         ORDER BY A.DATA
+	]]></sql-query>
+	
+	<sql-query name="SELECT_MY_REQ_PERF_ASSE_SCR_LIST" description="나의강의실  기관성과평가 이수현황 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_MY_REQ_PERF_ASSE_SCR_LIST
+
+		SELECT A.DATA, A.LABEL
+		     , CASE WHEN A.REQ_TIME > 0  THEN TRUNC(A.REQ_TIME/60)||'시간 '||TRUNC(MOD(A.REQ_TIME,60))||'분'
+		            ELSE '-'
+		        END REQ_TIME
+		     , CASE WHEN B.TAKE_TIME > 0 THEN TRUNC(B.TAKE_TIME/60)||'시간 '||TRUNC(MOD(B.TAKE_TIME,60))||'분'
+		            ELSE '-'
+		        END TAKE_TIME
+		  FROM (
+		        /* 사용자별 기관성과평가 기준시간 */
+		        SELECT PERF_ASSE_SBJ_CD AS DATA
+		             , PERF_ASSE_SBJ_NM AS LABEL
+		             , CMP_TIME_H*60 + NVL(CMP_TIME_M,0) AS REQ_TIME
+		          FROM TB_EM_USER_PERF_ASSE_TIME
+		         WHERE USERID = ?
+		           AND YYYY = ?
+		           AND USEFLAG = 'Y'
+		       ) A,
+		       (
+		       /* 기관성과평가 이수 = 교육 + 상시 */
+		        -- SELECT PERF_ASSE_SBJ_CD AS DATA
+		        SELECT DISTINCT (PERF_ASSE_SBJ_CD) AS DATA
+		             , SUM(RFCOG_TIME) OVER(PARTITION BY PERF_ASSE_SBJ_CD) TAKE_TIME
+		          FROM (
+		                SELECT /* 교육개설 수료정보 : 부서지정학습 */
+		                       BSO.PERF_ASSE_SBJ_CD
+		                     , NVL(BSOC.RECOG_TIME_H,0)*60+NVL(BSOC.RECOG_TIME_M,0) AS RFCOG_TIME
+		                  FROM TB_BA_SBJCT BS,
+		                       TB_BA_SBJCT_OPEN BSO,
+		                       TB_BA_SBJCT_OPEN_CLASS BSOC
+		                 WHERE BSOC.COMPANYID = ?
+		                   AND BSOC.USERID = ?
+		                   AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+		                   AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+		                   AND BSOC.COMPANYID = BSO.COMPANYID
+		                   AND BSO.YYYY = ?
+		                   AND BSO.PERF_ASSE_SBJ_CD IS NOT NULL /* 기관성과평가 코드 */
+		                   AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+		                   AND BSO.COMPANYID = BS.COMPANYID
+		                   AND BS.USEFLAG = 'Y'
+		                   AND BS.DEL_YN = 'N'
+		                   AND BSO.USEFLAG = 'Y'
+		                   AND BSOC.USEFLAG = 'Y'
+		                 UNION ALL
+                        SELECT /* 상시학습 */ 
+                               EAS.PERF_ASSE_SBJ_CD
+                             , NVL(EAS.RECOG_TIME_H,0)*60+NVL(EAS.RECOG_TIME_M,0) AS RFCOG_TIME
+                          FROM TB_EM_ALW_STD_USER EASU,
+			                   TB_EM_ALW_STD EAS
+					     WHERE EASU.COMPANYID = ?
+			               AND EASU.USERID = ?
+			               AND EASU.USEFLAG = 'Y'
+			               AND EASU.COMPANYID = EAS.COMPANYID
+			               AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+			               AND EAS.YYYY = ?
+			               AND EAS.PERF_ASSE_SBJ_CD IS NOT NULL /* 기관성과평가 코드 */
+			               AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+			               AND EAS.USEFLAG = 'Y'
+			               AND EAS.DEL_YN = 'N'
+		               )
+		       ) B
+		 WHERE A.DATA = B.DATA(+)
+		 ORDER BY A.DATA
+	]]></sql-query>
+    
+    <sql-query name="SELECT_EDU_STT_LIST" description="나의강의실  학습현황  목록조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_EDU_STT_LIST
+		
+		SELECT ROW_NUMBER() OVER(ORDER BY EDU_PERIOD DESC) RNUM
+		     , A.*
+		  FROM (
+		        SELECT 1 AS EDU_TP
+		             , BSO.SUBJECT_NUM /* 과정번호 */
+		             , BSOC.OPEN_NUM /* 개설번호 */
+		             , BSO.SUBJECT_NAME /* 과정명 */
+		             , C3.CMM_CODENAME AS TRAINING_NM /* 학습유형 */
+		             , BSO.YYYY /* 개설년도 */
+		             , BSO.CHASU /* 기수 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.EDU_STIME, BSO.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+		             , DECODE(BSO.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+                     , FUN_COMMON_CODE(BSO.COMPANYID, 'BA04', BSO.DEPT_DESIGNATION_CD) DEPT_DESIGNATION_NM
+		             --, DECODE(BSO.VETER_ASSE_REQ_YN,'Y','예','아니오') VETER_ASSE_REQ_YN
+		             , BSOC.APL_DIV_CD /* 신청구분 */
+                     , FUN_COMMON_CODE(BSO.COMPANYID, 'BA02', BSOC.APL_DIV_CD) APL_DIV_NM /* 신청구분 */
+		             , BSOC.ATTEND_STATE_CODE AS AS_CD/* 수강상태 */
+		             , C1.CMM_CODENAME AS ATTEND_STATE_NM
+		             , BSOC.REQ_NUM /* 결재번호 */
+		             , BSOC.REQ_STS_CD /* 승인상태코드 */
+		             , C2.CMM_CODENAME AS REQ_STS_NM
+		             , NVL(BSOC.RECOG_TIME_H,0)||'시간 '||NVL(BSOC.RECOG_TIME_M, 0)||'분' AS RECOG_TIME  /* 인정시간 : 시:분 */
+		             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') > TO_CHAR(BSO.CANCEL_ETIME,'YYYYMMDD') THEN 'N'
+		                    WHEN BSOC.ATTEND_STATE_CODE NOT IN ( '1' ) THEN 'N'
+		                    ELSE 'Y'
+		                END CANCEL_YN /* 취소가능여부 */
+                     , FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', SUBSTR(BSO.ALW_STD_CD, 1, 1)) ||'-'||
+                       FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', SUBSTR(BSO.ALW_STD_CD, 1, 4)) ||'-'||
+                       FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', BSO.ALW_STD_CD) ALW_STD_NM /* 상시학습종류*/
+		          FROM (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA03') C3, /* 학습유형 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA13') C2, /* 결재상태 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA01') C1, /* 수강상태 */
+		               TB_BA_SBJCT BS,
+		               TB_BA_SBJCT_OPEN BSO,
+		               TB_BA_SBJCT_OPEN_CLASS BSOC
+		         WHERE BSOC.COMPANYID = ?
+		           AND BSOC.USERID = ?
+		           ]]><dynamic><![CDATA[ ${ QUERY_WHERE } ]]></dynamic><![CDATA[
+		           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+		           AND BSOC.COMPANYID = BSO.COMPANYID
+		           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+		           AND BSO.COMPANYID = BS.COMPANYID
+		           AND BS.USEFLAG = 'Y'
+		           AND BS.DEL_YN = 'N'
+		           AND BSO.USEFLAG = 'Y'
+		           AND BSOC.USEFLAG = 'Y'
+		           AND C1.COMMONCODE = BSOC.ATTEND_STATE_CODE
+		           AND C2.COMMONCODE(+) = BSOC.REQ_STS_CD
+		           AND C3.COMMONCODE = BSO.TRAINING_CODE
+		        UNION ALL
+		        SELECT 2 AS EDU_TP
+				     , NULL AS SUBJECT_NUM /* 과정번호 */
+				     , EAS.ALW_STD_SEQ AS OPEN_NUM
+				     , EAS.SUBJECT_NM /* 과정명 */
+				     , C3.CMM_CODENAME AS TRAINING_NM /* 학습유형 */
+				     , EAS.YYYY /* 개설년도 */
+				     , NULL AS CHASU /* 기수 */
+				     , (SELECT FUN_DATE_PERIOD(EAS.EDU_STIME, EAS.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+				     , DECODE(EAS.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+                     , FUN_COMMON_CODE(EASU.COMPANYID, 'BA04', EAS.DEPT_DESIGNATION_CD) DEPT_DESIGNATION_NM
+				     --, '아니오' AS VETER_ASSE_REQ_YN 
+                     , '4' AS APL_DIV_CD /* 신청구분 */
+                     , '상시학습' APL_DIV_NM /* 신청구분 */
+				     , '5' AS ATTEND_STATE_CODE /* 수강상태 */
+				     , '수료' AS ATTEND_STATE_NM
+				     , EAS.REQ_NUM /* 결재번호 */
+				     , EAS.REQ_STS_CD /* 승인상태코드 */
+				     , C2.CMM_CODENAME AS REQ_STS_NM
+             		 , NVL(EAS.RECOG_TIME_H,0)||'시간 '||NVL(EAS.RECOG_TIME_M, 0)||'분' AS RECOG_TIME  /* 인정시간 : 시:분 */
+				     , 'N' AS CANCEL_YN /* 취소가능여부 */
+                     , FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 1)) ||'-'||
+                       FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 4)) ||'-'||
+                       FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', EAS.ALW_STD_CD) ALW_STD_NM /* 상시학습종류  */
+				  FROM (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA03') C3, /* 학습유형 */
+				       (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA13') C2, /* 결재상태 */
+				       TB_EM_ALW_STD_USER EASU,
+				       TB_EM_ALW_STD EAS
+				 WHERE EASU.COMPANYID = ?
+				   AND EASU.USERID = ?
+				   ]]><dynamic><![CDATA[ ${ QUERY_WHERE2 } ]]></dynamic><![CDATA[
+				   AND EASU.USEFLAG = 'Y'
+				   AND EASU.COMPANYID = EAS.COMPANYID
+				   AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+				   AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+				   AND EAS.USEFLAG = 'Y'
+				   AND EAS.DEL_YN = 'N'
+				   AND C2.COMMONCODE(+) = EAS.REQ_STS_CD
+				   AND C3.COMMONCODE = EAS.TRAINING_CD
+		      ) A
+	]]></sql-query>
+    
+    <sql-query name="SELECT_EDU_INF_DTL" description="나의강의실  학습현황  학습상세정보 조회(일반교육)"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_EDU_INF_DTL
+		
+		SELECT A.*
+		     , CASE WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NOT NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2||' - '||ALW_STD_NM3
+		            ELSE ''
+		        END ALW_STD_NM
+		     , 1 AS EDU_TP /* 일반교육 */
+		  FROM (
+		        SELECT BSO.SUBJECT_NUM
+				     , BSO.OPEN_NUM /* 개설번호 */
+				     , BSO.SUBJECT_NAME /* 과정명 */
+				     , BSO.TRAINING_CODE
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA03', BSO.TRAINING_CODE) FROM DUAL) TRAINING_NM /* 학습유형 */
+				     , BSO.YYYY /* 개설년도 */
+				     , BSO.CHASU /* 기수 */
+				     , (SELECT FUN_DATE_PERIOD(BSO.EDU_STIME, BSO.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+				     , (SELECT FUN_DATE_PERIOD(BSO.APPLY_STIME, BSO.APPLY_ETIME, 2) FROM DUAL) APPLY_PERIOD /* 신청기간 */
+				     , (SELECT FUN_DATE_FORMAT(BSO.CANCEL_ETIME, 1) FROM DUAL) CANCEL_EDATE /* 취소마감일 */
+				     , BSO.APPLICANT /* 모집정원 */
+				     , BSO.INSTITUTE_NAME /* 교육기관 */
+				     , NVL(BSO.EDU_DAYS,0) EDU_DAYS /* 교육일수 */
+				     , NVL(BSO.EDU_HOUR_H,0) EDU_HOUR_H /* 교육시간 : 시 */
+				     , NVL(BSO.EDU_HOUR_M,0) EDU_HOUR_M /* 교육시간 : 분 */
+				     , NVL(BSOC.RECOG_TIME_H,0) RECOG_TIME_H /* 인정시간 : 시 */
+				     , NVL(BSOC.RECOG_TIME_M,0) RECOG_TIME_M /* 인정시간 : 분 */
+				     , BSO.EDU_OBJECT /* 목적 */
+				     , BSO.EDU_TARGET /* 대상 */
+				     , BSO.COURSE_CONTENTS /* 내용 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', SUBSTR(BSO.ALW_STD_CD, 1, 1)) FROM DUAL) ALW_STD_NM1 /* 상시학습종류 1단계 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', SUBSTR(BSO.ALW_STD_CD, 1, 4)) FROM DUAL) ALW_STD_NM2 /* 상시학습종류 2단계 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', BSO.ALW_STD_CD) FROM DUAL) ALW_STD_NM3 /* 상시학습종류 3단계 */
+				     , DECODE(BSO.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+				     , NVL((SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA04', BSO.DEPT_DESIGNATION_CD) FROM DUAL),'해당사항없음') DEPT_DESIGNATION_NM /* 지정학습구분 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA07', BSO.OFFICETIME_CD) FROM DUAL) OFFICETIME_NM /* 업무시간구분 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA05', BSO.EDUINS_DIV_CD) FROM DUAL) EDUINS_DIV_NM /* 교육기관구분 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA10', BSO.EDU_APL_DIV_CD) FROM DUAL) EDU_APL_DIV_NM /* 교육신청구분 */
+				     , DECODE(BSO.VETER_ASSE_REQ_YN,'Y','예','아니오') VETER_ASSE_REQ_YN 
+				     , NVL((SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA11', BSO.PERF_ASSE_SBJ_CD ) FROM DUAL),'해당사항없음') PERF_ASSE_SBJ_NM /* 기관성과평가 */
+		             , BSOC.APL_DIV_CD /* 신청구분 */
+		             , BSOC.ATTEND_STATE_CODE /* 수강상태코드 */
+		             , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA01', BSOC.ATTEND_STATE_CODE) FROM DUAL) ATTEND_STATE_NM
+		             , BSOC.REQ_NUM /* 결재번호 */
+		             , BSOC.REQ_STS_CD /* 승인상태코드 */
+		             , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA13', BSOC.REQ_STS_CD) FROM DUAL) REQ_STS_NM
+		             , NVL(BSOC.RECOG_TIME_H,0)||'시간 '||BSOC.RECOG_TIME_M||'분' AS RECOG_TIME  /* 인정시간 : 시:분 */
+		             , DECODE(BSO.REQUIRED_YN,'Y','예','아니오') REQUIRED_YN /* 필수여부 */
+		             , CASE WHEN BSO.EDU_APL_DIV_CD = '2' THEN 'N' /* 취소불가 : 외부신청과정 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') > TO_CHAR(BSO.CANCEL_ETIME,'YYYYMMDD') THEN 'N' /* 취소불가 : 취소기간 X */
+		                    WHEN BSOC.ATTEND_STATE_CODE NOT IN ('1','2') THEN 'N' /* 취소불가 : 신청,수강 시만 */
+		                    ELSE 'Y'
+		                END CANCEL_YN /* 취소가능여부 */
+		             , BS.SAMPLE_URL
+		             , BSOC.CMPNUMBER -- 학습연계역량
+		          FROM TB_BA_SBJCT BS,
+		               TB_BA_SBJCT_OPEN BSO,
+		               TB_BA_SBJCT_OPEN_CLASS BSOC
+		         WHERE BSOC.COMPANYID = ?
+		           AND BSOC.USERID = ?
+				   AND BSOC.OPEN_NUM = ?
+		           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+		           AND BSOC.COMPANYID = BSO.COMPANYID
+		           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+		           AND BSO.COMPANYID = BS.COMPANYID
+		           AND BS.USEFLAG = 'Y' 
+		           AND BS.DEL_YN = 'N'
+		           AND BSO.USEFLAG = 'Y'
+		           AND BSOC.USEFLAG = 'Y'
+		      ) A
+	]]></sql-query>
+	
+	<sql-query name="SELECT_EDU_ALW_INF_DTL" description="나의강의실  학습현황  학습상세정보 조회(상시학습)"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_EDU_ALW_INF_DTL
+		
+		SELECT A.*
+		     , CASE WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NOT NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2||' - '||ALW_STD_NM3
+		            ELSE ''
+		        END ALW_STD_NM
+		     , 2 AS EDU_TP /* 상시학습 */
+		  FROM (
+		        SELECT NULL AS SUBJECT_NUM
+	                 , EAS.ALW_STD_SEQ AS OPEN_NUM /* 개설번호 */
+	                 , EAS.SUBJECT_NM AS SUBJECT_NAME /* 과정명 */
+	                 , EAS.TRAINING_CD
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA03', EAS.TRAINING_CD) FROM DUAL) TRAINING_NM /* 학습유형 */
+	                 , EAS.YYYY /* 개설년도 */
+	                 , NULL AS CHASU /* 기수 */
+	                 , (SELECT FUN_DATE_PERIOD(EAS.EDU_STIME, EAS.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+	                 , NULL AS APPLY_PERIOD /* 신청기간 */
+	                 , NULL AS CANCEL_EDATE /* 취소마감일 */
+	                 , NULL AS APPLICANT /* 모집정원 */
+	                 , EAS.INSTITUTE_NAME /* 교육기관 */
+	                 , NULL AS EDU_DAYS /* 교육일수 */
+	                 , NVL(EAS.EDU_HOUR_H,0) EDU_HOUR_H /* 교육시간 : 시 */
+	                 , NVL(EAS.EDU_HOUR_M,0) EDU_HOUR_M /* 교육시간 : 분 */
+	                 , NVL(EAS.RECOG_TIME_H,0) RECOG_TIME_H /* 인정시간 : 시 */
+	                 , NVL(EAS.RECOG_TIME_M,0) RECOG_TIME_M /* 인정시간 : 분 */
+	                 , NULL AS EDU_OBJECT /* 목적 */
+	                 , NULL AS EDU_TARGET /* 대상 */
+	                 , EAS.EDU_CONT AS COURSE_CONTENTS /* 내용 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 1)) FROM DUAL) ALW_STD_NM1 /* 상시학습종류 1단계 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 4)) FROM DUAL) ALW_STD_NM2 /* 상시학습종류 2단계 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', EAS.ALW_STD_CD) FROM DUAL) ALW_STD_NM3 /* 상시학습종류 3단계 */
+	                 , DECODE(EAS.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+	                 , NVL((SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA04', EAS.DEPT_DESIGNATION_CD) FROM DUAL),'해당사항없음') DEPT_DESIGNATION_NM /* 지정학습구분 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA07', EAS.OFFICETIME_CD) FROM DUAL) OFFICETIME_NM /* 업무시간구분 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA05', EAS.EDUINS_DIV_CD) FROM DUAL) EDUINS_DIV_NM /* 교육기관구분 */
+	                 , NULL AS EDU_APL_DIV_NM /* 교육신청구분 */
+	                 , '아니오' AS VETER_ASSE_REQ_YN 
+	                 , NVL((SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA11', EAS.PERF_ASSE_SBJ_CD ) FROM DUAL),'해당사항없음') PERF_ASSE_SBJ_NM /* 기관성과평가 */
+		             , NULL AS APL_DIV_CD /* 신청구분 */
+		             , '수료' AS ATTEND_STATE_NM
+		             , EAS.REQ_NUM /* 결재번호 */
+		             , EAS.REQ_STS_CD /* 승인상태코드 */
+		             , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA13', EAS.REQ_STS_CD) FROM DUAL) REQ_STS_NM
+		             , NVL(EAS.RECOG_TIME_H,0)||'시간 '||EAS.RECOG_TIME_M||'분' AS RECOG_TIME  /* 인정시간 : 시:분 */
+		             , DECODE(EAS.REQUIRED_YN,'Y','예','아니오') REQUIRED_YN /* 필수여부 */
+		             , CASE WHEN EAS.REQ_STS_CD = '1' /* 요청 */ 
+		                         AND EAS.W_DIV_CD = '1' /* 본인등록 */
+		                    THEN 'Y'
+		                    ELSE 'N'
+		                END CANCEL_YN /* 취소가능여부 */
+		             , NULL AS SAMPLE_URL
+                     , EAS.CMPNUMBER -- 학습연계역량
+                     , CC.CMPNAME -- 학습연계역량명
+		          FROM TB_EM_ALW_STD_USER EASU,
+                   	   TB_EM_ALW_STD EAS,
+                          TB_CM_COMPETENCY CC
+		         WHERE EASU.COMPANYID = ?
+	               AND EASU.USERID = ?
+	               AND EASU.ALW_STD_SEQ = ?
+	               AND EASU.USEFLAG = 'Y'
+	               AND EASU.COMPANYID = EAS.COMPANYID
+	               AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                   AND EAS.COMPANYID = CC.COMPANYID(+) AND EAS.CMPNUMBER = CC.CMPNUMBER(+)
+	               AND EAS.USEFLAG = 'Y'
+	               AND EAS.DEL_YN = 'N'
+		      ) A
+	]]></sql-query>
+	
+	<sql-query name="SELECT_SBJCT_CMPLT_STND_LIST" description="과정 수료점수 정보"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_SBJCT_CMPLT_STND_LIST
+		
+		SELECT ECS.CMPLT_STND_NM
+		     , CASE CMPLT_STND_CD WHEN '0' THEN NVL(BSOC.TT_GET_SCO,0) /* 총점 */
+                                  WHEN '1' THEN NVL(BSOC.ATTEND_SCO,0) /* 근태 */
+                                  WHEN '2' THEN NVL(BSOC.PRAC_SCO,0) /* 실기평가 */
+                                  WHEN '3' THEN NVL(BSOC.ANNO_SCO,0) /* 발표 */
+                                  WHEN '4' THEN NVL(BSOC.CHALL_SCO,0) /* 과제 */
+                                  WHEN '5' THEN NVL(BSOC.ETC_SCO,0) /* 기타 */
+                                  WHEN '6' THEN NVL(BSOC.DISCU_SCO,0) /* 분임토론 */
+                END WEI
+		  FROM (
+            SELECT *
+              FROM TB_BA_SBJCT_OPEN_CLASS
+             WHERE COMPANYID = ?
+               AND OPEN_NUM = ?
+               AND USERID = ?
+           ) BSOC,
+           (
+            SELECT '0' AS CMPLT_STND_CD, '총점' AS CMPLT_STND_NM
+              FROM DUAL
+            UNION ALL
+            SELECT CMPLT_STND_CD, (SELECT FUN_COMMON_CODE(COMPANYID, 'BA09', CMPLT_STND_CD) FROM DUAL) CMPLT_STND_NM
+              FROM TB_EM_CMPLT_STND 
+            WHERE COMPANYID = ?
+              AND SUBJECT_NUM = ?
+              AND USEFLAG = 'Y'
+           ) ECS
+     ORDER BY ECS.CMPLT_STND_CD
+	]]></sql-query>
+	
+	<sql-query name="UPDATE_APPR_REQ_WITHDRAW" description="나의강의실  학습현황  결재정보 회수처리"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- UPDATE_APPR_REQ_WITHDRAW
+		
+		UPDATE TB_BA_APPR_REQ
+		   SET LAST_REQ_STS_CD = '0' /* 결재회수 */
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		 WHERE COMPANYID = ?
+		   AND REQ_NUM = ?
+	]]></sql-query>
+	
+	<sql-query name="UPDATE_EDU_CANCEL" description="나의강의실  학습현황  교육정보 취소처리"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- UPDATE_EDU_CANCEL
+		
+		UPDATE TB_BA_SBJCT_OPEN_CLASS BSOC
+		   SET ATTEND_STATE_CODE = '3' /* 수강취소 */
+		     , CANCEL_STIME = SYSDATE
+		     , REQ_STS_CD = '0' /* 결재회수 */
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		 WHERE USERID = ?
+		   AND OPEN_NUM = ?
+		   AND COMPANYID = ?
+	]]></sql-query>
+	
+    <sql-query name="UPDATE_EDU_CMPNUMBER" description="나의강의실  학습현황  학습 도움된 역량 저장(정규과정)"><![CDATA[
+        -- sql_file : em-sqlset.xml
+        -- UPDATE_EDU_CMPNUMBER
+        
+        UPDATE TB_BA_SBJCT_OPEN_CLASS BSOC
+           SET CMPNUMBER = ?
+         WHERE USERID = ?
+           AND OPEN_NUM = ?
+           AND COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_ALW_CMPNUMBER" description="나의강의실  학습현황  학습 도움된 역량 저장(상시학습)"><![CDATA[
+        -- sql_file : em-sqlset.xml
+        -- UPDATE_ALW_CMPNUMBER
+
+        UPDATE TB_EM_ALW_STD
+           SET CMPNUMBER = ?
+         WHERE ALW_STD_SEQ = ?
+           AND COMPANYID = ?
+    ]]></sql-query>
+    
+	<!-- 학습현황 End -->
+	<!-- ==================================================================== -->
+	
+	<!-- ==================================================================== -->
+	<!-- 상시학습  Start -->
+	
+	<sql-query name="SELECT_EDU_ALW_LIST" description="교육훈련  상시학습 목록 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_EDU_ALW_LIST
+		
+		SELECT A.*
+		     , CASE WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NOT NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2||' - '||ALW_STD_NM3
+		            ELSE ''
+		        END ALW_STD_NM
+		  FROM (
+		        SELECT EAS.ALW_STD_SEQ AS ASSEQ
+		             , EAS.SUBJECT_NM /* 과정명 */
+		             , C3.CMM_CODENAME AS TRAINING_NM /* 학습유형 */
+		             , EAS.YYYY /* 개설년도 */
+		             , NVL(EAS.RECOG_TIME_H,0)||'시간 '||EAS.RECOG_TIME_M||'분' AS RECOG_TIME  /* 인정시간 : 시:분 */
+		             , (SELECT FUN_DATE_PERIOD(EAS.EDU_STIME, EAS.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+		             , DECODE(EAS.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+		             , EAS.REQ_NUM /* 결재번호 */
+		             , EAS.REQ_STS_CD /* 승인상태코드 */
+		             , C2.CMM_CODENAME AS REQ_STS_NM
+		             , CASE WHEN EAS.REQ_STS_CD = '1' /* 요청 */ 
+		                         AND EAS.W_DIV_CD = '1' /* 본인등록 */
+		                    THEN 'Y'
+		                    ELSE 'N'
+		                END CANCEL_YN
+		             , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 1)) FROM DUAL) ALW_STD_NM1 /* 상시학습종류 1단계 */
+		             , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 4)) FROM DUAL) ALW_STD_NM2 /* 상시학습종류 2단계 */
+		             , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', EAS.ALW_STD_CD) FROM DUAL) ALW_STD_NM3 /* 상시학습종류 3단계 */
+		          FROM (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA03') C3, /* 학습유형 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA13') C2, /* 결재상태 */
+		               TB_EM_ALW_STD_USER EASU,
+		               TB_EM_ALW_STD EAS
+		         WHERE EASU.COMPANYID = ?
+		           AND EASU.USERID = ?
+		           AND EASU.USEFLAG = 'Y'
+		           AND EASU.COMPANYID = EAS.COMPANYID
+		           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+		           AND EAS.USEFLAG = 'Y'
+		           AND EAS.DEL_YN = 'N'
+		           AND C2.COMMONCODE(+) = EAS.REQ_STS_CD
+		           AND C3.COMMONCODE = EAS.TRAINING_CD
+		      ) A
+		 ORDER BY EDU_PERIOD DESC
+	]]></sql-query>
+	
+	<sql-query name="SELECT_EDU_ALW_LIST_EXCEL" description="교육훈련  상시학습 엑셀다운로드 목록 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_EDU_ALW_LIST_EXCEL
+		
+		SELECT A.*
+		     , CASE WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NOT NULL THEN ALW_STD_NM1||' - '||ALW_STD_NM2||' - '||ALW_STD_NM3
+		            ELSE ''
+		        END ALW_STD_NM
+		  FROM (
+		        SELECT EAS.SUBJECT_NM /* 과정명 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA03', EAS.TRAINING_CD) FROM DUAL) TRAINING_NM /* 학습유형 */
+	                 , EAS.YYYY /* 개설년도 */
+	                 , (SELECT FUN_DATE_PERIOD(EAS.EDU_STIME, EAS.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+	                 , EASU.TT_GET_SCO AS SCR /* 수료점수 */
+	                 , NVL(EAS.EDU_HOUR_H,0)||'시간 '||EAS.EDU_HOUR_M||'분' AS EDU_HOUR  /* 교육시간: 시:분 */
+	                 , NVL(EAS.RECOG_TIME_H,0)||'시간 '||EAS.RECOG_TIME_M||'분' AS RECOG_TIME  /* 인정시간 : 시:분 */
+	                 , EAS.EDU_CONT /* 내용 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 1)) FROM DUAL) ALW_STD_NM1 /* 상시학습종류 1단계 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', SUBSTR(EAS.ALW_STD_CD, 1, 4)) FROM DUAL) ALW_STD_NM2 /* 상시학습종류 2단계 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA08', EAS.ALW_STD_CD) FROM DUAL) ALW_STD_NM3 /* 상시학습종류 3단계 */
+	                 , DECODE(EAS.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+	                 , NVL((SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA04', EAS.DEPT_DESIGNATION_CD) FROM DUAL),'해당사항없음') DEPT_DESIGNATION_NM /* 지정학습구분 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA07', EAS.OFFICETIME_CD) FROM DUAL) OFFICETIME_NM /* 업무시간구분 */
+	                 , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA05', EAS.EDUINS_DIV_CD) FROM DUAL) EDUINS_DIV_NM /* 교육기관구분 */
+	                 , NVL((SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA11', EAS.PERF_ASSE_SBJ_CD ) FROM DUAL),'해당사항없음') PERF_ASSE_SBJ_NM /* 기관성과평가 */
+	                 , EAS.INSTITUTE_NAME /* 교육기관 */
+		             , (SELECT FUN_COMMON_CODE(EAS.COMPANYID, 'BA13', EAS.REQ_STS_CD) FROM DUAL) REQ_STS_NM
+                     , EASU.GRADE_NUM
+                     , FUN_COMMON_CODE(EAS.COMPANYID, 'BA15', EASU.GRADE_NUM) GRADE_NM
+		          FROM TB_EM_ALW_STD_USER EASU,
+                   	   TB_EM_ALW_STD EAS
+		         WHERE EASU.COMPANYID = ?
+	               AND EASU.USERID = ?
+	               AND EAS.YYYY = ?
+	               AND EASU.USEFLAG = 'Y'
+	               AND EASU.COMPANYID = EAS.COMPANYID
+	               AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+	               AND EAS.USEFLAG = 'Y'
+	               AND EAS.DEL_YN = 'N'
+		      ) A
+		ORDER BY EDU_PERIOD DESC
+	]]></sql-query>
+	
+	<sql-query name="SELECT_ALW_DTL" description="상시학습 상세정보 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_ALW_DTL
+		
+		SELECT A.*
+		  FROM (
+		        SELECT EAS.ALW_STD_SEQ AS ASSEQ /* 개설번호 */
+	                 , EAS.SUBJECT_NM AS SUBJECT_NAME /* 과정명 */
+	                 , EAS.TRAINING_CD AS TRAINING_CODE /* 학습유형 */ 
+	                 , EAS.YYYY /* 개설년도 */
+	                 , EASU.TT_GET_SCO
+	                 , (SELECT FUN_DATE_FORMAT(EAS.EDU_STIME, 1) FROM DUAL) EDU_STIME
+	                 , (SELECT FUN_DATE_FORMAT(EAS.EDU_ETIME, 1) FROM DUAL) EDU_ETIME
+	                 , NULL AS EDU_DAYS /* 교육일수 */
+	                 , NVL(EAS.EDU_HOUR_H,0) EDU_HOUR_H /* 교육시간 : 시 */
+	                 , NVL(EAS.EDU_HOUR_M,0) EDU_HOUR_M /* 교육시간 : 분 */
+	                 , NVL(EAS.RECOG_TIME_H,0) RECOG_TIME_H /* 인정시간 : 시 */
+	                 , NVL(EAS.RECOG_TIME_M,0) RECOG_TIME_M /* 인정시간 : 분 */
+	                 , EAS.EDU_CONT AS COURSE_CONTENTS /* 내용 */
+	                 , SUBSTR(EAS.ALW_STD_CD, 1, 1) AS ALW_STD_CD1 /* 상시학습종류 1단계 */
+	                 , SUBSTR(EAS.ALW_STD_CD, 1, 4) AS ALW_STD_CD2 /* 상시학습종류 2단계 */
+	                 , (SELECT CD_VALUE3 FROM TB_BA_COMMONCODE BC WHERE BC.COMPANYID = EAS.COMPANYID AND BC.STANDARDCODE = 'BA08' AND BC.COMMONCODE = EAS.ALW_STD_CD) ALW_STD_CD3
+	                 , (SELECT CD_VALUE5 FROM TB_BA_COMMONCODE BC WHERE BC.COMPANYID = EAS.COMPANYID AND BC.STANDARDCODE = 'BA08' AND BC.COMMONCODE = EAS.ALW_STD_CD) ALW_STD_CD4
+	                 , EAS.ALW_STD_CD AS ALW_STD_CD /* 상시학습종류 3단계 */
+	                 , NVL(EAS.DEPT_DESIGNATION_YN,'N') DEPT_DESIGNATION_YN /* 부처지정유무 */
+	                 , EAS.DEPT_DESIGNATION_CD /* 지정학습구분 */
+	                 , EAS.OFFICETIME_CD /* 업무시간구분 */
+	                 , EAS.EDUINS_DIV_CD /* 교육기관구분 */
+	                 , EAS.INSTITUTE_NAME /* 교육기관 */
+                     , EAS.INSTITUTE_CODE /* 교육기관코드 */
+	                 , EAS.PERF_ASSE_SBJ_CD /* 기관성과평가 */
+	                 , NVL(EAS.REQUIRED_YN,'N') REQUIRED_YN /* 필수구분 */
+		             , EAS.REQ_NUM /* 결재번호 */
+		             , EAS.REQ_STS_CD /* 승인상태코드 */
+		             , CASE WHEN EAS.REQ_STS_CD IN ('1') AND EASU.USERID = EASU.CREATER THEN 'DTL'
+		                    WHEN EAS.REQ_STS_CD = '0' AND EASU.USERID = EASU.CREATER THEN 'MOD'
+		                    ELSE ''
+		                END ALW_STS /* 상태 */
+		             , EAS.ALW_STD_SEQ AS OBJECTID /* 첨부파일번호 */
+                     , EASU.GRADE_NUM /* 인정직급 */
+                     , EAS.CMPNUMBER /* 학습역량 */
+		          FROM TB_EM_ALW_STD_USER EASU,
+                   	   TB_EM_ALW_STD EAS
+		         WHERE EASU.COMPANYID = ?
+	               AND EASU.USERID = ?
+	               AND EASU.ALW_STD_SEQ = ?
+	               AND EASU.USEFLAG = 'Y'
+	               AND EASU.COMPANYID = EAS.COMPANYID
+	               AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+	               AND EAS.USEFLAG = 'Y'
+	               AND EAS.DEL_YN = 'N'
+		      ) A
+	]]></sql-query>
+	
+	<sql-query name="SELECT_NEW_ALW_SEQ" description="교육훈련  상시학습 신규 번호 조회"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_NEW_ALW_SEQ
+		
+		SELECT SEQ_ALW_STD_SEQ.NEXTVAL FROM DUAL
+	]]></sql-query>
+	
+	<sql-query name="INSERT_EDU_ALW_STN_INF" description="교육훈련 상시학습 기본정보 등록"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- INSERT_EDU_ALW_INF
+		
+		INSERT INTO TB_EM_ALW_STD (
+			COMPANYID, ALW_STD_SEQ, SUBJECT_NM, YYYY, INSTITUTE_NAME, 
+			TRAINING_CD, EDU_CONT, EDU_STIME, EDU_ETIME, EDU_HOUR_H,
+			EDU_HOUR_M, RECOG_TIME_H, RECOG_TIME_M, ALW_STD_CD, DEPT_DESIGNATION_YN, 
+			DEPT_DESIGNATION_CD, PERF_ASSE_SBJ_CD, OFFICETIME_CD, EDUINS_DIV_CD, REQ_NUM, 
+			REQ_STS_CD, USEFLAG, CREATETIME, CREATER, DEL_YN, 
+			REQUIRED_YN, W_DIV_CD, INSTITUTE_CODE, CMPNUMBER
+		) VALUES (
+			?, ?, ?, ?, ?,
+			?, ?, TO_DATE(?,'YYYY-MM-DD'), TO_DATE(?,'YYYY-MM-DD'), ?,
+			?, ?, ?, ?, ?,
+			?, ?, ?, ?, ?, 
+			'1', 'Y', SYSDATE, ?, 'N',
+			?, '1', ?, ?
+		)
+	]]></sql-query>
+	
+	<sql-query name="INSERT_EDU_ALW_DTL_INF" description="교육훈련 상시학습 상세정보 등록"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- INSERT_EDU_ALW_INF
+		
+		MERGE INTO TB_EM_ALW_STD_USER A
+		USING (
+			SELECT COMPANYID
+			     , USERID
+			     , ? AS ALW_STD_SEQ
+			     , DIVISIONID
+			     , JOB
+			     , LEADERSHIP
+			     , ? GRADE_NUM
+			     , 'Y' AS USEFLAG
+			     , SYSDATE AS CREATETIME
+			     , USERID AS CREATER
+			     , ? AS TT_GET_SCO
+			  FROM TB_BA_USER
+			 WHERE USERID = ?
+		) B
+		ON ( A.COMPANYID = B.COMPANYID AND A.USERID = B.USERID AND A.ALW_STD_SEQ = B.ALW_STD_SEQ )
+		WHEN MATCHED THEN
+			UPDATE SET
+				  DIVISIONID = B.DIVISIONID
+				, JOB = B.JOB
+				, LEADERSHIP = B.LEADERSHIP
+				, GRADE_NUM = B.GRADE_NUM
+				, USEFLAG = B.USEFLAG
+				, MODIFYTIME = B.CREATETIME
+		        , MODIFIER = B.CREATER
+				, TT_GET_SCO = 	B.TT_GET_SCO	
+		WHEN NOT MATCHED THEN
+			INSERT (
+				A.COMPANYID, A.USERID, A.ALW_STD_SEQ, A.DIVISIONID, A.JOB,
+		  		A.LEADERSHIP, A.GRADE_NUM, A.USEFLAG, A.CREATETIME, A.CREATER,
+		  		A.TT_GET_SCO, A.MODIFYTIME
+			) VALUES (
+				B.COMPANYID, B.USERID, B.ALW_STD_SEQ, B.DIVISIONID, B.JOB,
+		  		B.LEADERSHIP, B.GRADE_NUM, B.USEFLAG, B.CREATETIME, B.CREATER,
+		  		B.TT_GET_SCO, B.CREATETIME
+			)
+	]]></sql-query>
+	
+	<sql-query name="UPDATE_EDU_ALW_STN_INF" description="교육훈련 상시학습 기본정보 수정"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- UPDATE_EDU_ALW_STN_INF
+		
+		UPDATE TB_EM_ALW_STD
+		   SET SUBJECT_NM = ?
+		     , YYYY = ?
+		     , INSTITUTE_NAME = ?
+		     , TRAINING_CD = ?
+		     , EDU_CONT = ?
+		     , EDU_STIME = TO_DATE(?,'YYYY-MM-DD')
+		     , EDU_ETIME = TO_DATE(?,'YYYY-MM-DD')
+		     , EDU_HOUR_H = ?
+		     , EDU_HOUR_M = ?
+		     , RECOG_TIME_H = ?
+		     , RECOG_TIME_M = ?
+		     , ALW_STD_CD = ?
+		     , DEPT_DESIGNATION_YN = ?
+		     , DEPT_DESIGNATION_CD = ?
+		     , PERF_ASSE_SBJ_CD = ?
+		     , OFFICETIME_CD = ?
+		     , EDUINS_DIV_CD = ?
+		     , REQ_NUM = ?
+		     , REQ_STS_CD = ?
+		     , USEFLAG = 'Y'
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		     , DEL_YN = 'N'
+		     , REQUIRED_YN = ?
+		     , INSTITUTE_CODE = ?
+		     , CMPNUMBER = ?
+		WHERE COMPANYID = ?
+		  AND ALW_STD_SEQ = ?
+	]]></sql-query>
+	
+	<sql-query name="UPDATE_ALW_CANCEL" description="교육훈련 상시학습 취소"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- UPDATE_ALW_CANCEL
+		
+		UPDATE TB_EM_ALW_STD
+		   SET REQ_STS_CD = '0'
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		 WHERE ALW_STD_SEQ = ?
+	]]></sql-query>
+	
+	<sql-query name="SELECT_FILE_CNT" description="파일 ObjectId 변경"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- SELECT_FILE_CNT
+        
+		SELECT COUNT(1)
+		  FROM  V2_ATTACHMENT
+		 WHERE OBJECT_TYPE = ? 
+		   AND OBJECT_ID = ?
+    ]]></sql-query>
+	
+	<sql-query name="UPDATE_ATTACHMENT_OBJECT_ID" description="파일 ObjectId 변경"><![CDATA[
+		-- sql_file : em-sqlset.xml
+		-- UPDATE_ATTACHMENT_OBJECT_ID
+        
+		UPDATE V2_ATTACHMENT
+		   SET OBJECT_ID = ?
+		 WHERE OBJECT_TYPE = ? 
+		   AND OBJECT_ID = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_USERID_BY_EMPNO" description="아이디를 통해 사용자번호 조회"><![CDATA[
+        -- sql_file : em-sqlset.xml
+        -- SELECT_USERID_BY_EMPNO
+    
+SELECT NVL((SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND DEL_YN = 'N' AND ROWNUM = 1), 999999) USERID FROM DUAL
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_SAME_DATA_ALW" description="동일한 상시학습이 존재하는지 체크"><![CDATA[
+        -- sql_file : em-sqlset.xml
+        -- SELECT_SAME_DATA_ALW
+    
+SELECT COUNT(*) CNT
+FROM TB_EM_ALW_STD A, TB_EM_ALW_STD_USER B
+WHERE A.COMPANYID = B.COMPANYID AND A.ALW_STD_SEQ = B.ALW_STD_SEQ
+    AND A.DEL_YN = 'N' AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y'
+    AND B.USERID = ? -- 동일 사용자 체크 
+    AND TO_CHAR(A.EDU_STIME, 'YYYY-MM-DD') = ? -- 교육시작일 체크
+    AND TO_CHAR(A.EDU_ETIME, 'YYYY-MM-DD') = ? -- 교육종료일 체크
+    AND A.SUBJECT_NM = ? -- 과정명 체크
+    ]]></sql-query>
+
+
+    <sql-query name="SELECT_YEAR_ALW_LIMIT_CHECK" description="상시학습종류별 인정시간체크"><![CDATA[
+        -- sql_file : em-sqlset.xml
+        -- SELECT_YEAR_ALW_LIMIT_CHECK
+
+SELECT MAX_TIME, -- 연간최대인정시간
+    RECOG_TIME,  -- 연간 인정시간 누적실적
+    ABLE_TIME,  -- 추가로 인정 가능한 시간
+    REQ_TIME,  -- 요청한 인정시간
+    FLAG,  -- 요청한 인정시간이 모두 인정되는지 여부.
+    ABLE_TIME_STR,  -- 현재 요청의 인정가능한 시간
+    ABLE_TIME_H, -- 입력될 인정시간_시
+    ABLE_TIME_M, -- 입력될 인정시간_분
+    '연간 최대 인정시간 : '||MAX_TIME||'<br>현재 누적시간 :'||RECOG_TIME||'<br>추가 예정 인정시간 : '||ABLE_TIME_STR MSG -- 요청된 인정시간이 인정 안될경우 메세지..
+FROM(
+	SELECT TRUNC(MAX_TIME/60)||'시간 '||TRUNC(MOD(MAX_TIME, 60))||'분' MAX_TIME, 
+	    TRUNC(RECOG_TIME/60)||'시간 '||TRUNC(MOD(RECOG_TIME, 60))||'분' RECOG_TIME, 
+	    ABLE_TIME, 
+	    REQ_TIME,
+	    CASE WHEN REQ_TIME = 0 OR ABLE_TIME >= REQ_TIME THEN 'Y'
+	    ELSE 'N'
+	    END FLAG,
+	    CASE WHEN ABLE_TIME > 0 THEN
+	        TRUNC(CASE WHEN ABLE_TIME < REQ_TIME THEN ABLE_TIME ELSE REQ_TIME END/60)||'시간 '||TRUNC(MOD(CASE WHEN ABLE_TIME < REQ_TIME THEN ABLE_TIME ELSE REQ_TIME END,60))||'분' 
+	    ELSE '0시간 0분'
+	    END ABLE_TIME_STR,
+        CASE WHEN ABLE_TIME > 0 THEN TRUNC(CASE WHEN ABLE_TIME < REQ_TIME THEN ABLE_TIME ELSE REQ_TIME END/60) ELSE 0 END ABLE_TIME_H,
+        CASE WHEN ABLE_TIME > 0 THEN TRUNC(MOD(CASE WHEN ABLE_TIME < REQ_TIME THEN ABLE_TIME ELSE REQ_TIME END,60)) ELSE 0 END ABLE_TIME_M
+	FROM(
+	    SELECT NVL(MAX_TIME, 999999) MAX_TIME, NVL(RECOG_TIME, 0) RECOG_TIME, NVL(MAX_TIME, 999999)-NVL(RECOG_TIME, 0) ABLE_TIME
+	    FROM(
+	        SELECT
+	              CASE WHEN AVG(CMM.CD_VALUE2) IS NULL OR AVG(CMM.CD_VALUE2) = 0 THEN 9999999
+	              ELSE AVG(CMM.CD_VALUE2)*60
+	              END MAX_TIME
+	            , SUM(RECOG_TIME) AS RECOG_TIME
+	        FROM(
+	            SELECT BS.COMPANYID, BSO.OPEN_NUM, BSO.ALW_STD_CD
+	                , NVL(BSOC.RECOG_TIME_H,0)*60+(NVL(BSOC.RECOG_TIME_M,0)) AS RECOG_TIME
+	            FROM TB_BA_SBJCT BS
+	            , TB_BA_SBJCT_OPEN BSO, TB_BA_SBJCT_OPEN_CLASS BSOC
+	            WHERE BSO.COMPANYID = BS.COMPANYID AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+	                AND BSOC.COMPANYID = BSO.COMPANYID AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+	                AND BSOC.COMPANYID = ?
+	                AND BSOC.USERID = ?
+	                AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+	                AND BSO.YYYY = ?
+	                AND BS.DEL_YN = 'N'
+	                AND BSO.USEFLAG = 'Y'
+	                AND BSOC.USEFLAG = 'Y'
+	                AND BSO.ALW_STD_CD = ?
+	                ]]><dynamic><![CDATA[ ${ QUERY_WHERE_OPEN } ]]></dynamic><![CDATA[
+	            UNION ALL
+	            SELECT EAS.COMPANYID, EAS.ALW_STD_SEQ, EAS.ALW_STD_CD
+	                , NVL(EAS.RECOG_TIME_H,0)*60+(NVL(EAS.RECOG_TIME_M,0)) AS RECOG_TIME
+	            FROM TB_EM_ALW_STD_USER EASU, TB_EM_ALW_STD EAS
+	            WHERE EASU.COMPANYID = ?
+	                AND EASU.USERID = ?
+	                AND EASU.USEFLAG = 'Y'
+	                AND EASU.COMPANYID = EAS.COMPANYID AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+	                AND EAS.YYYY = ?
+	                AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+	                AND EAS.USEFLAG = 'Y'
+	                AND EAS.DEL_YN = 'N'
+	                AND EAS.ALW_STD_CD = ?
+	                ]]><dynamic><![CDATA[ ${ QUERY_WHERE_ALW } ]]></dynamic><![CDATA[
+	            ) HIS, TB_BA_COMMONCODE CMM
+	        WHERE HIS.COMPANYID(+) = CMM.COMPANYID  AND HIS.ALW_STD_CD(+) = CMM.COMMONCODE AND CMM.STANDARDCODE = 'BA08'
+	            AND CMM.COMMONCODE = ?
+	        GROUP BY HIS.ALW_STD_CD
+	        )
+	    ) MT,
+	    (
+	    SELECT NVL(?, 0)*60+NVL(?, 0) REQ_TIME
+	    FROM DUAL
+	    ) REQ
+    )
+    ]]></sql-query>
+    
+    
+	<!-- 상시학습 End -->
+	<!-- ==================================================================== -->
+
+</sqlset>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<description><![CDATA[
+       Context for Foundation
+	]]></description>
+	
+	
+	<bean id="externalUserProfileDao" class="architecture.user.dao.impl.JdbcExternalUserPorfileDao" parent="jdbcDaoSupport" />
+	<bean id="userDao" class="architecture.user.dao.impl.ExternalJdbcUserDao" parent="jdbcDaoSupport" depends-on="extendedPropertyDao" p:extendedPropertyDao-ref="extendedPropertyDao" p:externalUserProfileDao-ref="externalUserProfileDao" />
+	
+	<!-- Basic User -->
+	<bean id="baDao" class="kr.podosoft.ws.service.ba.dao.impl.JdbcBaDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="baSrv" class="kr.podosoft.ws.service.ba.impl.BaServiceImpl" p:baDao-ref="baDao" p:passwordEncoder-ref="passwordEncoder" />
+	
+	<!-- Basic User -->
+	<bean id="baUserDao" class="kr.podosoft.ws.service.ba.dao.impl.JdbcBaUserDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="baUserSrv" class="kr.podosoft.ws.service.ba.impl.BaUserServiceImpl" p:passwordEncoder-ref="passwordEncoder" p:baUserDao-ref="baUserDao" />
+	
+	<!-- Basic Subject -->
+	<bean id="baSubjectDao" class="kr.podosoft.ws.service.ba.dao.impl.JdbcBaSubjectDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="baSubjectSrv" class="kr.podosoft.ws.service.ba.impl.BaSubjectServiceImpl" p:baSubjectDao-ref="baSubjectDao"  p:emAlwService-ref="emAlwService" />
+	
+	
+	<!-- Basic Synchronization -->
+	<bean id="baSyncDao" class="kr.podosoft.ws.service.ba.dao.impl.JdbcBaSyncDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" p:lobHandler-ref="lobHandler" />
+	
+	<bean id="baSyncSrv" class="kr.podosoft.ws.service.ba.impl.BaSyncServiceImpl" p:baSyncDao-ref="baSyncDao" p:passwordEncoder-ref="passwordEncoder" />
+	
+	<!-- Basic Education -->
+	<bean id="baEducationDao" class="kr.podosoft.ws.service.ba.dao.impl.JdbcBaEducationDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="baEducationSrv" class="kr.podosoft.ws.service.ba.impl.BaEducationServiceImpl" p:baEducationDao-ref="baEducationDao"/>
+
+</beans>

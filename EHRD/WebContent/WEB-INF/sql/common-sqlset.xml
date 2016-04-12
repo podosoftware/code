@@ -1,0 +1,1698 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>COMMON</name>
+    <version>2.0</version>
+    <description>COMMON 모듈을 위한 쿼리</description>
+    
+    <sql-query name="SELECT_MAIN_COMPANY_INFO"
+        description="메인페이지 - 회사정보 조회">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_COMPANY_INFO
+SELECT *
+FROM(
+SELECT ROW_NUMBER() OVER(ORDER BY CMPT_EVL_CMPL_DATE DESC) RNUM,
+    COMPANYID, COMPANYNAME, RGST_NO,CTRT_ST_DT, CTRT_ED_DT,
+    CSTM_ID, HOME_PG_TYPE, MN_CMT, NAME, EMAIL, PHONE, CELLPHONE,JOB,LEADERSHIP,RUN_NUM,CMPT_EVL_CMPL_DATE
+FROM(
+    SELECT BC.COMPANYID, COMPANYNAME, RGST_NO, TO_CHAR(CTRT_ST_DT, 'YYYY-MM-DD') CTRT_ST_DT, TO_CHAR(CTRT_ED_DT, 'YYYY-MM-DD') CTRT_ED_DT,
+        CSTM_ID, HOME_PG_TYPE, MN_CMT, NAME, EMAIL, PHONE, CELLPHONE,RI.JOB,RI.LEADERSHIP,RI.RUN_NUM,RI.CMPT_EVL_CMPL_DATE
+    FROM TB_BA_COMPANY_M BC, TB_BA_USER BU,TB_CAM_RUNTARGET_I RI
+    WHERE BC.USERID = BU.USERID
+        AND BC.COMPANYID = BU.COMPANYID
+        AND RI.USERID = BU.USERID
+        AND RI.USERID = BC.USERID
+	    AND BC.COMPANYID = ?
+        AND RI.CMPT_EVL_CMPL_FLAG = 'Y'
+        ORDER BY RI.CMPT_EVL_CMPL_DATE DESC
+    )
+    )
+    WHERE RNUM = 1
+        ]]>
+    </sql-query>
+    
+        <sql-query name="SELECT_REQ_DIVISION_CNT"
+        description="메인페이지 - 권한위임 카운트">
+        <![CDATA[
+        --  COMMON : SELECT_USER_DIVISION_INFO
+			SELECT COUNT(*) ENTRUST_CNT FROM TB_BA_DIVISION_EDU_MGR WHERE COMPANYID = ? AND CHANGE_CONFIRM_YN = 'N' AND USEFLAG = 'Y'
+        ]]>
+    </sql-query>
+    
+	<sql-query name="GET_MY_JOB_LIST" description="메인페이지 - 직무변경 리스트">
+		<![CDATA[
+			SELECT USERID, NAME, EMPNO, GRADE_NM, JOB, JOBLDR_NAME 
+                    FROM TB_BA_USER BU,
+                        (
+                        SELECT *
+                        FROM TB_CM_JOB_LDR_I
+                        WHERE JOBLDR_FLAG = 'J'
+                            AND DEL_YN = 'N'
+                            AND USEFLAG = 'Y'
+                        ) CJ
+                    WHERE BU.COMPANYID = CJ.COMPANYID(+)
+                        AND BU.JOB = CJ.JOBLDR_NUM(+)
+                        AND BU.COMPANYID = ?
+                        AND BU.USEFLAG = 'Y'
+                        AND BU.DEL_YN = 'N'
+                        AND BU.DIVISIONID IN (
+                            SELECT DIVISIONID 
+                            FROM TB_BA_DIVISION 
+                            WHERE COMPANYID = 1 AND DEL_YN = 'N' AND USEFLAG = 'Y' 
+                            START WITH DIVISIONID IN (SELECT DIVISIONID FROM TB_BA_DIVISION WHERE USEFLAG = 'Y' AND DEL_YN = 'N' AND COMPANYID = 1 AND DVS_MANAGER = ?) 
+                            CONNECT BY PRIOR DIVISIONID = HIGH_DVSID 
+                            )
+		]]>
+    </sql-query>
+    
+	<sql-query name="GET_JOB_LIST" description="메인페이지 - 역량진단결과">
+		<![CDATA[
+			SELECT JOBLDR_NUM, JOBLDR_NAME
+			FROM TB_CM_JOB_LDR_I 
+			WHERE 1=1
+				AND JOBLDR_FLAG = 'J'
+				AND USEFLAG = 'Y'
+				AND DEL_YN = 'N'
+			ORDER BY JOBLDR_NAME
+		]]>
+	</sql-query>
+    
+	<sql-query name="SET_TEAM_JOB" description="메인페이지 - 역량진단결과">
+		<![CDATA[
+			UPDATE TB_BA_USER
+			SET JOB = ?
+			WHERE USERID = ?
+		]]>
+	</sql-query>
+    
+    
+    <sql-query name="GET_CDP_PLAN_STATE_RATE" description="메인페이지 - 역량진단결과">
+        <![CDATA[
+        
+SELECT ROWNUM RNUM, A.*, ROUND(AVG_RATE,2) R_AVG_RATE, COUNT(*) OVER() TOTALITEMCOUNT
+    FROM (        
+    SELECT TBU.EMPNO, TBU.ID, TBU.USERID, TBU.NAME , TBU.DIVISIONID , TBD.DVS_NAME, TBD.DVS_FULLNAME, TBU.GRADE_NM, 
+                       CASE WHEN AVG_RATE IS NULL THEN 0
+                            ELSE AVG_RATE
+                       END AVG_RATE , TBU.YYYY AS YEAR
+                  FROM (
+                        SELECT DISTINCT B.USERID, A.YYYY, C.DIVISIONID, GRADE_NM, C.COMPANYID, NAME, EMPNO, ID
+                             FROM TB_CAM_RUN_L A, 
+                                  TB_CAM_RUNTARGET_I B, 
+                                  TB_BA_USER C
+                            WHERE A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM
+                              AND B.COMPANYID = C.COMPANYID AND B.USERID = C.USERID     
+                              ---------------------------------------------------
+                              AND A.YYYY = ? /* P */
+                              AND C.USERID = ? /* p */
+                              ---------------------------------------------------
+                        ) TBU, TB_BA_DIVISION TBD,
+                       (
+                        SELECT USERID, AVG(RATE) AVG_RATE
+                        FROM (
+                                SELECT PLAN.USERID, PLAN.CMPNUMBER, CMPNAME, PLAN_TIME_H, RUN_TIME_H,
+                                       CASE WHEN RUN_TIME_H >= PLAN_TIME_H THEN 100
+                                            WHEN RUN_TIME_H < PLAN_TIME_H THEN (RUN_TIME_H/PLAN_TIME_H)*100
+                                       END RATE
+                                FROM TB_CM_COMPETENCY TCC,
+                                    (
+                                    -- 계획시간
+                                    SELECT E.USERID, CMPNUMBER, SUM(NVL(D.RECOG_TIME_H, 0)*60)+SUM(NVL(D.RECOG_TIME_M, 0)) AS PLAN_TIME_H
+                                      FROM TB_CAM_RUN_L A, TB_CDP B, TB_CDP_EDU_PLAN C, TB_BA_SBJCT D, TB_BA_USER E
+                                     WHERE A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM
+                                       AND B.COMPANYID = C.COMPANYID AND B.RUN_NUM = C.RUN_NUM AND B.USERID = C.USERID
+                                       AND C.COMPANYID = D.COMPANYID AND C.SUBJECT_NUM = D.SUBJECT_NUM
+                                       AND B.USERID = E.USERID AND E.COMPANYID = E.COMPANYID
+                                       AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y' AND C.USEFLAG = 'Y'
+                                       AND A.EVL_TYPE_CD = 2 /* 경력개발계획 */
+                                       AND B.REQ_STS_CD = 2 /* 승인 */
+                                       ---------------------------------------------------
+                                       AND A.YYYY = ? /* P */
+                                       AND B.USERID = ? /* p */
+                                       AND E.COMPANYID = ? /* P */
+                                       ---------------------------------------------------
+                                     GROUP BY E.USERID, CMPNUMBER
+                                    ) PLAN,
+                                    (
+                                    SELECT USERID , CMPNUMBER, SUM(RUN_TIME_H) RUN_TIME_H
+                                    FROM(
+                                        -- 실적시간 (수강정보)
+                                        SELECT SOC.USERID, CMPNUMBER, SUM(NVL(SOC.RECOG_TIME_H, 0)*60)+SUM(NVL(SOC.RECOG_TIME_M, 0)) AS RUN_TIME_H
+                                          FROM TB_BA_SBJCT_OPEN SO, /*과정개설정보*/ 
+                                               TB_BA_SBJCT_OPEN_CLASS SOC /*수강정보*/
+                                         WHERE SO.COMPANYID = SOC.COMPANYID AND SO.OPEN_NUM = SOC.OPEN_NUM
+                                           AND SOC.USEFLAG ='Y'
+                                           ---------------------------------------------------
+                                           AND SO.YYYY = ? /* P */
+                                           AND SOC.USERID = ? /* p */
+                                           AND SO.COMPANYID = ? /* P */
+                                           ---------------------------------------------------
+                                           AND SO.USEFLAG = 'Y'
+                                           AND NVL(SO.CLOSING_YN, 'N') = 'N'
+                                           AND SO.DEL_YN = 'N' -- 삭제여부
+                                           AND SOC.ATTEND_STATE_CODE = '5' /* 수료 */
+                                         GROUP BY SOC.USERID, CMPNUMBER     
+                                        UNION ALL
+                                        -- 실적시간 (상시학습)
+                                        SELECT EASU.USERID, EAS.CMPNUMBER, SUM(NVL(EAS.RECOG_TIME_H, 0)*60)+SUM(NVL(EAS.RECOG_TIME_M, 0)) AS RUN_TIME_H
+                                          FROM TB_EM_ALW_STD EAS, 
+                                               TB_EM_ALW_STD_USER EASU
+                                         WHERE EAS.COMPANYID = EASU.COMPANYID AND EAS.ALW_STD_SEQ = EASU.ALW_STD_SEQ
+                                           AND EAS.USEFLAG = 'Y'
+                                           AND EAS.DEL_YN = 'N'
+                                           AND EASU.USEFLAG = 'Y'
+                                           AND EAS.REQ_STS_CD = 2 /* 승인 */
+                                           ---------------------------------------------------
+                                           AND EAS.YYYY = ? /* P */
+                                           AND EASU.USERID = ? /* p */
+                                           AND EASU.COMPANYID = ? /* P */
+                                           --------------------------------------------------- 
+                                         GROUP BY EASU.USERID, EAS.CMPNUMBER
+                                        )
+                                    GROUP BY USERID , CMPNUMBER
+                                    ) RUN
+                                WHERE TCC.CMPNUMBER = PLAN.CMPNUMBER 
+                                  AND PLAN.USERID = RUN.USERID AND PLAN.CMPNUMBER = RUN.CMPNUMBER  
+                                )
+                         GROUP BY USERID       
+                        ) RATE
+                 WHERE TBU.COMPANYID = TBD.COMPANYID AND TBU.DIVISIONID = TBD.DIVISIONID
+                   AND TBU.USERID = RATE.USERID(+)
+                    ORDER BY AVG_RATE DESC
+            ) A
+        ]]>
+    </sql-query>
+    
+	<sql-query name="GET_MAIN_CAM_USER_INFO" description="메인페이지 - 역량진단결과 유저정보">
+		<![CDATA[  
+		SELECT
+			DISTINCT CT.RUN_NUM,CT.JOB,CT.LEADERSHIP,CT.USERID,TL.RUN_END
+		FROM TB_CAM_RUNTARGET_I CT,TB_CAM_RUNDIRECTION_I RI,TB_CAM_RUN_L TL
+		WHERE CT.COMPANYID = RI.COMPANYID AND CT.RUN_NUM = RI.RUN_NUM AND CT.USERID = RI.USERID_EXED AND CT.COMPANYID = TL.COMPANYID AND CT.RUN_NUM = TL.RUN_NUM
+			AND TO_CHAR(TL.RESULT_OPEN_DATE,'YYYY-MM-DD') <= TO_CHAR(SYSDATE,'YYYY-MM-DD')
+			AND RI.CMPL_FLAG = 'Y'
+			AND CT.USEFLAG ='Y'
+			AND RI.USEFLAG ='Y'
+			AND TL.USEFLAG ='Y'
+			AND CT.USERID= ?
+			ORDER BY TL.RUN_END DESC
+		]]>
+	</sql-query>
+
+	<sql-query name="GET_MAIN_ALW_EDU" description="메인페이지 - 연간상시학습 이수현황">
+		<![CDATA[
+			SELECT USERID,TOT_LABEL,DEPT_STANDARD_LABEL
+				, ROUND(NVL(TOT_STANDARD_TIME,0)/60) TOT_STANDARD_TIME
+                , ROUND(NVL(DEPT_STANDARD_TIME,0)/60) DEPT_STANDARD_TIME
+                , ROUND(NVL(ALW_RECOG_TIME,0)/60) ALW_RECOG_TIME
+                , ROUND(NVL(DEPT_RECOG_TIME,0)/60) DEPT_RECOG_TIME
+                , ROUND((NVL(ALW_RECOG_TIME,0)+NVL(DEPT_RECOG_TIME,0))/60) AS TOT_RECOG_TIME
+                , CASE WHEN NVL(TOT_STANDARD_TIME, 0) = 0 THEN 
+                      0 
+                  ELSE
+                      CASE WHEN ROUND((NVL(ALW_RECOG_TIME,0)+NVL(DEPT_RECOG_TIME,0))/NVL(TOT_STANDARD_TIME,0)*100,-1)>100 THEN 100
+                      ELSE ROUND((NVL(ALW_RECOG_TIME,0)+NVL(DEPT_RECOG_TIME,0))/NVL(TOT_STANDARD_TIME,0)*100,-1) 
+                      END 
+                  END AS TOT_RATE
+				FROM (
+				(
+				SELECT A.USERID,TOT_LABEL,TOT_STANDARD_TIME,DEPT_STANDARD_LABEL,DEPT_STANDARD_TIME
+					FROM (
+					-- 총 기준시간
+						SELECT USERID
+							, '총시간' AS TOT_LABEL
+							, NVL(TT_CMP_TIME_M,0) + NVL(TT_CMP_TIME_H,0)*60 AS TOT_STANDARD_TIME
+						FROM TB_EM_USER_EDU_CMP_TIME
+						WHERE 1=1
+							AND USEFLAG = 'Y'
+							AND YYYY = ?
+							AND USERID = ?
+					) A,
+					(
+					-- 부처지정학습 기준시간
+						SELECT USERID
+							, DEPT_DESIGNATION_NM AS DEPT_STANDARD_LABEL
+							, NVL(CMP_TIME_M,0) + NVL(CMP_TIME_H,0)*60 AS DEPT_STANDARD_TIME
+						FROM TB_EM_USER_DEPT_DESI_TIME
+						WHERE 1=1
+							AND USEFLAG = 'Y'
+							AND YYYY = ?
+							AND USERID = ?
+					) B
+					WHERE A.USERID=B.USERID(+)
+				)
+			) STANDARD,
+				(
+				SELECT ALW_RECOG_TIME, DEPT_RECOG_TIME
+					FROM (
+					-- 상시학습 이수시간
+						SELECT SUM(RECOG_TIME) ALW_RECOG_TIME
+							FROM(
+							SELECT USERID
+								, NVL(BSOC.RECOG_TIME_M,0)+ROUND((NVL(BSOC.RECOG_TIME_H,0)*60)) AS RECOG_TIME
+							FROM TB_BA_SBJCT BS,
+								TB_BA_SBJCT_OPEN BSO,
+								TB_BA_SBJCT_OPEN_CLASS BSOC
+							WHERE 1=1 
+								AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+								AND BSOC.COMPANYID = BSO.COMPANYID
+								AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+								AND BSO.COMPANYID = BS.COMPANYID
+								AND BSO.DEPT_DESIGNATION_YN != 'Y'
+								AND BSOC.USEFLAG = 'Y'
+								AND BSO.USEFLAG = 'Y'
+								AND BS.USEFLAG = 'Y'
+								AND BS.DEL_YN = 'N'
+								AND BSOC.ATTEND_STATE_CODE = '5'
+								AND BSO.YYYY = ?
+								AND BSOC.USERID = ?
+								AND BSOC.COMPANYID = ?
+							UNION ALL
+							SELECT USERID
+								, NVL(EAS.RECOG_TIME_M,0)+ROUND((NVL(EAS.RECOG_TIME_H,0)*60)) AS RECOG_TIME
+							FROM TB_EM_ALW_STD_USER EASU,
+								TB_EM_ALW_STD EAS
+							WHERE 1=1 
+								AND EASU.COMPANYID = EAS.COMPANYID
+								AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+								AND EAS.DEPT_DESIGNATION_YN != 'Y'
+								AND EASU.USEFLAG = 'Y'
+								AND EAS.USEFLAG = 'Y'
+								AND EAS.DEL_YN = 'N'
+								AND EAS.REQ_STS_CD = '2'
+								AND EAS.YYYY = ?
+								AND EASU.USERID = ?
+								AND EASU.COMPANYID =?
+						)
+					) ALW,
+					(
+					--부처지정학습 이수시간
+					SELECT SUM(RECOG_TIME) DEPT_RECOG_TIME
+					FROM(
+						SELECT USERID
+							, NVL(BSOC.RECOG_TIME_M,0)+ROUND((NVL(BSOC.RECOG_TIME_H,0)*60)) AS RECOG_TIME
+						FROM TB_BA_SBJCT BS,
+							TB_BA_SBJCT_OPEN BSO,
+							TB_BA_SBJCT_OPEN_CLASS BSOC
+						WHERE 1=1 
+							AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+							AND BSOC.COMPANYID = BSO.COMPANYID
+							AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+							AND BSO.COMPANYID = BS.COMPANYID
+							AND BSO.DEPT_DESIGNATION_YN = 'Y'
+							AND BSOC.USEFLAG = 'Y'
+							AND BSO.USEFLAG = 'Y'
+							AND BS.USEFLAG = 'Y'
+							AND BS.DEL_YN = 'N'
+							AND BSOC.ATTEND_STATE_CODE = '5'
+							AND BSO.YYYY = ?
+							AND BSOC.USERID = ?
+							AND BSOC.COMPANYID = ?
+						UNION ALL
+						SELECT USERID
+							, NVL(EAS.RECOG_TIME_M,0)+ROUND((NVL(EAS.RECOG_TIME_H,0)*60)) AS RFCOG_TIME
+						FROM TB_EM_ALW_STD_USER EASU,
+							TB_EM_ALW_STD EAS
+						WHERE EASU.COMPANYID = EAS.COMPANYID
+							AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+							AND EAS.DEPT_DESIGNATION_YN = 'Y'
+							AND EASU.USEFLAG = 'Y'
+							AND EAS.USEFLAG = 'Y'
+							AND EAS.DEL_YN = 'N'
+							AND EAS.REQ_STS_CD = '2'
+							AND EAS.YYYY = ?
+							AND EASU.USERID = ?
+							AND EASU.COMPANYID = ? 
+					) DEPT
+				)
+			) COMPLETION
+		]]>
+	</sql-query>
+
+    <sql-query name="SELECT_MAIN_OTC_RUN"
+        description="메인페이지 - 최근 성과평가 조회">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_OTC_RUN
+    
+			SELECT *
+			FROM(
+			    SELECT CR.RUN_NUM, CR.RUN_NAME, RUN_START,
+			        ROW_NUMBER() OVER(ORDER BY RUN_START DESC ) RNUM
+			    FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT, TB_KPI_USER_MAP KU
+			    WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+			        AND RT.COMPANYID =  KU.COMPANYID AND RT.RUN_NUM = KU.RUN_NUM AND RT.USERID = KU.USERID
+			        AND CR.USEFLAG = 'Y' AND RT.USEFLAG = 'Y' AND KU.USEFLAG = 'Y' 
+			        AND EVL_TYPE_CD = '2'
+			        AND CR.COMPANYID = ?
+			        AND RT.USERID = ?
+			    GROUP BY CR.RUN_NUM, CR.RUN_NAME, RUN_START
+			)
+			WHERE RNUM = 1
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_OTC_RATE" description="메인페이지 - 성과평가 달성율 조회">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_OTC_RATE
+    
+SELECT KP.KPI_TYPE, MAX(FUN_COMMON_CODE(CR.COMPANYID, 'C106', KP.KPI_TYPE)) KPI_TYPE_NM,
+    nvl(ROUND(SUM(WEI)*100, 2),0) WEI,
+    nvl(SUM(CASE WHEN WEI < NOW_PRF/NOW_TARG*WEI THEN ROUND(WEI*100, 2)
+    ELSE ROUND(NOW_PRF/NOW_TARG*WEI*100, 2)
+    END), 0) WEI_NOW_TARG
+FROM TB_CAM_RUNTARGET_I CR, TB_KPI_USER_MAP KU, TB_KPI KP
+WHERE CR.COMPANYID = KU.COMPANYID AND CR.RUN_NUM = KU.RUN_NUM AND CR.USERID = KU.USERID
+    AND KU.COMPANYID = KP.COMPANYID AND KU.KPI_NO = KP.KPI_NO
+    AND CR.COMPANYID = ? AND CR.USERID = ? AND CR.RUN_NUM = ?
+    AND CR.USEFLAG ='Y' AND KU.USEFLAG = 'Y' AND KP.USEFLAG = 'Y' 
+GROUP BY KP.KPI_TYPE
+UNION ALL
+SELECT '99999'KPI_TYPE, '전체' KPI_TYPE_NM,
+    nvl(ROUND(SUM(WEI)*100, 2),0) WEI,
+    nvl(SUM(CASE WHEN WEI < NOW_PRF/NOW_TARG*WEI THEN ROUND(WEI*100, 2)
+    ELSE ROUND(NOW_PRF/NOW_TARG*WEI*100, 2)
+    END),0) WEI_NOW_TARG
+FROM TB_CAM_RUNTARGET_I CR, TB_KPI_USER_MAP KU, TB_KPI KP
+WHERE CR.COMPANYID = KU.COMPANYID AND CR.RUN_NUM = KU.RUN_NUM AND CR.USERID = KU.USERID
+    AND KU.COMPANYID = KP.COMPANYID AND KU.KPI_NO = KP.KPI_NO
+    AND CR.COMPANYID = ? AND CR.USERID = ? AND CR.RUN_NUM = ?
+    AND CR.USEFLAG ='Y' AND KU.USEFLAG = 'Y' AND KP.USEFLAG = 'Y'
+ORDER BY KPI_TYPE
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_BOARD_LIST" description="메인페이지 - 게시판 목록 조회">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_BOARD_LIST
+    
+SELECT *
+FROM(
+    SELECT BOARD_CODE, BOARD_NUM, BOARD_TITLE, TO_CHAR(CREATETIME, 'YY-MM-DD') CREATETIME,
+        ROW_NUMBER() OVER(ORDER BY CREATETIME DESC, BOARD_NUM DESC) RNUM
+    FROM TB_BRD_BOARD
+    WHERE USEFLAG = 'Y' AND COMPANYID = ?
+    )
+WHERE RNUM < 6
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_DEPT_CMPT_INFO" description="메인페이지 - 부서원 역량평가 현황">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_DEPT_CMPT_INFO
+    
+SELECT *
+FROM(
+    SELECT CR.RUN_NUM, CR.YYYY||'' YYYY, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END, T_CNT, C_CNT,
+        ROW_NUMBER() OVER(ORDER BY RUN_END DESC, CR.RUN_NUM DESC) RNUM
+    FROM TB_CAM_RUN_L CR, 
+        (
+        SELECT CT.RUN_NUM, CT.COMPANYID, COUNT(*) T_CNT, SUM(DECODE(CMPL_FLAG, 'Y', 1, 0)) C_CNT
+        FROM TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I RI
+        WHERE CT.COMPANYID = RI.COMPANYID AND CT.RUN_NUM = RI.RUN_NUM AND CT.USERID = RI.USERID_EXED
+            AND CT.USEFLAG = 'Y'
+            AND RI.USEFLAG = 'Y'
+            AND RUNDIRECTION_CD != '9'
+            AND CT.COMPANYID = ?
+            AND RI.USERID = ?
+        GROUP BY CT.RUN_NUM, CT.COMPANYID
+        ) TI
+    WHERE CR.COMPANYID = TI.COMPANYID AND CR.RUN_NUM = TI.RUN_NUM
+        AND CR.USEFLAG = 'Y'
+        AND CR.COMPANYID = ?
+    )
+WHERE RNUM = 1
+        ]]>
+    </sql-query>
+    <sql-query name="GET_REQ_LIST" description="메인페이지 - 부처지정학습 이수현황">
+        <![CDATA[
+    	              SELECT 
+                             USERID,REQ_TIME , TAKE_TIME
+                    FROM(
+                        SELECT 
+                           A.USERID,NVL(REQ_TIME,0) REQ_TIME, NVL(TAKE_TIME,0) TAKE_TIME, A.DATA
+                        FROM (
+                                /* 사용자별 지정학습 기준시간 */
+                                SELECT USERID,'0' AS DATA
+                                     , '총시간' AS LABEL
+                                     , UECT.TT_CMP_TIME_H + (NVL(UECT.TT_CMP_TIME_M,0)/60) AS REQ_TIME
+                                  FROM TB_EM_USER_EDU_CMP_TIME UECT
+                                 WHERE 1=1
+                                   AND UECT.YYYY = ?
+                                   AND UECT.USEFLAG = 'Y'
+                                UNION ALL
+                                SELECT USERID,UDDT.DEPT_DESIGNATION_CD AS DATA
+                                     , UDDT.DEPT_DESIGNATION_NM AS LABEL
+                                     , UDDT.CMP_TIME_H + (NVL(UDDT.CMP_TIME_M,0)/60) AS REQ_TIME
+                                  FROM TB_EM_USER_DEPT_DESI_TIME UDDT
+                                 WHERE 1=1
+                                   AND UDDT.YYYY = ?
+                                   AND UDDT.USEFLAG = 'Y'
+                               ) A,
+                               (
+                                /* 필수 이수 = 교육 + 상시 + 멘토링 */
+                                SELECT USERID,DEPT_DESIGNATION_CD AS DATA
+                                     , SUM(RFCOG_TIME) OVER(PARTITION BY USERID,DEPT_DESIGNATION_CD) TAKE_TIME
+                                     --, SUM(RFCOG_TIME) OVER(PARTITION BY USERID) TAKE_TIME
+                                  FROM (
+                                        SELECT /* 교육개설 수료정보 */
+                                               USERID,
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)+(NVL(BSOC.RECOG_TIME_M,0)/60) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE 1=1 
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.YYYY = ?
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                           AND BSOC.COMPANYID = ?
+                                           AND BSOC.USERID = ?
+                                        UNION ALL
+                                         SELECT /* 교육개설 수료정보 : 부처지정학습 */
+                                               USERID,
+                                               DECODE(BSO.DEPT_DESIGNATION_CD,'3','2',BSO.DEPT_DESIGNATION_CD) AS DEPT_DESIGNATION_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)+(NVL(BSOC.RECOG_TIME_M,0)/60) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE 1=1 
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.YYYY = ?
+                                           AND BSO.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                           AND BSOC.COMPANYID = ?
+                                           AND BSOC.USERID = ?
+                                        UNION ALL
+                                        SELECT /* 상시학습 승인정보 */
+                                               USERID,
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , NVL(EAS.RECOG_TIME_H,0)+(NVL(EAS.RECOG_TIME_M,0)/60) AS RFCOG_TIME
+                                          FROM TB_EM_ALW_STD_USER EASU,
+                                               TB_EM_ALW_STD EAS
+                                         WHERE 1=1
+                                           AND EASU.USEFLAG = 'Y'
+                                           AND EASU.COMPANYID = EAS.COMPANYID
+                                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                                           AND EAS.YYYY = ?
+                                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                                           AND EAS.USEFLAG = 'Y'
+                                           AND EAS.DEL_YN = 'N'
+                                           AND EASU.COMPANYID = ?
+                                           AND EASU.USERID = ?
+                                        UNION ALL
+                                     SELECT /* 상시학습 승인정보 : 부처지정학습 */
+                                               USERID,
+                                               DECODE(EAS.DEPT_DESIGNATION_CD,'3','2',EAS.DEPT_DESIGNATION_CD) AS DEPT_DESIGNATION_CD
+                                             , NVL(EAS.RECOG_TIME_H,0)+(NVL(EAS.RECOG_TIME_M,0)/60) AS RFCOG_TIME
+                                          FROM TB_EM_ALW_STD_USER EASU,
+                                               TB_EM_ALW_STD EAS
+                                         WHERE 1=1
+                                           AND EASU.USEFLAG = 'Y'
+                                           AND EASU.COMPANYID = EAS.COMPANYID
+                                           AND EASU.ALW_STD_SEQ = EAS.ALW_STD_SEQ
+                                           AND EAS.YYYY = ?
+                                           AND EAS.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                                           AND EAS.REQ_STS_CD = '2' /* 승인건만 */
+                                           AND EAS.USEFLAG = 'Y'
+                                           AND EAS.DEL_YN = 'N'
+                                           AND EASU.COMPANYID = ?
+                                           AND EASU.USERID = ?
+                                        UNION ALL
+                                        SELECT /* 멘토링 */
+                                               USERID_MENTOR USERID,
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , CASE WHEN TRUNC(MONTHS_BETWEEN(M.MTR_ED_DT,M.MTR_ST_DT)) >= 3 THEN 30
+                                                    ELSE 15
+                                                END RFCOG_TIME
+                                          FROM TB_MTR M,
+                                               TB_MTR_MB MM
+                                         WHERE 1=1
+                                           AND MM.USEFLAG = 'Y'
+                                           AND MM.COMPANYID = M.COMPANYID
+                                           AND MM.MTR_SEQ = M.MTR_SEQ
+                                           AND SUBSTR(TO_CHAR(M.MTR_ED_DT,'YYYYMMDD'),1,4) = ?
+                                           AND M.REQ_STS_CD = '2'
+                                           AND M.HRD_ADMIN_YN = 'Y'
+                                           AND M.USEFLAG = 'Y'
+                                           AND M.DEL_YN = 'N'
+                                           AND M.COMPANYID = ?
+                                           AND M.USERID_MENTOR = ?
+                                       )
+                               ) B
+                         WHERE A.DATA = B.DATA(+)
+                         AND A.USERID =B.USERID(+)
+                         )
+                         WHERE USERID = ?
+                         GROUP BY USERID,REQ_TIME,TAKE_TIME,DATA
+                         ORDER BY DATA
+        ]]>
+    </sql-query>
+
+    <sql-query name="GET_MY_EDU_APP_DATA" description="메인페이지 - 승인요청건수 - 교육>나의강의실 ">
+        <![CDATA[
+SELECT
+    (
+    SELECT COUNT(*) CNT
+    FROM TB_BA_SBJCT_OPEN BS, TB_BA_SBJCT_OPEN_CLASS BC, TB_BA_APPR_REQ AR
+    WHERE BS.COMPANYID = BC.COMPANYID AND BS.OPEN_NUM = BC.OPEN_NUM 
+        AND BC.COMPANYID = AR.COMPANYID AND BC.REQ_NUM = AR.REQ_NUM
+        AND AR.REQ_USERID = ?
+        AND TO_CHAR(AR.REQ_DTIME, 'YYYY') =?
+        AND BS.COMPANYID = ?
+        AND AR.LAST_REQ_STS_CD = '1'
+        AND BC.ATTEND_STATE_CODE = '1'
+    ) CNT,
+    /* 교육운영자 용 쿼리 추천필요과정 수 조회*/
+    (
+    SELECT COUNT(*) CNT
+    FROM TB_BA_SBJCT A, TB_BA_SBJCT_OPEN B,
+        (
+        SELECT COMPANYID, SUBJECT_NUM, OPEN_NUM, COUNT(*) CONFIRM_CNT
+        FROM TB_BA_SBJCT_OPEN_CLASS
+        WHERE ATTEND_STATE_CODE = '1'
+            AND REQ_STS_CD = '2'
+            AND USEFLAG = 'Y' AND DEL_YN = 'N'
+        GROUP BY COMPANYID, SUBJECT_NUM, OPEN_NUM
+        ) D
+    WHERE A.COMPANYID = B.COMPANYID AND A.SUBJECT_NUM = B.SUBJECT_NUM
+        AND B.COMPANYID = D.COMPANYID AND B.SUBJECT_NUM = D.SUBJECT_NUM AND B.OPEN_NUM = D.OPEN_NUM
+        AND A.DEL_YN = 'N' AND B.DEL_YN = 'N'
+        AND A.COMPANYID = 1
+        AND TO_CHAR(B.APPLY_ETIME, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD')
+        AND D.CONFIRM_CNT > 0
+        AND (B.REQ_NUM IS NULL OR B.REQ_STS_CD NOT IN ( '1', '2' ))
+    ) CMFM_CNT
+FROM DUAL
+        ]]>
+    </sql-query>
+
+    <sql-query name="GET_MY_EDU_RECOMM_APP_CNT_DATA" description="메인페이지 - 승인 처리 건수 - 교육>교육추천승인">
+        <![CDATA[
+    SELECT COUNT(*) CNT
+    FROM(
+        SELECT BS.OPEN_NUM
+        FROM TB_BA_SBJCT_OPEN BS,
+            (
+            SELECT AR.COMPANYID, AR.REQ_NUM, AR.LAST_REQ_STS_CD, AL.REQ_LINE_SEQ, AL.REQ_STS_CD, AR.REQ_USERID, AR.LAST_REQ_LINE_SEQ, AR.REQ_DTIME
+            FROM TB_BA_APPR_REQ AR, TB_BA_APPR_REQ_LINE AL
+            WHERE AR.COMPANYID = AL.COMPANYID AND AR.REQ_NUM = AL.REQ_NUM
+                AND AR.USEFLAG = 'Y' AND AL.USEFLAG = 'Y'
+                AND AR.LAST_REQ_STS_CD !='0' -- 요청취소가 아닌
+                AND AR.REQ_TYPE_CD = '6' -- 교육추천승인에 대한 승인요청.
+                AND AL.APPR_USERID = ?
+                AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = ?
+                AND AL.REQ_STS_CD = '1'
+                AND (
+                    AL.REQ_LINE_SEQ = 1 OR -- 첫번째 승인자 이거나 이전 승인자가 승인한 경우 
+                    (SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = AR.COMPANYID AND REQ_NUM = AR.REQ_NUM AND REQ_LINE_SEQ = AL.REQ_LINE_SEQ -1 AND AL.USEFLAG = 'Y') = '2' 
+                    )
+            ) BR, TB_BA_USER BU, TB_BA_DIVISION BD
+        WHERE BS.COMPANYID = BR.COMPANYID AND BS.REQ_NUM = BR.REQ_NUM
+            AND BR.REQ_USERID = BU.USERID
+            AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+            AND BS.USEFLAG = 'Y' AND BS.DEL_YN = 'N' AND NVL(BS.CLOSING_YN, 'N') = 'N'
+            AND BS.COMPANYID = ?
+        )
+        ]]>
+    </sql-query>
+        
+    <sql-query name="GET_MY_EDU_APP_CNT_DATA" description="메인페이지 - 승인 처리 건수 - 교육>교육승인">
+        <![CDATA[
+    SELECT COUNT(*) CNT
+    FROM(
+        SELECT BC.OPEN_NUM
+        FROM TB_BA_SBJCT_OPEN BS, TB_BA_SBJCT_OPEN_CLASS BC, 
+            (
+            SELECT AR.COMPANYID, AR.REQ_NUM, AR.REQ_USERID
+            FROM TB_BA_APPR_REQ AR, TB_BA_APPR_REQ_LINE AL
+            WHERE AR.COMPANYID = AL.COMPANYID AND AR.REQ_NUM = AL.REQ_NUM
+                AND AR.USEFLAG = 'Y' AND AL.USEFLAG = 'Y'
+                AND AR.LAST_REQ_STS_CD !='0' -- 요청취소가 아닌
+                AND AR.REQ_TYPE_CD = '2' -- 교육신청에 대한 승인요청.
+                AND AL.APPR_USERID = ?
+                AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = ?
+                AND AL.REQ_STS_CD = '1'
+                AND (
+                    AL.REQ_LINE_SEQ = 1 OR -- 첫번째 승인자 이거나 이전 승인자가 승인한 경우 
+                    (SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = AR.COMPANYID AND REQ_NUM = AR.REQ_NUM AND REQ_LINE_SEQ = AL.REQ_LINE_SEQ -1 AND AL.USEFLAG = 'Y') = '2' 
+                    )
+            ) BR, TB_BA_USER BU, TB_BA_DIVISION BD
+        WHERE BS.COMPANYID = BC.COMPANYID AND BS.OPEN_NUM = BC.OPEN_NUM 
+            AND BC.COMPANYID = BR.COMPANYID AND BC.REQ_NUM = BR.REQ_NUM
+            AND BR.REQ_USERID = BU.USERID
+            AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+            AND BS.USEFLAG = 'Y' AND BS.DEL_YN = 'N' AND NVL(BS.CLOSING_YN, 'N') = 'N'
+            AND BC.USEFLAG = 'Y' AND BC.DEL_YN  = 'N' AND BC.ATTEND_STATE_CODE != '3' --취소가 아닌.
+            AND BS.COMPANYID = ?
+        UNION ALL
+        SELECT ALW_STD_SEQ
+        FROM TB_EM_ALW_STD ES,
+            (
+            SELECT AR.COMPANYID, AR.REQ_NUM, AR.REQ_USERID
+            FROM TB_BA_APPR_REQ AR, TB_BA_APPR_REQ_LINE AL
+            WHERE AR.COMPANYID = AL.COMPANYID AND AR.REQ_NUM = AL.REQ_NUM
+                AND AR.USEFLAG = 'Y' AND AL.USEFLAG = 'Y'
+                AND AR.LAST_REQ_STS_CD !='0' -- 요청취소가 아닌
+                AND AR.REQ_TYPE_CD = '3' -- 상시학습신청에 대한 승인요청.
+                AND AL.APPR_USERID = ?
+                AND AL.REQ_STS_CD = '1'
+                AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = ?
+                AND (
+                    AL.REQ_LINE_SEQ = 1 OR -- 첫번째 승인자 이거나 이전 승인자가 승인한 경우 
+                    (SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = AR.COMPANYID AND REQ_NUM = AR.REQ_NUM AND REQ_LINE_SEQ = AL.REQ_LINE_SEQ -1 AND AL.USEFLAG = 'Y') = '2' 
+                    )
+            ) BR, TB_BA_USER BU, TB_BA_DIVISION BD
+        WHERE ES.COMPANYID = BR.COMPANYID AND ES.REQ_NUM = BR.REQ_NUM
+            AND BR.REQ_USERID = BU.USERID
+            AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+            AND ES.USEFLAG = 'Y' AND ES.DEL_YN = 'N'
+            AND ES.COMPANYID = ?
+        )
+        ]]>
+    </sql-query>
+    
+    <sql-query name="GET_ALW_EDU_APP_DATA" description="메인페이지 - 승인요청건수 - 교육>상시학습">
+        <![CDATA[
+    SELECT COUNT(*) CNT
+    FROM TB_EM_ALW_STD ES, TB_BA_APPR_REQ AR
+    WHERE ES.COMPANYID = AR.COMPANYID AND ES.REQ_NUM = AR.REQ_NUM
+        AND AR.REQ_USERID = ?
+        AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = ?
+        AND ES.COMPANYID = ?
+        AND ES.REQ_STS_CD = '1'
+        AND AR.LAST_REQ_STS_CD = '1'
+        ]]>
+    </sql-query>
+    <sql-query name="GET_CDP_APP_DATA" description="메인페이지 - 승인 요청/처리 현황 - 경력개발계획">
+        <![CDATA[
+        
+        SELECT COUNT(*) CNT
+        FROM TB_BA_APPR_REQ BAR, 
+             TB_BA_APPR_REQ_LINE BARL, 
+             TB_BA_USER BU,
+             TB_BA_DIVISION BD, 
+             TB_CM_JOB_LDR_I CL, 
+             TB_CM_JOB_LDR_I CJ,
+             TB_CDP C 
+        WHERE BAR.COMPANYID = BARL.COMPANYID AND BAR.REQ_NUM = BARL.REQ_NUM  
+        AND BAR.REQ_USERID = BU.USERID AND BAR.COMPANYID = BU.COMPANYID
+        AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+        AND BU.COMPANYID = CL.COMPANYID(+) AND BU.LEADERSHIP = CL.JOBLDR_NUM(+) AND CL.JOBLDR_FLAG(+) = 'L'
+        AND BU.COMPANYID = CJ.COMPANYID(+) AND BU.JOB = CJ.JOBLDR_NUM(+) AND CJ.JOBLDR_FLAG(+) = 'J'
+        AND BAR.COMPANYID = C.COMPANYID AND BAR.REQ_NUM = C.REQ_NUM  
+        AND BAR.USEFLAG = 'Y'
+        AND BARL.USEFLAG = 'Y'
+        AND BAR.REQ_TYPE_CD = 1
+        AND BAR.LAST_REQ_STS_CD <> 0 -- 승인요청자가 취소한 경우는 제외
+        AND ((SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = BAR.COMPANYID AND REQ_NUM = BAR.REQ_NUM AND REQ_LINE_SEQ = BARL.REQ_LINE_SEQ -1 ) NOT IN ( '1','3' )
+              OR BARL.REQ_LINE_SEQ = 1) 
+        AND BAR.COMPANYID = ?
+        AND BARL.APPR_USERID = ? 
+        AND BARL.REQ_STS_CD = '1'
+        ]]>
+    </sql-query>
+    
+        <sql-query name="GET_CDP_APP_CNT_DATA" description="메인페이지 - 승인 요청 건수 - 계획수립">
+        <![CDATA[
+        SELECT COUNT(*) CNT 
+        FROM(
+            SELECT CR.COMPANYID, CR.RUN_NUM, CR.RUN_NAME, CR.YYYY, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END,
+                CD.USERID, CD.REQ_STS_CD, CD.REQ_NUM
+            FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RI, TB_BA_USER BU, TB_CDP CD
+            WHERE CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM
+                AND RI.USERID = BU.USERID
+                AND RI.COMPANYID = CD.COMPANYID(+) AND RI.RUN_NUM  = CD.RUN_NUM(+) AND RI.USERID = CD.USERID(+)
+                AND CR.EVL_TYPE_CD = '2'
+                AND CR.USEFLAG = 'Y' AND RI.USEFLAG = 'Y' AND BU.USEFLAG = 'Y'
+                AND CR.DEL_YN = 'N'
+                AND CR.COMPANYID = ? AND BU.USERID = ?
+                AND CD.REQ_STS_CD = 1 -- 승인요청건
+            )
+        ]]>
+    </sql-query>
+    
+    
+    <sql-query name="GET_MTR_APP_DATA" description="메인페이지 - 승인 요청/처리 현황 - 멘토링">
+        <![CDATA[
+SELECT DISTINCT COUNT(REQ_STS_CD)OVER(PARTITION BY REQ_STS_CD) CNT,REQ_STS_CD
+FROM(
+SELECT BARL.REQ_STS_CD,BARL.APPR_USERID, /* 승인요청상태코드 */ 
+                        FUN_COMMON_CODE(BARL.COMPANYID, 'BA13', BARL.REQ_STS_CD) AS REQ_STS_CD_NAME /* 승인요청상태코드명 */ 
+                  FROM TB_BA_APPR_REQ BAR, 
+                        TB_BA_APPR_REQ_LINE BARL, 
+                        TB_MTR C 
+                  WHERE BAR.COMPANYID = BARL.COMPANYID 
+                    AND BAR.REQ_NUM = BARL.REQ_NUM  
+                    AND BAR.COMPANYID = C.COMPANYID 
+                    AND BAR.REQ_NUM = C.REQ_NUM  
+                    AND BAR.USEFLAG = 'Y'
+                    AND BARL.USEFLAG = 'Y'
+                    AND C.USEFLAG = 'Y'
+                    AND C.DEL_YN ='N'
+                    AND BAR.REQ_TYPE_CD IN(4,5) -- 멘토링생성:4 멘토링완료:5
+                    AND BAR.LAST_REQ_STS_CD <> 0 
+                    AND BAR.COMPANYID = ? /*PARAM 회사번호*/
+                    AND BARL.APPR_USERID = ? /*PARAM 승인자번호*/
+                    AND BARL.REQ_STS_CD = 1
+                    AND (SELECT CASE WHEN BARL.REQ_LINE_SEQ = 1 THEN '2'
+                                 ELSE REQ_STS_CD 
+                                 END REQ_STS_CD
+                     FROM TB_BA_APPR_REQ_LINE 
+                     WHERE COMPANYID = BAR.COMPANYID 
+                     AND REQ_NUM = BAR.REQ_NUM 
+                     AND REQ_LINE_SEQ = CASE WHEN BARL.REQ_LINE_SEQ = 1 THEN BARL.REQ_LINE_SEQ ELSE  BARL.REQ_LINE_SEQ-1 END 
+                    ) NOT IN ( '1','3' ) -- 하위 결재자가 결재르 했을 경우
+                    )
+                    WHERE REQ_STS_CD = 1 OR REQ_STS_CD = 2
+                    ORDER BY REQ_STS_CD ASC
+        ]]>
+    </sql-query>GET_MTR_DATA
+    
+        <sql-query name="GET_MTR_DATA" description="메인페이지 - 처리 현황 - 멘토링">
+        <![CDATA[
+SELECT DISTINCT COUNT(REQ_STS_CD)OVER(PARTITION BY REQ_STS_CD) CNT,REQ_STS_CD FROM(
+            SELECT A.COMPANYID,
+                   A.MTR_SEQ,
+                   A.USERID_MENTOR,
+                   A.REQ_STS_CD,
+                   B.USERID_MENTEE
+            FROM TB_MTR A,
+                 (SELECT MTR_SEQ,
+                         MTR_MB_SEQ,
+                         COMPANYID,
+                         USERID_MENTEE,
+                         USEFLAG 
+                  FROM TB_MTR_MB 
+                  WHERE USERID_MENTEE = ? 
+                  AND USEFLAG='Y'
+                  ) B,TB_BA_APPR_REQ C ,TB_BA_DIVISION D,TB_BA_USER F
+            WHERE A.COMPANYID = B.COMPANYID(+)
+            AND A.MTR_SEQ = B.MTR_SEQ(+)
+            AND A.COMPANYID = ?
+            AND A.USEFLAG ='Y'
+            AND A.DEL_YN='N'
+            AND A.COMPANYID = C.COMPANYID
+            AND A.REQ_NUM = C.REQ_NUM
+            AND C.REQ_USERID = F.USERID
+            AND A.COMPANYID = D.COMPANYID
+            AND F.DIVISIONID = D.DIVISIONID
+            AND A.REQ_STS_CD =1
+        )
+        WHERE USERID_MENTOR = ? OR USERID_MENTEE = ?
+        ORDER BY REQ_STS_CD DESC
+        ]]>
+    </sql-query>
+
+    <sql-query name="SELECT_USER_MENU" description="메인페이지 - 유저별 메뉴">
+        <![CDATA[
+SELECT *
+FROM(
+    SELECT 1 POS_NUM FROM DUAL UNION ALL
+    SELECT 2 POS_NUM FROM DUAL UNION ALL
+    SELECT 3 POS_NUM FROM DUAL UNION ALL
+    SELECT 4 POS_NUM FROM DUAL UNION ALL
+    SELECT 5 POS_NUM FROM DUAL UNION ALL
+    SELECT 6 POS_NUM FROM DUAL UNION ALL
+    SELECT 7 POS_NUM FROM DUAL UNION ALL
+    SELECT 8 POS_NUM FROM DUAL 
+   ) A,
+   (
+    SELECT BM.MENU_NUM,BM.MENU_NM,BM.LINK_URL,BM.ICON_PATH,BAM.MENU_POS_NUM
+    FROM
+    TB_BA_MENU BM,TB_BA_USER BU,
+    TB_BA_USER_MENU BAM
+    WHERE BAM.USERID = BU.USERID
+    AND BAM.MENU_NUM = BM.MENU_NUM
+    AND BM.COMPANYID = ?
+	AND BM.USEFLAG = 'Y'
+    AND BAM.USEFLAG = 'Y'
+	AND BU.USERID = ?
+    ) B
+WHERE A.POS_NUM = B.MENU_POS_NUM(+)
+ORDER BY POS_NUM    
+        ]]>
+    </sql-query>
+
+    <sql-query name="INSERT_QUICK_MENU" description="메인페이지 - Quick menu 등록">
+        <![CDATA[
+        MERGE INTO TB_BA_USER_MENU A
+        USING(
+            SELECT
+                ? COMPANYID,
+                ? USERID,
+                ? MENU_NUM,
+                ? MENU_POS_NUM,
+                'Y' USEFLAG
+            FROM DUAL
+        ) B
+        ON (A.COMPANYID = B.COMPANYID 
+        AND A.USERID = B.USERID 
+        AND A.MENU_NUM = B.MENU_NUM)
+        WHEN NOT MATCHED THEN
+        INSERT(A.COMPANYID, A.USERID, A.MENU_NUM, A.MENU_POS_NUM, A.USEFLAG)
+        VALUES(B.COMPANYID, B.USERID, B.MENU_NUM, B.MENU_POS_NUM, B.USEFLAG)
+        ]]>
+    </sql-query>
+
+    <sql-query name="DELETE_QUICK_MENU" description="메인페이지 - Quick menu 삭제">
+        <![CDATA[
+DELETE FROM TB_BA_USER_MENU
+WHERE COMPANYID = ?
+AND USERID = ?
+AND MENU_POS_NUM= ?
+--AND USEFLAG = 'Y'
+        ]]>
+    </sql-query>
+
+    <sql-query name="SELECT_MAIN_DEPT_OTC_RUN_INFO" description="메인페이지 - 부서원 성과평가 요청 현황 - 평가 번호 조회">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_DEPT_OTC_RUN_INFO
+    
+SELECT RUN_NUM
+FROM(
+    SELECT ROW_NUMBER() OVER(ORDER BY MAX(RUN_START) DESC) RNUM, CR.RUN_NUM
+    FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT, TB_BA_USER BU, TB_BA_DIVISION BD
+    WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+        AND RT.COMPANYID = BU.COMPANYID AND RT.USERID = BU.USERID
+        AND BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+        AND CR.USEFLAG = 'Y'
+        AND RT.USEFLAG = 'Y'
+        AND BU.USEFLAG = 'Y'
+        AND CR.EVL_TYPE_CD = '2'
+        AND CR.COMPANYID = ?
+        AND (BU.COMPANYID, BU.DIVISIONID) IN (
+            SELECT COMPANYID, DIVISIONID
+            FROM TB_BA_DIVISION
+            WHERE COMPANYID = ?
+                AND USEFLAG = 'Y'
+            START WITH DIVISIONID = (SELECT DIVISIONID FROM TB_BA_USER WHERE COMPANYID = ? AND USERID = ?)
+            CONNECT BY PRIOR COMPANYID = COMPANYID AND PRIOR DIVISIONID = HIGH_DVSID
+            )
+    GROUP BY CR.RUN_NUM
+    )
+WHERE RNUM = 1
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_DEPT_OTC_REQ_LIST" description="메인페이지 - 부서원 성과평가 요청 현황 목록 조회">
+        <![CDATA[
+        --  COMMON : "SELECT_MAIN_DEPT_OTC_REQ_LIST"
+    
+SELECT ROW_NUMBER() OVER(ORDER BY RUN_START DESC) RNUM, CR.RUN_NUM,
+    CR.COMPANYID, RT.USERID, BU.NAME, BU.EMPNO, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = RT.COMPANYID AND JOBLDR_NUM = RT.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = RT.COMPANYID AND JOBLDR_NUM = RT.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM,
+    EVL_TOTAL_SCORE, FUN_COMMON_CODE(RT.COMPANYID, 'C114', NVL(CMPT_EVL_CMPL_FLAG, '3')) EVL_STS, TO_CHAR(OTC_EVL_APPR_REQ_DATE, 'YY-MM-DD') OTC_EVL_APPR_REQ_DATE
+FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT, TB_BA_USER BU, TB_BA_DIVISION BD
+WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+    AND RT.COMPANYID = BU.COMPANYID AND RT.USERID = BU.USERID
+    AND BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND CR.USEFLAG = 'Y'
+    AND RT.USEFLAG = 'Y'
+    AND BU.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '2'
+    AND CR.COMPANYID = ?
+    AND RT.RUN_NUM = ?
+    AND CMPT_EVL_CMPL_FLAG IN ('1', '2')
+    AND (BU.COMPANYID, BU.DIVISIONID) IN (
+        SELECT COMPANYID, DIVISIONID
+        FROM TB_BA_DIVISION
+        WHERE COMPANYID = ?
+            AND USEFLAG = 'Y'
+        START WITH DIVISIONID = (SELECT DIVISIONID FROM TB_BA_USER WHERE COMPANYID = ? AND USERID = ?)
+        CONNECT BY PRIOR COMPANYID = COMPANYID AND PRIOR DIVISIONID = HIGH_DVSID
+        )
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_DEPT_TT_INFO" description="메인페이지 - 부서 평가 현황">
+        <![CDATA[
+        --  COMMON : "SELECT_MAIN_DEPT_TT_INFO"
+    
+SELECT *
+FROM(
+    SELECT EVL_YYYY, TT_EVL_NO, TT_EVL_NM, EVL_TARG_CNT, PUBL_YN, TO_CHAR(CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME,
+        ROW_NUMBER() OVER(ORDER BY EVL_YYYY DESC, TT_EVL_NO DESC) RNUM
+    FROM TB_TT_EVL
+    WHERE COMPANYID = ?
+        AND PUBL_YN = 'Y'
+        AND USEFLAG = 'Y'
+    )
+WHERE RNUM = 1
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_DEPT_TT_SCORE" description="메인페이지 - 부서 평가 점수">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_DEPT_TT_SCORE
+    
+SELECT 
+    NVL(TO_CHAR(ROUND(AVG(NVL(TT_SCO, 0)), 2)), '-') TT_SCO 
+FROM TB_BA_USER BU, TB_TT_EVL_USER EU, TB_BA_DIVISION BD
+WHERE BU.COMPANYID = EU.COMPANYID AND BU.USERID = EU.USERID
+    AND BU.COMPANYID = BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+    AND EU.COMPANYID = ?
+    AND EU.TT_EVL_NO = ?
+    AND EU.USEFLAG = 'Y' AND BD.USEFLAG = 'Y' AND BU.USEFLAG = 'Y'
+    AND (BU.COMPANYID, BU.DIVISIONID) IN (
+        SELECT COMPANYID, DIVISIONID
+        FROM TB_BA_DIVISION
+        WHERE COMPANYID = ?
+            AND USEFLAG = 'Y'
+        START WITH DIVISIONID = (SELECT DIVISIONID FROM TB_BA_USER WHERE COMPANYID = ? AND USERID = ?)
+        CONNECT BY PRIOR COMPANYID = COMPANYID AND PRIOR DIVISIONID = HIGH_DVSID
+        )
+    AND TT_SCO IS NOT NULL
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_MY_CMPT_INFO" description="메인페이지 - 나의 역량평가 정보">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_MY_CMPT_INFO
+    
+SELECT *
+FROM(
+    SELECT ROW_NUMBER() OVER(ORDER BY NVL(CR.YYYY, 0) DESC) RNUM, 
+        CR.RUN_NUM, CR.YYYY, CR.RUN_NAME, CT.USERID TG_USERID, CT.USERID USERID_EXED, JOB, LEADERSHIP, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END,
+        NVL(SELF.CMPL_FLAG, 'N') SELF_CMPL_FLAG, SELF.CMPL_DATE SELF_CMPL_DATE, SELF.START_DATE SELF_START_DATE,
+        ONE.USERID ONE_USERID, ONE.NAME ONE_NAME, NVL(ONE.CMPL_FLAG, 'N') ONE_CMPL_FLAG, ONE.CMPL_DATE ONE_CMPL_DATE, ONE.START_DATE ONE_START_DATE,
+        TWO.USERID TWO_USERID, TWO.NAME TWO_NAME, NVL(TWO.CMPL_FLAG, 'N') TWO_CMPL_FLAG, TWO.CMPL_DATE TWO_CMPL_DATE, TWO.START_DATE TWO_START_DATE,
+        CASE WHEN TO_CHAR(CR.RUN_START, 'YYYYMMDD') > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가전'
+             WHEN TO_CHAR(CR.RUN_END, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가종료'
+             WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(CR.RUN_START, 'YYYYMMDD') AND TO_CHAR(CR.RUN_END, 'YYYYMMDD') THEN '평가하기'
+        ELSE ''
+        END EVL_CMD
+    FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I CT,
+        -- 자가 평가 
+        (
+        SELECT COMPANYID, RUN_NUM, USERID_EXED, USERID, CMPL_FLAG, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE, TO_CHAR(CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPL_DATE
+        FROM TB_CAM_RUNDIRECTION_I
+        WHERE COMPANYID = ? AND USERID_EXED = ?
+            AND RUNDIRECTION_CD = '9'
+            AND USEFLAG = 'Y'
+        ) SELF,
+        -- 1차 평가자
+        (
+        SELECT A.COMPANYID, RUN_NUM, USERID_EXED, A.USERID, B.NAME, CMPL_FLAG, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE, TO_CHAR(CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPL_DATE
+        FROM TB_CAM_RUNDIRECTION_I A, TB_BA_USER B
+        WHERE A.USERID = B.USERID
+            AND A.COMPANYID = ? AND USERID_EXED = ?
+            AND RUNDIRECTION_CD = '1'
+            AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y'
+        ) ONE,
+        -- 2차 평가자
+        (
+        SELECT A.COMPANYID, RUN_NUM, USERID_EXED, A.USERID, B.NAME, CMPL_FLAG, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE, TO_CHAR(CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPL_DATE
+        FROM TB_CAM_RUNDIRECTION_I A, TB_BA_USER B
+        WHERE A.USERID = B.USERID
+            AND A.COMPANYID = ? AND USERID_EXED = ?
+            AND RUNDIRECTION_CD = '2'
+            AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y'
+        ) TWO
+    WHERE CR.COMPANYID = CT.COMPANYID AND CR.RUN_NUM = CT.RUN_NUM
+        AND CT.RUN_NUM = SELF.RUN_NUM(+) AND CT.USERID = SELF.USERID_EXED(+)
+        AND CT.RUN_NUM = ONE.RUN_NUM(+) AND CT.USERID = ONE.USERID_EXED(+)
+        AND CT.RUN_NUM = TWO.RUN_NUM(+) AND CT.USERID = TWO.USERID_EXED(+)
+        AND CR.USEFLAG = 'Y' AND CT.USEFLAG = 'Y'
+        AND CR.EVL_TYPE_CD = '1'
+        AND CR.COMPANYID = ?
+        AND CT.USERID = ?
+    )
+WHERE RNUM = 1
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_MY_OTC_RUN_INFO" description="메인페이지 - 나의 실적평가 정보">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_MY_OTC_RUN_INFO
+
+SELECT *
+FROM(
+    SELECT ROW_NUMBER() OVER(ORDER BY RUN_START DESC) RNUM,
+        CR.RUN_NUM, CR.RUN_NAME, CR.RUN_START, CR.RUN_END, YYYY, 
+        SCLASS, ACLASS, BCLASS, CCLASS, DCLASS, CR.COMPANYID, RT.USERID, EVL_PRD_CD, CMPT_EVL_CMPL_FLAG
+    FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RT
+    WHERE CR.COMPANYID = RT.COMPANYID AND CR.RUN_NUM = RT.RUN_NUM
+        AND CR.USEFLAG = 'Y'
+        AND RT.USEFLAG = 'Y'
+        AND CR.EVL_TYPE_CD = '2'
+        AND CR.COMPANYID = ?
+        AND RT.USERID = ?
+    )
+WHERE RNUM = 1
+        ]]>
+    </sql-query>
+
+    <sql-query name="SELECT_MAIN_MY_OTC_MONTH_KPI_LIST" description="메인페이지 - 나의 실적평가 월별 등록해야할 지표 정보">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_MY_OTC_MONTH_KPI_LIST
+    
+SELECT UD.KPI_NO, KPI_NM
+FROM(
+    SELECT KM.COMPANYID, KM.RUN_NUM, KM.USERID, KM.KPI_NO, KPI_NM, MON.MON
+    FROM TB_KPI_USER_MAP KM,
+        (
+        SELECT COMPANYID, KPI_NO, KPI_NM, MON
+        FROM(
+            SELECT MON
+            FROM(
+                SELECT 1 MON FROM DUAL UNION ALL
+                SELECT 2 FROM DUAL UNION ALL
+                SELECT 3 FROM DUAL UNION ALL
+                SELECT 4 FROM DUAL UNION ALL
+                SELECT 5 FROM DUAL UNION ALL
+                SELECT 6 FROM DUAL UNION ALL
+                SELECT 7 FROM DUAL UNION ALL
+                SELECT 8 FROM DUAL UNION ALL
+                SELECT 9 FROM DUAL UNION ALL
+                SELECT 10 FROM DUAL UNION ALL
+                SELECT 11 FROM DUAL UNION ALL
+                SELECT 12 FROM DUAL
+                ),
+                TB_CAM_RUN_L CR
+            WHERE CR.COMPANYID = ? AND CR.RUN_NUM = ?
+                AND MON IN (
+                    CASE WHEN EVL_PRD_CD = '1' THEN 1 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 2 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 3 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 4 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 5 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '1' THEN 6 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 7 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 8 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 9 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 10 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 11 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '2' THEN 12 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 1 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 2 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 3 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 4 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 5 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 6 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 7 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 8 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 9 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 10 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 11 ELSE NULL END,
+                    CASE WHEN EVL_PRD_CD = '3' THEN 12 ELSE NULL END
+                )
+            ),
+            TB_KPI KI
+        WHERE KI.USEFLAG = 'Y'
+            AND KI.COMPANYID = ?
+            --관리주기에따라 등록해야하는 월 조회
+            AND MON IN (
+                CASE WHEN MEA_EVL_CYC = '1' THEN 1 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 2 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 3 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 4 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 5 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 6 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 7 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 8 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 9 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 10 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 11 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '1' THEN 12 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 3 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 6 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 9 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '2' THEN 12 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '3' THEN 6 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '3' THEN 12 ELSE NULL END,
+                CASE WHEN MEA_EVL_CYC = '4' THEN 12 ELSE NULL END
+            )
+        ) MON
+    WHERE KM.COMPANYID = MON.COMPANYID AND KM.KPI_NO = MON.KPI_NO 
+        AND KM.COMPANYID = ? AND KM.RUN_NUM = ? AND KM.USERID = ?
+        AND KM.USEFLAG = 'Y'
+    ) UD,
+    (
+    SELECT COMPANYID, RUN_NUM, USERID, KPI_NO, MON, PRF, APPR_REQ_STS
+    FROM TB_KPI_OTCEVL_PRF_MGMT
+    WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+        AND USEFLAG = 'Y'
+    ) PM
+WHERE UD.COMPANYID = PM.COMPANYID(+) 
+    AND UD.RUN_NUM = PM.RUN_NUM(+) 
+    AND UD.USERID = PM.USERID(+) 
+    AND UD.KPI_NO = PM.KPI_NO(+) 
+    AND UD.MON = PM.MON(+)
+    AND APPR_REQ_STS IS NULL
+    AND UD.MON <= TO_NUMBER(TO_CHAR(SYSDATE, 'MM'))
+GROUP BY UD.KPI_NO, UD.KPI_NM
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_MY_SV_LIST" description="메인페이지 - 나의 설문 목록">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_MY_SV_LIST
+    
+SELECT SP.PP_NO, SP.PP_NM, SP.PP_PURP, TO_CHAR(SP.PP_ST, 'YYYY-MM-DD') PP_ST, TO_CHAR(SP.PP_ED, 'YYYY-MM-DD') PP_ED, ST.USERID
+FROM TB_SV_PP SP, TB_SV_TARG ST
+WHERE SP.COMPANYID = ST.COMPANYID AND SP.PP_NO = ST.PP_NO
+    AND SP.USEFLAG = 'Y' 
+    AND ST.USEFLAG = 'Y'
+    AND SP.COMPANYID = ?
+    AND ST.USERID = ?
+    AND NVL(CMPT_FLAG, 'N') != 'Y'
+    AND SYSDATE BETWEEN PP_ST AND PP_ED
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MAIN_PWD_INFO" description="메인페이지 - 비밀번호 조회">
+        <![CDATA[
+        --  COMMON : SELECT_MAIN_PWD_INFO
+
+SELECT PASSWORD
+FROM TB_BA_USER BU
+WHERE COMPANYID = ?
+    AND USERID = ?
+        ]]>
+    </sql-query>
+    
+    <sql-query name="UPDATE_PASSWORD" description="메인페이지 - 비밀번호 변경">
+        <![CDATA[
+        --  COMMON : UPDATE_PASSWORD
+    
+UPDATE TB_BA_USER BU
+SET PASSWORD = ?
+WHERE COMPANYID = ?
+    AND USERID = ?
+        ]]>
+    </sql-query>
+    
+    
+    <sql-query name="GET_DOMAIN_CHECK"
+        description="서브도메인 회사번호 조회" ><![CDATA[
+
+        --  COMMON : GET_DOMAIN_CHECK
+        
+        SELECT A.COMPANYID, COMPANYNAME, B.NAME, B.EMAIL, B.PHONE, C.DVS_NAME,
+            (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = B.COMPANYID AND JOBLDR_NUM = B.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM
+        FROM TB_BA_COMPANY_M A, TB_BA_USER B, TB_BA_DIVISION C
+        WHERE A.USERID = B.USERID(+)
+            AND B.COMPANYID = C.COMPANYID(+) AND B.DIVISIONID = C.DIVISIONID(+)
+            AND upper(CSTM_ID) = upper(?)
+            AND ROWNUM = 1
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_FILE_INFO" description="회사로고 조회" >
+        <![CDATA[
+
+        --  COMMON : SELECT_FILE_INFO
+        
+        SELECT A.ATTACHMENT_ID, CONTENT_TYPE, FILE_NAME, FILE_SIZE, ATTACHMENT_DATA
+        FROM V2_ATTACHMENT A, V2_ATTACHMENT_DATA B
+        WHERE A.ATTACHMENT_ID = B.ATTACHMENT_ID
+            AND OBJECT_TYPE = ? AND OBJECT_ID = ?
+        ]]>
+    </sql-query>
+
+    <sql-query name="SELECT_FILE_DATA" description="회사로고 데이터조회" >
+        <![CDATA[
+
+        --  COMMON : SELECT_FILE_DATA
+        
+        SELECT ATTACHMENT_DATA
+        FROM V2_ATTACHMENT A, V2_ATTACHMENT_DATA B
+        WHERE A.ATTACHMENT_ID = B.ATTACHMENT_ID
+            AND OBJECT_TYPE = ? AND OBJECT_ID = ?
+        ]]>
+    </sql-query>
+
+    <sql-query name="SELECT_COMPANY_TYPE" description="회사 테마 조회" >
+        <![CDATA[
+
+        --  COMMON : SELECT_COMPANY_TYPE
+        
+SELECT NVL(HOME_PG_TYPE, 'A') HOME_PG_TYPE
+FROM TB_BA_COMPANY_M
+WHERE COMPANYID = ?
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_MY_ALW_CLASS_MAIN" description="회사 테마 조회" >
+        <![CDATA[
+    SELECT    A.*,
+                    CASE WHEN DD_TAKE_YN='YYYY' THEN '충족'ELSE '미충족' END TAKE_YN
+        FROM(
+                        SELECT 
+                            TA.USERID,
+                            DD0_TAKE_YN||DD1_TAKE_YN||DD2_TAKE_YN||DD3_TAKE_YN DD_TAKE_YN,
+                            (100/DD0_REQ_TIME)*DD0_TAKE_TIME||'%' AS TIME_PER,
+                            DD0_REQ_TIME||'시간 중'||DD0_TAKE_TIME||'시간 이수' DD0_TIME
+                      FROM(
+                        SELECT USERID,
+                        NVL(MIN(CASE WHEN DD0_REQ_TIME > NVL(DD0_TAKE_TIME,0) THEN 'N' ELSE 'Y' END),'N') DD0_TAKE_YN,
+                        NVL(MIN(CASE WHEN DD1_REQ_TIME > NVL(DD1_TAKE_TIME,0) THEN 'N' ELSE 'Y' END),'N') DD1_TAKE_YN,
+                        NVL(MIN(CASE WHEN DD2_REQ_TIME > NVL(DD2_TAKE_TIME,0) THEN 'N' ELSE 'Y' END),'N') DD2_TAKE_YN,
+                        NVL(MIN(CASE WHEN DD3_REQ_TIME > NVL(DD3_TAKE_TIME,0) THEN 'N' ELSE 'Y' END),'N') DD3_TAKE_YN,
+                        MAX(DD0_REQ_TIME) DD0_REQ_TIME,
+                        MAX(DD1_REQ_TIME) DD1_REQ_TIME,
+                        MAX(DD2_REQ_TIME) DD2_REQ_TIME,
+                        MAX(DD3_REQ_TIME) DD3_REQ_TIME,
+                        MAX(DD0_TAKE_TIME) DD0_TAKE_TIME,
+                        MAX(DD1_TAKE_TIME) DD1_TAKE_TIME,
+                        MAX(DD2_TAKE_TIME) DD2_TAKE_TIME,
+                        MAX(DD3_TAKE_TIME) DD3_TAKE_TIME
+                    FROM(
+                        SELECT A.USERID,
+                            NVL(DECODE(A.DATA, '0', REQ_TIME),0) DD0_REQ_TIME,
+                            NVL(DECODE(A.DATA, '1', REQ_TIME),0) DD1_REQ_TIME,
+                            NVL(DECODE(A.DATA, '2', REQ_TIME),0) DD2_REQ_TIME,
+                            NVL(DECODE(A.DATA, '3', REQ_TIME),0) DD3_REQ_TIME,
+                            NVL(DECODE(A.DATA, '0', TAKE_TIME),0) DD0_TAKE_TIME,
+                            NVL(DECODE(A.DATA, '1', TAKE_TIME),0) DD1_TAKE_TIME,
+                            NVL(DECODE(A.DATA, '2', TAKE_TIME),0) DD2_TAKE_TIME,
+                            NVL(DECODE(A.DATA, '3', TAKE_TIME),0) DD3_TAKE_TIME
+                            --A.LABEL,REQ_TIME,TAKE_TIME
+                        FROM (
+                                /* 사용자별 지정학습 기준시간 */
+                                SELECT USERID,'0' AS DATA
+                                     , '총시간' AS LABEL
+                                     , UECT.TT_CMP_TIME_H + (NVL(UECT.TT_CMP_TIME_M,0)/60) AS REQ_TIME
+                                  FROM TB_EM_USER_EDU_CMP_TIME UECT
+                                 WHERE 1=1
+                                   AND UECT.USEFLAG = 'Y'
+                                UNION ALL
+                                SELECT USERID,UDDT.DEPT_DESIGNATION_CD AS DATA
+                                     , UDDT.DEPT_DESIGNATION_NM AS LABEL
+                                     , UDDT.CMP_TIME_H + (NVL(UDDT.CMP_TIME_M,0)/60) AS REQ_TIME
+                                  FROM TB_EM_USER_DEPT_DESI_TIME UDDT
+                                 WHERE 1=1
+                                   AND UDDT.USEFLAG = 'Y'
+                               ) A,
+                               (
+                                /* 필수 이수 = 교육 + 상시 + 멘토링 */
+                                SELECT USERID,DEPT_DESIGNATION_CD AS DATA
+                                     , SUM(RFCOG_TIME) OVER(PARTITION BY USERID,DEPT_DESIGNATION_CD) TAKE_TIME
+                                  FROM (
+                                        SELECT /* 교육개설 수료정보 */
+                                               USERID,
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)+(NVL(BSOC.RECOG_TIME_M,0)/60) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE 1=1 
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                        UNION ALL
+                                        SELECT /* 교육개설 수료정보 : 부서지정학습 */
+                                               USERID,
+                                               DECODE(BSO.DEPT_DESIGNATION_CD,'3','2',BSO.DEPT_DESIGNATION_CD) AS DEPT_DESIGNATION_CD
+                                             , NVL(BSOC.RECOG_TIME_H,0)+(NVL(BSOC.RECOG_TIME_M,0)/60) AS RFCOG_TIME
+                                          FROM TB_BA_SBJCT BS,
+                                               TB_BA_SBJCT_OPEN BSO,
+                                               TB_BA_SBJCT_OPEN_CLASS BSOC
+                                         WHERE 1=1 
+                                           AND BSOC.ATTEND_STATE_CODE = '5' /* 수강상태 : 수료 */
+                                           AND BSOC.OPEN_NUM = BSO.OPEN_NUM
+                                           AND BSOC.COMPANYID = BSO.COMPANYID
+                                           AND BSO.DEPT_DESIGNATION_YN = 'Y' /* 부처지정유무 */
+                                           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+                                           AND BSO.COMPANYID = BS.COMPANYID
+                                           AND BS.USEFLAG = 'Y'
+                                           AND BS.DEL_YN = 'N'
+                                           AND BSO.USEFLAG = 'Y'
+                                           AND BSOC.USEFLAG = 'Y'
+                                        UNION ALL
+                                        SELECT /* 멘토링 */
+                                               USERID_MENTEE USERID,
+                                               '0' AS DEPT_DESIGNATION_CD
+                                             , CASE WHEN TRUNC(MONTHS_BETWEEN(M.MTR_ED_DT,M.MTR_ST_DT)) >= 3 THEN 30
+                                                    ELSE 15
+                                                END RFCOG_TIME
+                                          FROM TB_MTR M,
+                                               TB_MTR_MB MM
+                                         WHERE 1=1
+                                           AND MM.USEFLAG = 'Y'
+                                           AND MM.COMPANYID = M.COMPANYID
+                                           AND MM.MTR_SEQ = M.MTR_SEQ
+                                           AND M.REQ_STS_CD = '2'
+                                           AND M.HRD_ADMIN_YN = 'Y'
+                                           AND M.USEFLAG = 'Y'
+                                           AND M.DEL_YN = 'N'
+                                       )
+                               ) B
+                         WHERE A.DATA = B.DATA(+)
+                         AND A.USERID =B.USERID(+)
+                         )
+                         GROUP BY USERID
+) TA,
+(                    
+ SELECT    BU.USERID,
+                            BU.NAME,
+                            BU.DIVISIONID, 
+                            BU.GRADE_NM,
+                            BD.DVS_NAME, 
+                            BD.DVS_FULLNAME
+                FROM TB_BA_USER BU,TB_BA_DIVISION BD
+                WHERE 1=1
+                    AND BU.COMPANYID = BD.COMPANYID
+                    AND BU.DIVISIONID = BD.DIVISIONID(+)
+                    AND BU.DEL_YN !='Y'                       
+ ) TB
+ WHERE TA.USERID =TB.USERID
+ )A
+WHERE 1=1
+AND USERID=?
+        ]]>
+    </sql-query>
+    <sql-query name="SELECT_EDU_DIVISION_INFO" description="권한위임 정보" >
+        <![CDATA[
+
+        --  COMMON : SELECT_EDU_DIVISION_INFO
+         SELECT   A.COMPANYID
+            ,C.DIVISIONID
+            ,A.USERID
+            ,C.NAME 
+            ,A.USEFLAG
+            ,A.REQ_USERID
+            ,(SELECT NAME FROM TB_BA_USER WHERE USERID = A.REQ_USERID)REQ_USER_NM
+            ,A.CHANGE_CONFIRM_YN
+            ,A.REQ_DIV_CD
+            ,B.DVS_FULLNAME
+            ,(SELECT COUNT(*) FROM TB_BA_DIVISION_EDU_MGR WHERE REQ_USERID = A.USERID AND REQ_DIV_CD = 1 AND CHANGE_CONFIRM_YN = 'N' AND USEFLAG='Y') CHANGE_CNT            
+	    FROM TB_BA_DIVISION_EDU_MGR A,
+	         TB_BA_DIVISION B,
+	         TB_BA_USER C
+	    WHERE A.COMPANYID =B.COMPANYID
+	    AND A.COMPANYID =C.COMPANYID
+	    AND A.DIVISIONID = B.DIVISIONID
+	    AND B.DIVISIONID = C.DIVISIONID
+	    AND A.USERID = C.USERID
+	    AND A.COMPANYID = ?
+	    AND A.USERID = ?
+        ]]>
+    </sql-query>
+    
+     <sql-query name="MERGE_EDU_ADMIN_REQ" description="권한위임 요청" >
+        <![CDATA[
+
+        --  COMMON : MERGE_EDU_ADMIN_REQ
+        
+         MERGE INTO TB_BA_DIVISION_EDU_MGR A
+		    USING(
+		    	SELECT
+		        ? COMPANYID,
+		        ? DIVISIONID,
+		        ? USERID,
+		        'Y' USEFLAG,
+		        SYSDATE CREATETIME,
+		        ? CREATER,
+		        ? REQ_USERID,
+		        'N' CHANGE_CONFIRM_YN,
+		        ? REQ_DIV_CD
+		        FROM DUAL
+		    ) B
+		    ON ( A.COMPANYID = B.COMPANYID AND A.USERID = B.USERID )
+		    WHEN MATCHED THEN
+		    UPDATE SET
+		        A.USEFLAG = B.USEFLAG,
+		        A.DIVISIONID = B.DIVISIONID,
+		        A.MODIFYTIME = B.CREATETIME,
+		        A.MODIFIER = B.CREATER,
+		        A.REQ_USERID = B.REQ_USERID,
+		        A.CHANGE_CONFIRM_YN = B.CHANGE_CONFIRM_YN,
+		        A.REQ_DIV_CD = B.REQ_DIV_CD
+		    WHEN NOT MATCHED THEN
+		        INSERT(A.COMPANYID, A.DIVISIONID, A.USERID, A.USEFLAG, A.CREATETIME, A.CREATER, A.REQ_USERID, A.CHANGE_CONFIRM_YN, A.REQ_DIV_CD)
+		        VALUES(B.COMPANYID, B.DIVISIONID, B.USERID, B.USEFLAG, B.CREATETIME, B.CREATER, B.REQ_USERID, B.CHANGE_CONFIRM_YN, B.REQ_DIV_CD)
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_EDU_DIVISION_CH_LIST" description="권한위임 요청" >
+        <![CDATA[
+
+        --  COMMON : SELECT_EDU_DIVISION_CH_LIST
+        
+        SELECT ROW_NUMBER() OVER(ORDER BY A.CHANGE_CONFIRM_YN, A.CREATETIME ASC) ROWNUMBER
+          ,A.COMPANYID
+          ,A.USERID
+          ,A.REQ_USERID
+          ,A.CHANGE_CONFIRM_YN
+          ,A.REQ_DIV_CD 
+          ,(SELECT NAME FROM TB_BA_USER WHERE USERID = A.REQ_USERID) NOW_NAME
+          ,(SELECT NAME FROM TB_BA_USER WHERE USERID = A.USERID) CHANGE_NAME
+          ,(SELECT DVS_FULLNAME FROM TB_BA_DIVISION WHERE DIVISIONID = A.DIVISIONID AND COMPANYID = A.COMPANYID ) DVS_FULLNAME
+	    FROM TB_BA_DIVISION_EDU_MGR A
+	    WHERE COMPANYID = ? 
+	    AND CHANGE_CONFIRM_YN = 'N' 
+	    AND USEFLAG = 'Y' 
+	    AND REQ_DIV_CD = ?
+        ]]>
+    </sql-query>
+    
+    
+    <sql-query name="MERGE_EDU_ADMIN_APP" description="권한위임 승인" >
+        <![CDATA[
+
+        --  COMMON : MERGE_EDU_ADMIN_APP
+        	UPDATE TB_BA_DIVISION_EDU_MGR
+		    SET CHANGE_CONFIRM_YN = 'Y'
+		    WHERE COMPANYID = ? 
+		    AND USERID = ?
+		    AND REQ_DIV_CD = ?   
+        ]]>
+    </sql-query>
+    
+    <sql-query name="DELETE_EDU_ADMIN_APP_USER" description="권한위임 승인 후 변경요청자 삭제" >
+        <![CDATA[
+
+        --  COMMON : MERGE_EDU_ADMIN_APP
+        
+        	DELETE  FROM TB_BA_DIVISION_EDU_MGR
+		    WHERE COMPANYID = ?
+		    AND USERID = ?   
+        ]]>
+    </sql-query>
+    
+    
+    
+    <sql-query name="INSERT_GROUP_MEMBERS" description="권한위임 승인" >
+        <![CDATA[
+
+        --  COMMON : INSERT_GROUP_MEMBERS
+        
+        	INSERT INTO V2_GROUP_MEMBERS (GROUP_ID, USER_ID, ADMINISTRATOR, CREATION_DATE) VALUES (?,?,0,SYSDATE)
+        ]]>
+    </sql-query>
+    
+    <sql-query name="DELETE_GROUP_MEMBERS" description="권한위임 변경 후 변경요청자 권한 삭제" >
+        <![CDATA[
+
+        --  COMMON : DELETE_GROUP_MEMBERS
+        
+        	DELETE  FROM V2_GROUP_MEMBERS
+		    WHERE GROUP_ID = ?
+		    AND USER_ID = ?   
+        ]]>
+    </sql-query>
+    
+    <sql-query name="DELETE_EDU_ADMIN_APP_CENCLE" description="권한위임 요청 취소" >
+        <![CDATA[
+
+        --  COMMON : DELETE_EDU_ADMIN_APP_CENCLE
+        
+        	DELETE  FROM TB_BA_DIVISION_EDU_MGR
+		    WHERE COMPANYID = ?
+		    AND USERID = ?
+		    AND REQ_USERID = ?   
+        ]]>
+    </sql-query>
+    <sql-query name="SELECT_EDU_INSERT_OVERLAP" description="추가 담당자 중복체크" >
+        <![CDATA[
+
+        --  COMMON : SELECT_EDU_INSERT_OVERLAP
+        
+        	SELECT COUNT(*) CNT FROM TB_BA_DIVISION_EDU_MGR WHERE COMPANYID=? AND USERID = ? 
+        ]]>
+    </sql-query>
+    
+    <sql-query name="SELECT_PORTAL_REQ_CNT" description="포탈연동 제공용 건수 조회" >
+        <![CDATA[
+
+        --  COMMON : SELECT_PORTAL_REQ_CNT
+    
+SELECT 
+    NVL((
+    SELECT COUNT(*) CNT
+    FROM(
+        SELECT BC.OPEN_NUM
+        FROM TB_BA_SBJCT_OPEN BS, TB_BA_SBJCT_OPEN_CLASS BC, 
+            (
+            SELECT AR.COMPANYID, AR.REQ_NUM, AR.REQ_USERID
+            FROM TB_BA_APPR_REQ AR, TB_BA_APPR_REQ_LINE AL
+            WHERE AR.COMPANYID = AL.COMPANYID AND AR.REQ_NUM = AL.REQ_NUM
+                AND AR.USEFLAG = 'Y' AND AL.USEFLAG = 'Y'
+                AND AR.LAST_REQ_STS_CD !='0' -- 요청취소가 아닌
+                AND AR.REQ_TYPE_CD = '2' -- 교육신청에 대한 승인요청.
+                AND AL.APPR_USERID = (SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND ROWNUM = 1) -- /* param:교직원번호 */
+                AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')
+                AND AL.REQ_STS_CD = '1'
+                AND (
+                    AL.REQ_LINE_SEQ = 1 OR -- 첫번째 승인자 이거나 이전 승인자가 승인한 경우 
+                    (SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = AR.COMPANYID AND REQ_NUM = AR.REQ_NUM AND REQ_LINE_SEQ = AL.REQ_LINE_SEQ -1 AND AL.USEFLAG = 'Y') = '2' 
+                    )
+            ) BR, TB_BA_USER BU, TB_BA_DIVISION BD
+        WHERE BS.COMPANYID = BC.COMPANYID AND BS.OPEN_NUM = BC.OPEN_NUM 
+            AND BC.COMPANYID = BR.COMPANYID AND BC.REQ_NUM = BR.REQ_NUM
+            AND BR.REQ_USERID = BU.USERID
+            AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+            AND BS.USEFLAG = 'Y' AND BS.DEL_YN = 'N' AND NVL(BS.CLOSING_YN, 'N') = 'N'
+            AND BC.USEFLAG = 'Y' AND BC.DEL_YN  = 'N' AND BC.ATTEND_STATE_CODE != '3' --취소가 아닌.
+            AND BS.COMPANYID = 1
+        UNION ALL
+        SELECT ALW_STD_SEQ
+        FROM TB_EM_ALW_STD ES,
+            (
+            SELECT AR.COMPANYID, AR.REQ_NUM, AR.REQ_USERID
+            FROM TB_BA_APPR_REQ AR, TB_BA_APPR_REQ_LINE AL
+            WHERE AR.COMPANYID = AL.COMPANYID AND AR.REQ_NUM = AL.REQ_NUM
+                AND AR.USEFLAG = 'Y' AND AL.USEFLAG = 'Y'
+                AND AR.LAST_REQ_STS_CD !='0' -- 요청취소가 아닌
+                AND AR.REQ_TYPE_CD = '3' -- 상시학습신청에 대한 승인요청.
+                AND AL.APPR_USERID = (SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND ROWNUM = 1) -- /* param:교직원번호 */
+                AND AL.REQ_STS_CD = '1'
+                AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')
+                AND (
+                    AL.REQ_LINE_SEQ = 1 OR -- 첫번째 승인자 이거나 이전 승인자가 승인한 경우 
+                    (SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = AR.COMPANYID AND REQ_NUM = AR.REQ_NUM AND REQ_LINE_SEQ = AL.REQ_LINE_SEQ -1 AND AL.USEFLAG = 'Y') = '2' 
+                    )
+            ) BR, TB_BA_USER BU, TB_BA_DIVISION BD
+        WHERE ES.COMPANYID = BR.COMPANYID AND ES.REQ_NUM = BR.REQ_NUM
+            AND BR.REQ_USERID = BU.USERID
+            AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+            AND ES.USEFLAG = 'Y' AND ES.DEL_YN = 'N'
+            AND ES.COMPANYID = 1
+        )
+    )
+    +
+    (
+    SELECT COUNT(*) CNT
+    FROM(
+        SELECT BS.OPEN_NUM
+        FROM TB_BA_SBJCT_OPEN BS,
+            (
+            SELECT AR.COMPANYID, AR.REQ_NUM, AR.LAST_REQ_STS_CD, AL.REQ_LINE_SEQ, AL.REQ_STS_CD, AR.REQ_USERID, AR.LAST_REQ_LINE_SEQ, AR.REQ_DTIME
+            FROM TB_BA_APPR_REQ AR, TB_BA_APPR_REQ_LINE AL
+            WHERE AR.COMPANYID = AL.COMPANYID AND AR.REQ_NUM = AL.REQ_NUM
+                AND AR.USEFLAG = 'Y' AND AL.USEFLAG = 'Y'
+                AND AR.LAST_REQ_STS_CD !='0' -- 요청취소가 아닌
+                AND AR.REQ_TYPE_CD = '6' -- 교육추천승인에 대한 승인요청.
+                AND AL.APPR_USERID = (SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND ROWNUM = 1) -- /* param:교직원번호 */
+                AND TO_CHAR(AR.REQ_DTIME, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')
+                AND AL.REQ_STS_CD = '1'
+                AND (
+                    AL.REQ_LINE_SEQ = 1 OR -- 첫번째 승인자 이거나 이전 승인자가 승인한 경우 
+                    (SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = AR.COMPANYID AND REQ_NUM = AR.REQ_NUM AND REQ_LINE_SEQ = AL.REQ_LINE_SEQ -1 AND AL.USEFLAG = 'Y') = '2' 
+                    )
+            ) BR, TB_BA_USER BU, TB_BA_DIVISION BD
+        WHERE BS.COMPANYID = BR.COMPANYID AND BS.REQ_NUM = BR.REQ_NUM
+            AND BR.REQ_USERID = BU.USERID
+            AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+            AND BS.USEFLAG = 'Y' AND BS.DEL_YN = 'N' AND NVL(BS.CLOSING_YN, 'N') = 'N'
+            AND BS.COMPANYID = 1
+        )
+    )
+    +
+    (
+    SELECT COUNT(*) CNT
+    FROM TB_BA_APPR_REQ BAR, 
+         TB_BA_APPR_REQ_LINE BARL, 
+         TB_BA_USER BU,
+         TB_BA_DIVISION BD, 
+         TB_CDP C 
+    WHERE BAR.COMPANYID = BARL.COMPANYID AND BAR.REQ_NUM = BARL.REQ_NUM  
+    AND BAR.REQ_USERID = BU.USERID AND BAR.COMPANYID = BU.COMPANYID
+    AND BU.COMPANYID = BD.COMPANYID AND BU.DIVISIONID = BD.DIVISIONID
+    AND BAR.COMPANYID = C.COMPANYID AND BAR.REQ_NUM = C.REQ_NUM  
+    AND BAR.USEFLAG = 'Y'
+    AND BARL.USEFLAG = 'Y'
+    AND BAR.REQ_TYPE_CD = 1
+    AND BAR.LAST_REQ_STS_CD <> 0 -- 승인요청자가 취소한 경우는 제외
+    AND ((SELECT REQ_STS_CD FROM TB_BA_APPR_REQ_LINE WHERE COMPANYID = BAR.COMPANYID AND REQ_NUM = BAR.REQ_NUM AND REQ_LINE_SEQ = BARL.REQ_LINE_SEQ -1 ) NOT IN ( '1','3' )
+          OR BARL.REQ_LINE_SEQ = 1) 
+    AND BAR.COMPANYID = 1
+    AND BARL.APPR_USERID = (SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND ROWNUM = 1) -- /* param:교직원번호 */
+    AND BARL.REQ_STS_CD = '1'
+    ), 0) APPROVAL_CNT,
+    NVL((
+    SELECT COUNT(*) CNT
+    FROM TB_BRD_BOARD BB, TB_BA_USER BU
+    WHERE BB.CREATER = BU.USERID AND BB.COMPANYID = BU.COMPANYID
+        AND BB.COMPANYID = 1
+        AND BB.BOARD_CODE in ( '1', '3' )
+        AND BB.USEFLAG = 'Y'
+        AND TO_CHAR(BB.CREATETIME, 'YYYYMMDD') >= TO_CHAR(SYSDATE-2, 'YYYYMMDD') -- 최근 2일간 작성된 교육안내게시물
+    ), 0) BOARD_CNT,
+    NVL((
+    SELECT COUNT(*) EDU_CNT
+    FROM(
+        SELECT BSO.OPEN_NUM /* 개설번호 */
+             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN 'N' /* 신청불가 : 신청중 */
+                    WHEN OC.ATTEND_STATE_CODE = '2' THEN 'N' /* 신청불가 : 수강중 */
+                    WHEN OC.ATTEND_STATE_CODE = '5' THEN 'N' /* 신청불가 : 수료 */
+                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN 'Y'
+                    ELSE 'N' /* 신청불가 : 신청기간 X */
+                END APPLY_YN /* 신청가능여부 */
+          FROM (
+                SELECT DISTINCT SO.OPEN_NUM, SO.SUBJECT_NUM, SOC.ATTEND_STATE_CODE
+                  FROM TB_BA_SBJCT_OPEN SO,
+                       TB_BA_SBJCT_OPEN_CLASS SOC
+                 WHERE SOC.COMPANYID = 1
+                   AND SOC.USERID = (SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND ROWNUM = 1) -- /* param:교직원번호 */
+                   AND SOC.ATTEND_STATE_CODE IN ('1','2','5')
+                   AND SOC.COMPANYID = SO.COMPANYID
+                   AND SOC.OPEN_NUM = SO.OPEN_NUM
+                   AND SO.YYYY = TO_CHAR(SYSDATE,'YYYY') /* 당해년도 */
+                   AND SO.USEFLAG = 'Y'
+                   AND SO.DEL_YN = 'N'
+               ) OC, /* 신청, 수강,수료 과정 */
+               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = 1 AND STANDARDCODE = 'BA04') C2, /* 지정학습구분 */
+               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = 1 AND STANDARDCODE = 'BA03') C1, /* 학습유형 */
+               TB_BA_SBJCT BS,
+               TB_BA_SBJCT_OPEN BSO
+         WHERE BSO.COMPANYID = 1
+           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+           AND BSO.COMPANYID = BS.COMPANYID
+           AND BS.USEFLAG = 'Y'
+           AND BS.DEL_YN = 'N'
+           AND BSO.USEFLAG = 'Y'
+           AND BSO.DEL_YN = 'N'
+           AND C1.COMMONCODE = BSO.TRAINING_CODE
+           AND C2.COMMONCODE(+) = BSO.DEPT_DESIGNATION_CD
+           AND BSO.SUBJECT_NUM = OC.SUBJECT_NUM(+)
+        )
+    WHERE APPLY_YN = 'Y'
+    ), 0) EDU_CNT
+FROM DUAL
+        ]]>
+    </sql-query>
+    
+    
+
+</sqlset>

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>BA_SYNC</name>
+    <version>2.0</version>
+    <description>Sync 모듈을 위한 쿼리</description>
+
+    
+    <sql-query name="UPDATE_USER_INFO" description="사용자정보 수정"><![CDATA[
+        -- BA_SYNC: UPDATE_USER_INFO
+    
+UPDATE TB_BA_USER
+SET   NAME                = ?,
+       EMAIL               = ?,
+       USEFLAG             = ?,
+       PHONE               = ?,
+       CELLPHONE           = ?,
+       ZIPCODE             = ?,
+       ADDRESS1            = ?,
+       ADDRESS2            = ?,
+       MODIFYTIME          = SYSDATE,
+       MODIFIER            = ?,
+       LEADERSHIP          = (SELECT JOBLDR_NUM FROM TB_BA_JOBLER_GRADE WHERE COMPANYID = ? AND GRADE_NUM = ? AND USEFLAG = 'Y' AND ROWNUM = 1),
+       DIVISIONID          = ?,
+       GRADE_NM            = ?,
+       GRADE_NUM           = ?,
+       EMP_STS_CD          = ?,
+       NOW_GRADE_APIT_DT = ?,
+       COMPANYID = 1
+WHERE  USERID              = ?
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_GROUP_ROLE" description="사용자정보 기본권한 추가"><![CDATA[
+        -- BA_SYNC: INSERT_GROUP_ROLE
+    
+INSERT INTO V2_GROUP_MEMBERS(GROUP_ID, USER_ID)
+SELECT 4 GROUP_ID, USERID
+FROM TB_BA_USER A, 
+    (
+    SELECT *
+    FROM V2_GROUP_MEMBERS
+    WHERE GROUP_ID = 4
+    ) B
+WHERE A.USERID = B.USER_ID(+)
+    AND B.USER_ID IS NULL
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_SEQ_USERID" description="USERID 생성"><![CDATA[
+        -- BA_SYNC: SELECT_SEQ_USERID
+    
+    SELECT SEQ_USERID.NEXTVAL FROM DUAL
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_USER_INFO" description="사용자정보 추가"><![CDATA[
+        -- BA_SYNC: INSERT_USER_INFO
+    
+INSERT INTO TB_BA_USER (
+   ID, NAME, EMAIL, PASSWORD, USERID, 
+   USEFLAG, PHONE, CELLPHONE, ZIPCODE, ADDRESS1, 
+   ADDRESS2, CREATETIME, CREATER, LEADERSHIP, COMPANYID, 
+   DIVISIONID, GRADE_NM, EMPNO, GRADE_NUM, EMP_STS_CD, NOW_GRADE_APIT_DT
+) 
+VALUES ( 
+    ?, ?, ?, ?, ?, 
+    ?, ?, ?, ?, ?,
+    ?, SYSDATE, ?, (SELECT JOBLDR_NUM FROM TB_BA_JOBLER_GRADE WHERE COMPANYID = ? AND GRADE_NUM = ? AND USEFLAG = 'Y' AND ROWNUM = 1), ?,
+    ?, ?, ?, ?, ?, 
+    ?
+)
+    ]]></sql-query>
+
+    
+    <sql-query name="SELECT_USER_COUNT" description="사용자정보 여부 확인"><![CDATA[
+        -- BA_SYNC: SELECT_USER_COUNT
+    
+SELECT NVL((SELECT userid FROM TB_BA_USER WHERE ID = ?), 0) USERID
+FROM DUAL
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_USERLIST" description="포털 VIEW로부터 사용자정보 조회"><![CDATA[
+        -- BA_SYNC: SELECT_USERLIST
+    
+SELECT 
+     A.PROF_EMP_NBR USER_ID
+    , A.KOR_NM P_NAME
+    , A.PSTN_DIV_CDE
+    , A.PSTN_DIV_NM
+    , C.DIVISIONID DEPT_ID
+    , A.PSTN_DEPT_NM
+    , A.JOB_LEV_CDE
+    , A.JOB_LEV_NM
+    , A.CLASS_POS_CDE GRADE_CODE
+    , A.CLASS_POS_NM GRADE_NAME
+    , A.CLASS_DIV_NM
+    , A.IN_OFFC_STS_CDE EMP_STS_CD
+    , A.IN_OFFC_STS_NM
+    , A.GENDER
+    , A.EMAIL
+    , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(A.MOBILE, '(', ''), ')', ''), ' ', ''), '-', ''), '.', '') MOBILE
+    , A.PHONE OFFICE_TEL
+    , A.CUR_CLASS_POS_ENTR_DT NOW_GRADE_APIT_DT
+    , CASE WHEN A.IN_OFFC_STS_CDE = '10' THEN 'Y'
+      ELSE 'N'
+      END USEFLAG
+FROM hrss.v_ehrd_hrss_info A, hrss.edoc_usr_organ B,
+    (
+    SELECT TRIM(ORGAN_CDE) DIVISIONID
+    FROM HRSS.EDOC_ORGAN
+    WHERE ORGAN_FULL_NM NOT LIKE '%폐기부서%'
+    ) C
+WHERE A.PROF_EMP_NBR = B.prof_emp_nbr
+    AND B.ORGAN_CDE = C.DIVISIONID
+    AND A.IN_OFFC_STS_CDE IN ('10', '20' )
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_N_USER"  description="사용자 미사용처리"><![CDATA[
+UPDATE TB_BA_USER 
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    AND USERID != 1 -- 세팅된 총괄관리자 
+    ]]></sql-query>
+
+    <sql-query name="UPDATE_GRADE_INFO" description="직급정보 수정"><![CDATA[
+        -- BA_SYNC: UPDATE_GRADE_INFO
+    
+UPDATE TB_BA_COMMONCODE
+SET CMM_CODENAME = ?, 
+    USEFLAG = 'Y',
+    MODIFYTIME = SYSDATE, 
+    MODIFIER = ?,
+    CD_VALUE1 = ?
+WHERE COMPANYID = ?
+    AND STANDARDCODE = ?
+    AND COMMONCODE = ?
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_GRADE_INFO" description="직급정보 추가"><![CDATA[
+        -- BA_SYNC: INSERT_GRADE_INFO
+    
+INSERT INTO TB_BA_COMMONCODE (
+    COMPANYID, STANDARDCODE, COMMONCODE, CMM_CODENAME, USEFLAG, CREATETIME, CREATER, CD_VALUE1
+) 
+VALUES (
+    ?, ?, ?, ?, 'Y', SYSDATE, ?, ?
+)
+    ]]></sql-query>
+
+    <sql-query name="SELECT_GRADE_COUNT" description="직급정보 여부 확인"><![CDATA[
+        -- BA_SYNC: SELECT_GRADE_COUNT
+    
+SELECT COUNT(*) CNT 
+FROM TB_BA_COMMONCODE
+WHERE COMPANYID = ? AND STANDARDCODE = 'BA15' AND COMMONCODE = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_GRADELIST" description="직급정보 조회"><![CDATA[
+        -- BA_SYNC: SELECT_GRADELIST
+    
+SELECT CDE GRADE_CODE
+    , KOR_NM GRADE_NAME
+    , (SELECT KOR_NM FROM HRSS.V_EHRD_CODE WHERE DIV_CDE = 'HRSS100' AND CDE = SUBSTR(A.CDE, 1, 2)) CD_VALUE1
+FROM HRSS.V_EHRD_CODE A
+WHERE DIV_CDE = 'HRSS100'
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_N_GRADE" description="직급정보 N처리"><![CDATA[
+        -- BA_SYNC: UPDATE_N_GRADE
+    
+UPDATE TB_BA_COMMONCODE
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    AND STANDARDCODE = 'BA15'
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_SYNC_INFO" description="동기화 이력정보 저장"><![CDATA[
+        
+        -- BA_SYNC: INSERT_SYNC_INFO
+
+INSERT INTO TB_BA_SYNC(COMPANYID, SYNC_CD, SYNC_SEQ, SYNC_NM, SYNC_DTIME, AUTO_EXED_YN, SUCCESS_YN, EXEC_MSG, CREATETIME, CREATER)
+VALUES( ?, ?, (SELECT NVL(MAX(SYNC_SEQ), 0)+1 FROM TB_BA_SYNC), FUN_COMMON_CODE(?, 'BA24', ?), SYSDATE, ?, ?, ?, SYSDATE, ? )
+    ]]></sql-query>
+
+    <sql-query name="INSERT_MANAGER_GROUP_ROLE" description="사용자정보 부서장권한 추가"><![CDATA[
+        -- BA_SYNC: INSERT_MANAGER_GROUP_ROLE
+    
+BEGIN
+    DELETE FROM V2_GROUP_MEMBERS
+    WHERE GROUP_ID = 3;
+
+    INSERT INTO V2_GROUP_MEMBERS(GROUP_ID, USER_ID)
+    SELECT 3, B.USERID
+    FROM TB_BA_DIVISION A, TB_BA_USER B
+    WHERE A.USEFLAG = 'Y' AND A.DEL_YN = 'N' AND A.DVS_MANAGER IS NOT NULL
+        AND A.DVS_MANAGER = B.USERID
+    GROUP BY B.USERID;
+END ;
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_DIVISION_INFO" description="부서정보 변경"><![CDATA[
+        
+        -- BA_SYNC: UPDATE_DIVISION_INFO
+
+UPDATE TB_BA_DIVISION
+SET DVS_NAME = ?, 
+    DVS_FULLNAME = ?, 
+    HIGH_DVSID = ?, 
+    USEFLAG = 'Y', 
+    MODIFYTIME = SYSDATE,
+    MODIFIER = ?,
+    DVS_MANAGER = ?
+WHERE COMPANYID = ? AND DIVISIONID = ?
+    ]]></sql-query>
+    
+    <sql-query name="INSERT_DIVISION_INFO" description="부서정보 추가"><![CDATA[
+        
+        -- BA_SYNC: INSERT_DIVISION_INFO
+
+INSERT INTO TB_BA_DIVISION(COMPANYID, DIVISIONID, DVS_NAME, DVS_FULLNAME, HIGH_DVSID, USEFLAG, CREATETIME, CREATER, DEPT_STND_CD, DVS_MANAGER)
+VALUES(?, ?, ?, ?, ?, 'Y', SYSDATE, ?, '1', ?)
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_DIVISION_COUNT" description="부서정보 여부 확인"><![CDATA[
+        -- BA_SYNC: SELECT_DIVISION_COUNT
+    
+SELECT COUNT(*) CNT 
+FROM TB_BA_DIVISION
+WHERE COMPANYID = ? AND DIVISIONID = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_DIVISIONLIST" description="부서정보 조회"><![CDATA[
+        -- BA_SYNC: SELECT_DIVISIONLIST
+
+SELECT A.ORGAN_CDE DIVISIONID
+    , TRIM(A.ORGAN_NM) DVS_NAME
+    , TRIM(A.UP_ORGAN_CDE) HIGH_DVSID
+    , TRIM(A.ORGAN_FULL_NM) DVS_FULLNAME
+    , B.USERID DVS_MANAGER 
+FROM HRSS.EDOC_ORGAN A,
+    (
+    SELECT USERID, EMPNO
+    FROM TB_BA_USER
+    WHERE COMPANYID = 1 
+    ) B
+WHERE A.ORGAN_MANAGER_NBR = B.EMPNO(+)
+    AND A.ORGAN_FULL_NM NOT LIKE '%폐기부서%'
+    
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_N_DIVISION" description="부서정보 N처리"><![CDATA[
+        -- BA_SYNC: UPDATE_N_DIVISION
+    
+UPDATE TB_BA_DIVISION
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    ]]></sql-query>
+
+    <sql-query name="SELECT_SYNC_LIST"
+		description="동기화 목록 정보를 조회한다.">
+		<![CDATA[
+		
+		-- BA_SYNC: SELECT_SYNC_LIST
+		
+SELECT A.*, COUNT(*) OVER() TOTALITEMCOUNT
+FROM(
+    SELECT COMPANYID, SYNC_CD, SYNC_SEQ, SYNC_NM, TO_CHAR(SYNC_DTIME, 'YYYY-MM-DD HH24:MI:SS') SYNC_DTIME, 
+        DECODE(AUTO_EXED_YN, 'Y', '자동', '수동') AUTO_EXED_YN, DECODE(SUCCESS_YN, 'Y', '성공', '실패') SUCCESS_YN, EXEC_MSG
+    FROM TB_BA_SYNC
+    WHERE COMPANYID = ?
+    ) A
+WHERE 1=1
+]]><dynamic><![CDATA[ ${ GRID_WHERE_CLAUSE } ]]></dynamic><![CDATA[
+]]><dynamic><![CDATA[ ${ GRID_ORDERBY_CLAUSE } ]]></dynamic><![CDATA[
+    ]]></sql-query>
+    
+</sqlset>

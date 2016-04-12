@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<description><![CDATA[
+       Context for Foundation
+	]]></description>
+	
+	<!-- 교육훈련 나의강의실 -->
+	<bean id="emDao" class="kr.podosoft.ws.service.em.dao.impl.JdbcEmDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="emService" class="kr.podosoft.ws.service.em.impl.EmServiceImpl" p:emDao-ref="emDao" />
+	
+	<!-- 교육훈련 교육신청 -->
+	<bean id="emApplyDao" class="kr.podosoft.ws.service.em.dao.impl.JdbcEmApplyDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="emApplyService" class="kr.podosoft.ws.service.em.impl.EmApplyServiceImpl" p:emApplyDao-ref="emApplyDao" p:cdpDao-ref="cdpDao" />
+	
+	<!-- 교육훈련 상시학습 -->
+	<bean id="emAlwDao" class="kr.podosoft.ws.service.em.dao.impl.JdbcEmAlwDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" />
+	
+	<bean id="emAlwService" class="kr.podosoft.ws.service.em.impl.EmAlwServiceImpl" p:emAlwDao-ref="emAlwDao" p:commonDao-ref="commonDao" />
+</beans>

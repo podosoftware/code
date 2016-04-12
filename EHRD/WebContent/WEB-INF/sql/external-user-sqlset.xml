@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>EXTENDED_SECURITY</name>
+    <version>2.0</version>
+    <description>확장 사용자 정보 쿼리</description>
+
+	
+    <!--  COMPANY -->	 
+	<sql-query name="CREATE_COMPANY" description="COMPANY 생성"><![CDATA[    
+    	INSERT INTO V2_COMPANY (
+   			COMPANY_ID, 
+   			NAME, 
+   			DISPLAY_NAME,
+   			DESCRIPTION, 
+  			CREATION_DATE, 
+  			MODIFIED_DATE
+  		) VALUES ( ?, ?, ?, ?, ?, ?)
+    ]]></sql-query>
+
+	<sql-query name="SELECT_COMPANY_BY_ID" description="COMPANY 조회"><![CDATA[    
+        SELECT
+   			COMPANY_ID, 
+   			NAME, 
+   			DISPLAY_NAME,
+   			DESCRIPTION, 
+  			CREATION_DATE, 
+  			MODIFIED_DATE
+  		FROM V2_COMPANY WHERE COMPANY_ID = ?
+    ]]></sql-query>
+
+
+	<sql-query name="UPDATE_COMPANY" description="COMPANY  수정"><![CDATA[        
+        UPDATE V2_COMPANY
+            SET NAME = ?, DISPLAY_NAME = ?, DESCRIPTION = ? , MODIFIED_DATE = ?
+        WHERE COMPANY_ID = ?
+    ]]></sql-query>
+	
+	<sql-query name="SELECT_COMPANY_BY_NAME" description="COMPANY 조회">
+		<dynamic><![CDATA[
+        SELECT
+   			COMPANY_ID, 
+   			NAME, 
+   			DISPLAY_NAME,
+   			DESCRIPTION, 
+  			CREATION_DATE, 
+  			MODIFIED_DATE
+  		FROM V2_COMPANY
+  		WHERE <#if additional_parameter > LOWER(NAME) = ? <#else> NAME = ? </#if>
+    ]]></dynamic>
+	</sql-query>
+		
+	<sql-query name="COUNT_ALL_COMPANY" description="전체 COMPANY 수를 조회"><![CDATA[
+		SELECT COUNT(COMPANY_ID)
+		FROM V2_COMPANY
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_ALL_COMPANY_IDS" description="모든 COMPANY 아이디를 조회"><![CDATA[
+		SELECT COMPANY_ID FROM V2_COMPANY ORDER BY COMPANY_ID
+    ]]></sql-query>
+    
+	<sql-query name="DELETE_COMPANY" description="COMPANY 삭제"><![CDATA[
+		DELETE FROM V2_COMPANY WHERE COMPANY_ID = ?
+    ]]></sql-query>
+	 
+	<sql-query name="UPDATE_COMPANY_MODIFIED_DATE" description="COMPANY 수정일 업데이트"><![CDATA[        
+        UPDATE V2_COMPANY
+        SET MODIFIED_DATE = ?
+        WHERE COMPANY_ID = ?
+    ]]></sql-query>
+        	     	
+	<sql-query name="COUNT_COMPANY_GROUPS" description="COMPANY 그룹 수를 조회"><![CDATA[
+		SELECT COUNT(COMPANY_ID)
+		FROM V2_GROUP  WHERE COMPANY_ID = ?
+    ]]></sql-query>        	     	
+
+	<sql-query name="SELECT_COMPANY_GROUP_IDS" description="COMPANY 그룹 ID를 조회"><![CDATA[
+		SELECT GROUP_ID
+		FROM V2_GROUP  WHERE COMPANY_ID = ?
+		ORDER BY GROUP_ID
+    ]]></sql-query>    
+    
+            	     	 
+      
+	 <!--  USER  -->
+	<sql-query name="SELECT_ALL_USER" description="전체 사용자를 조회"><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER
+    ]]></sql-query>
+
+<sql-query name="SELECT_ALL_VISIBLE_USER" description="전체 사용자를 조회"><![CDATA[
+		SELECT 
+		    COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE VISIBLE = 1
+    ]]></sql-query>
+
+
+	<sql-query name="SELECT_ALL_ENABLED_USER" description="전체 로컬 사용자를 조회"><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE VISIBLE = 1 AND USERFLAG =1 AND IS_EXTERNAL = 0
+    ]]></sql-query>
+
+	<sql-query name="SELECT_USER_BY_ID" description="USER_ID 에 해당하는 사용자를 조회"><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE USERID = ?
+    ]]></sql-query>
+
+	<sql-query name="SELECT_USER_BY_EMAIL" description="메일 주소에 해당하는 사용자를 조회"><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE VISIBLE = 1 AND EMAIL LIKE ?
+    ]]></sql-query>
+
+<sql-query name="SELECT_USERS_BY_EMAIL_OR_NAME" description="메일 주소에 또는 이름에 해당하는 모든 사용자를 조회"><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE VISIBLE = 1 AND ( EMAIL LIKE ? OR NAME LIKE ? )
+    ]]></sql-query>
+    
+	<sql-query name="SELECT_USER_BY_USERNAME" description="USERNAME에 해당하는 사용자를 조회."><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE USERID = ?
+    ]]></sql-query>
+
+	<sql-query name="SELECT_USER_BY_USERNAME_NOCASE"
+		description="USERNAME에 해당하는 사용자를 조회. USERNAME은 모두 소문자로 비교한다."><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE LOWER(ID) = ?
+    ]]></sql-query>
+
+
+	<sql-query name="COUNT_ENABLED_USER" description="활성화된 내부 사용자 수"><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER WHERE VISIBLE = 1 AND USEFLAG = 1 AND IS_EXTERNAL = 0
+    ]]></sql-query>
+
+	<sql-query name="COUNT_VISIBLE_USER" description="활성화 되지 않은  사용자와 외부 사용자를 포함하는 전체 사용자 수 "><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER WHERE VISIBLE = 1
+    ]]></sql-query>
+
+	<sql-query name="COUNT_AUTHENTICATED_USER" description="인증된 전체 사용자 수 "><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER WHERE VISIBLE = 1 AND USEFLAG = 1 AND IS_EXTERNAL = 0 AND LAST_LOGINED_IN > 0
+    ]]></sql-query>
+
+	<sql-query name="COUNT_RECENT_USER" description="최근 등록된 사용자 수 "><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER WHERE VISIBLE = 1 AND USEFLAG = 1 AND IS_EXTERNAL = 0 AND CREATION_DATE > ?
+    ]]></sql-query>
+    
+    
+	<sql-query name="COUNT_USERS_BY_EMAIL_OR_NAME" description="활성화된 내부 사용자 수"><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER 
+		WHERE VISIBLE = 1 AND ( EMAIL LIKE ? OR NAME LIKE ? )
+    ]]></sql-query>
+   
+	<sql-query name="UPDATE_USER" description="사용자 업데이트"><![CDATA[ 
+       UPDATE TB_BA_USER SET	  
+	       NAME                = ?,
+	       NAME_VISIBLE = ?,
+	       EMAIL = ?,
+	       EMAIL_VISIBLE = ?,
+	       MODIFYTIME = ?,
+	       LAST_LOGINED_IN = ?,
+	       LAST_PROFILE_UPDATE = ?,
+	       ID = ?,
+	       IS_EXTERNAL = ?,
+	       FEDERATED = ?,
+	       STATUS = ?,
+	       PASSWORD = ?
+       WHERE USERID = ?
+    ]]></sql-query>
+    
+
+	<sql-query name="CREATE_USER" description="사용자 생성"><![CDATA[   
+        INSERT INTO TB_BA_USER (
+   			USERID, 
+   			ID, 
+   			PASSWORD, 
+   			NAME, 
+   			NAME_VISIBLE, 
+   			EMAIL, 
+   			EMAIL_VISIBLE, 
+  			LAST_LOGINED_IN, 
+  			LAST_PROFILE_UPDATE, 
+  			USEFLAG, 
+   			VISIBLE, 
+   			IS_EXTERNAL, 
+   			FEDERATED, 
+   			STATUS,
+   			CREATETIME, 
+   			MODIFYTIME 
+   		) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ]]></sql-query>
+
+	<sql-query name="SELECT_USER_ID_BY_STATUS" description="상태에 따른 사용자 아이디 조회 ">
+		SELECT USERID FROM TB_BA_USER
+		<dynamic><![CDATA[        
+        <#assign max_idx = additional_parameter?size >
+        <#assign idx = 0 >  
+        <#if 0 < max_idx >WHERE</#if>      
+        <#list additional_parameter as parameter>
+        <#assign idx = idx + 1 > 
+        STATUS = ${additional_parameter} <#if idx < max_idx >OR</#if>
+        </#list>
+    ]]></dynamic>
+	</sql-query>
+	 
+	<sql-query name="COUNT_COMPANY_USERS" description="전체 회사 소속 사용자 수" ><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER WHERE VISIBLE = 1 AND COMPANYID = ? 
+	 ]]></sql-query>
+	 	 
+	 <sql-query name="SELECT_ALL_COMPANY_VISIBLE_USER" description="전체 회사 소속 사용자 " ><![CDATA[
+		SELECT 
+		    COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE VISIBLE = 1 AND COMPANYID = ? 
+	 ]]></sql-query>
+
+	<sql-query name="SELECT_COMPANY_USERS_BY_EMAIL_OR_NAME" description="메일 또는 이름에 해당하는 회사 소속 사용자 " ><![CDATA[
+		SELECT 
+			COMPANYID as COMPANY_ID,
+			USERID as USER_ID, 
+			ID as USERNAME, 
+			PASSWORD as PASSWORD_HASH, 
+			NAME, 
+			NAME_VISIBLE, 
+			NULL as FIRST_NAME, 
+		    NULL as LAST_NAME, 
+		    EMAIL, 
+		    EMAIL_VISIBLE, 
+		    LAST_LOGINED_IN, 
+		    LAST_PROFILE_UPDATE, 
+		    USEFLAG as USER_ENABLED, 
+		    VISIBLE, 
+		    IS_EXTERNAL, 
+		    FEDERATED, 
+		    STATUS,
+		    CREATETIME as CREATION_DATE, 
+		    MODIFYTIME as  MODIFIED_DATE
+		FROM TB_BA_USER WHERE VISIBLE = 1 AND COMPANYID = ? AND ( EMAIL LIKE ? OR NAME LIKE ? )
+	 ]]></sql-query>
+	 	
+	<sql-query name="COUNT_COMPANY_USERS_BY_EMAIL_OR_NAME" description="메일 또는 이름에 해당하는 회사 소속 사용자 수" ><![CDATA[
+		SELECT count( USERID ) FROM TB_BA_USER 
+		WHERE VISIBLE = 1 AND COMPANYID = ? AND  ( EMAIL LIKE ? OR NAME LIKE ? )
+	 ]]></sql-query>	
+	 
+	 
+    <sql-query name="SELECT_USER_PROFILE_BY_USER_ID" description="프로파일 조회 쿼리" ><![CDATA[
+        SELECT 
+	        PHONE,
+	        CELLPHONE,
+	        ZIPCODE,
+	        ADDRESS1,
+	        ADDRESS2,
+	        EMPNO,
+	        JOB,
+	        LEADERSHIP,
+	        DIVISIONID,
+	        GRADE_NUM
+        FROM TB_BA_USER 
+        WHERE USERID = ?
+     ]]></sql-query>	 
+	 	            
+	 <!-- 
+	    기존 TB_BA_USER 테이블 수정 	    
+	    
+		alter table TB_BA_USER add NAME_VISIBLE NUMBER(1, 0)  DEFAULT 1 ;
+	    alter table TB_BA_USER add EMAIL_VISIBLE NUMBER(1, 0)  DEFAULT 1 ;
+	    alter table TB_BA_USER add VISIBLE NUMBER(1, 0)  DEFAULT 1 ;
+	    alter table TB_BA_USER add IS_EXTERNAL NUMBER(1, 0)  DEFAULT 0 ;
+	    alter table TB_BA_USER add FEDERATED NUMBER(1, 0)  DEFAULT 0 ;
+	    alter table TB_BA_USER add STATUS NUMBER(1, 0)  DEFAULT 0 ;
+		alter table TB_BA_USER add LAST_LOGINED_IN DATE DEFAULT  SYSDATE NOT NULL ;
+		alter table TB_BA_USER add LAST_PROFILE_UPDATE DATE DEFAULT  SYSDATE NOT NULL ;
+		
+        COMMENT ON COLUMN "TB_BA_USER"."NAME_VISIBLE" IS '이름 공개 여부';        
+        COMMENT ON COLUMN "TB_BA_USER"."EMAIL_VISIBLE" IS '메일주소 공개여부';        
+		COMMENT ON COLUMN "TB_BA_USER"."LAST_LOGINED_IN" IS '마지막 로그인 일자'; 
+        COMMENT ON COLUMN "TB_BA_USER"."LAST_PROFILE_UPDATE" IS '마지막 프로파일 갱신 일자';        
+        COMMENT ON COLUMN "TB_BA_USER"."VISIBLE" IS '계정 공개 여부';	    
+        COMMENT ON COLUMN "TB_BA_USER"."IS_EXTERNAL" IS '외부 시스템에서 생성된 계정 여부';	    
+        COMMENT ON COLUMN "TB_BA_USER"."FEDERATED" IS '외부 계정과 연합 여부';	    
+        COMMENT ON COLUMN "TB_BA_USER"."STATUS" IS '계정 상태';	    
+	    
+		TB_BA_USER             V2_USER
+		COMPANYID            
+		ID                          USERNAME
+		DIVISIONID
+		NAME                     NAME
+		PASSWORD             PASSWORD_HASH (64)
+		GENDER
+		JOB
+		LEADERSHIP
+		EMAIL                     EMAIL
+		USERID                    USER_ID
+		PHONE
+		CELLPHONE
+		ZIPCODE
+		ADDRESS1
+		ADDRESS2
+		USEFLAG                USER_ENABLED
+		CREATETIME
+		CREATER
+		MODIFYTIME
+		MODIFIER
+					              X  FIRST_NAME, 
+		                          X  LAST_NAME, 		    
+								    NAME_VISIBLE
+								    EMAIL_VISIBLE, 								    
+								    LAST_LOGINED_IN, 
+								    LAST_PROFILE_UPDATE, 								    , 
+								    VISIBLE, 
+								    IS_EXTERNAL, 
+								    FEDERATED, 
+								    STATUS,								    
+								X  CREATION_DATE, 
+								X  MODIFIED_DATE		
+	-->	
+</sqlset>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	
+    <!-- AUTO DEPT SYNC-->
+    <bean id="syncDept" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="baSyncSrv" />
+        <property name="targetMethod" value="autoDeptSync" />
+        <property name="concurrent" value="false" />
+    </bean>
+    
+    <!-- AUTO Grade SYNC -->
+    <bean id="syncGrade" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="baSyncSrv" />
+        <property name="targetMethod" value="autoGradeSync" />
+        <property name="concurrent" value="false" />
+    </bean>
+	
+    <!-- AUTO ICCU USER SYNC-->
+    <bean id="syncUser" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="baSyncSrv" />
+        <property name="targetMethod" value="autoUserSync" />
+        <property name="concurrent" value="false" />
+    </bean>
+    
+    <!-- triggers -->
+    <!-- Change of setting time in accordance with the process requires a guide when needed -->
+	
+    <!-- TRIGGER DEPT SYNC-->
+    <bean id="triggerSyncDept" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="syncDept" />
+        <property name="cronExpression" value="0 0 * * * ?" />
+    </bean>
+    
+    <!-- TRIGGER GRADE SYNC -->
+    <bean id="triggerSyncGrade" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="syncGrade" />
+        <property name="cronExpression" value="0 5 * * * ?" />
+    </bean>
+
+    <!-- TRIGGER USER SYNC-->
+    <bean id="triggerSyncUser" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="syncUser" />
+        <property name="cronExpression" value="0 10 * * * ?" />
+    </bean>
+
+	<!-- scheduler itself -->
+    <bean id="commonScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="schedulerName"><value>quartz</value></property>
+            <property name="triggers">
+            	<!--  
+            		SCHEDULER RUN
+            	 -->
+                <list>
+                    <!-- 부서정보 -->
+                    <ref local="triggerSyncDept"/>
+					<!-- 직급정보 -->
+                    <ref local="triggerSyncGrade"/>
+                    <!-- 사용자정보  -->
+					<ref local="triggerSyncUser"/>
+                </list>
+            </property>
+        <property name="autoStartup"><value>true</value></property>
+    </bean>
+</beans>

@@ -1,0 +1,1234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>EVL</name>
+    <version>2.0</version>
+    <description>EVL 모듈을 위한 쿼리</description>
+    
+    <!-- ================================================= -->
+    <!-- mpva project S..... -->
+    <!-- ================================================= -->
+
+
+    <sql-query name="GET_CMPT_EVL_LIST" description="역량 평가 이력 리스트"><![CDATA[
+-- sql_file : evl-sqlset.xml
+-- sql_name : GET_CMPT_EVL_LIST
+
+SELECT ROW_NUMBER() OVER(ORDER BY NVL(CR.YYYY, 0) DESC, CR.RUN_END DESC) RNUM,
+    CR.RUN_NUM, CR.YYYY||'년' YYYY, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END, 
+    FUN_COMMON_CODE(CR.COMPANYID, 'BA19', CR.DIAGNO_DIR_TYPE_CD) DIAGNO_DIR_TYPE_NM,
+    CASE WHEN TO_CHAR(RUN_START, 'YYYYMMDD') > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '진단대기'
+         WHEN TO_CHAR(RUN_END, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '진단종료'
+         WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(RUN_START, 'YYYYMMDD') AND TO_CHAR(RUN_END, 'YYYYMMDD') THEN '진단중'
+    ELSE ''
+    END EVL_CMD, EXEC_T_SUM, EXEC_C_CNT, EXED_T_SUM, EXED_C_CNT, TO_CHAR(RESULT_OPEN_DATE, 'YYYY-MM-DD') RESULT_OPEN_DATE
+FROM TB_CAM_RUN_L CR,
+    (
+    SELECT CT.RUN_NUM, CT.COMPANYID, MAX(RUNDIRECTION_CD) RUNDIRECTION_CD, 
+        SUM(CASE WHEN RI.USERID = ? THEN 1
+        ELSE 0
+        END) EXEC_T_SUM,
+        SUM(CASE WHEN RI.USERID = ? AND CMPL_FLAG = 'Y' THEN 1
+        ELSE 0
+        END) EXEC_C_CNT,
+        SUM(CASE WHEN RI.USERID_EXED = ? THEN 1
+        ELSE 0
+        END) EXED_T_SUM,
+        SUM(CASE WHEN RI.USERID_EXED = ? AND CMPL_FLAG = 'Y' THEN 1
+        ELSE 0
+        END) EXED_C_CNT
+    FROM TB_BA_USER BU, TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I RI
+    WHERE BU.COMPANYID = CT.COMPANYID AND BU.USERID = CT.USERID
+        AND CT.COMPANYID = RI.COMPANYID AND CT.RUN_NUM = RI.RUN_NUM AND CT.USERID = RI.USERID_EXED
+        AND BU.DEL_YN = 'N' AND BU.USEFLAG = 'Y'
+        AND CT.USEFLAG = 'Y'
+        AND RI.USEFLAG = 'Y'
+        AND CT.COMPANYID = ?
+        AND ( RI.USERID = ? OR RI.USERID_EXED = ?)
+    GROUP BY CT.RUN_NUM, CT.COMPANYID
+    ) TI
+WHERE CR.COMPANYID = TI.COMPANYID AND CR.RUN_NUM = TI.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND CR.COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="CMPT_ANALY_RUN_INFO" description="역량분석 평가 기본정보 결과"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "CMPT_ANALY_RUN_INFO"
+        
+-- 평가기본정보
+SELECT CR.YYYY, cr.run_num, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END,
+    FUN_COMMON_CODE(CR.COMPANYID, 'BA19', CR.DIAGNO_DIR_TYPE_CD) DIAGNO_DIR_TYPE_NM, CR.DIAGNO_DIR_TYPE_CD,
+    TO_CHAR(CMPT_EVL_CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPT_EVL_CMPL_DATE, BU.NAME, ROUND(TG.EVL_TOTAL_SCORE*20) EVL_TOTAL_SCORE, TG.JOB, TG.LEADERSHIP,
+    FUN_COMMON_CODE(TG.COMPANYID, 'BA15', TG.GRADE_NUM) GRADE_NM,
+    CJ.JOBLDR_NAME JOB_NAME, CL.JOBLDR_NAME LEADERSHIP_NAME
+FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I TG, TB_BA_USER BU, TB_CM_JOB_LDR_I CJ, TB_CM_JOB_LDR_I CL
+WHERE CR.COMPANYID = TG.COMPANYID AND CR.RUN_NUM = TG.RUN_NUM
+    AND TG.COMPANYID = BU.COMPANYID AND TG.USERID = BU.USERID
+    AND TG.COMPANYID = CJ.COMPANYID(+) AND TG.JOB = CJ.JOBLDR_NUM(+) AND CJ.JOBLDR_FLAG(+) = 'J'
+    AND TG.COMPANYID = CL.COMPANYID(+) AND TG.LEADERSHIP = CL.JOBLDR_NUM(+) AND CL.JOBLDR_FLAG(+) = 'L'
+    AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND TG.USERID = ?
+    ]]>
+    </sql-query>
+    
+     <sql-query name="CMPT_ANALY_RUN_INFO_EXE" description="역량분석 평가 기본정보"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "CMPT_ANALY_RUN_INFO_EXE"
+        
+	-- 평가기본정보
+	SELECT CR.YYYY, cr.run_num, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END,
+	    FUN_COMMON_CODE(CR.COMPANYID, 'BA19', CR.DIAGNO_DIR_TYPE_CD) DIAGNO_DIR_TYPE_NM, CR.DIAGNO_DIR_TYPE_CD
+	FROM TB_CAM_RUN_L CR
+	WHERE CR.COMPANYID = ? 
+	    AND CR.RUN_NUM = ?
+	    AND CR.USEFLAG = 'Y'
+	    AND CR.DEL_YN = 'N'
+    ]]>
+    </sql-query>
+    
+    
+    <sql-query name="GET_USER_EXED_INFO" description="피평가자 정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_USER_EXED_INFO"
+        
+SELECT NAME, EMPNO,
+    (SELECT DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = A.COMPANYID AND DIVISIONID = A.DIVISIONID ) DVS_NAME, 
+    FUN_COMMON_CODE(A.COMPANYID, 'BA15', A.GRADE_NUM) GRADE_NM, A.JOB, A.LEADERSHIP,
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = A.COMPANYID AND JOBLDR_NUM = A.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = A.COMPANYID AND JOBLDR_NUM = A.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM
+FROM TB_BA_USER A
+WHERE USERID = ?
+    ]]>
+    </sql-query>
+    
+    
+    <sql-query name="GET_USER_MSD_EXED_BHV_LIST" description="다면평가 피평가자 문항조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : GET_USER_MSD_EXED_BHV_LIST
+
+        SELECT ROW_NUMBER() OVER(ORDER BY CMPNUMBER, BHV_INDC_NUM) RNUM, DD.*
+        FROM(
+            SELECT  CMPNAME, CMPNUMBER, BHV_INDC_NUM, BHV_INDICATOR, CMPDEFINITION
+            FROM(
+                SELECT DISTINCT CMPNAME, CMPNUMBER, BHV_INDC_NUM, BHV_INDICATOR, CMPDEFINITION
+                FROM(
+                    -- 공통역량
+                    SELECT CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, CMPDEFINITION
+                    FROM TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_BA_COMMONCODE BC, 
+                        (
+                        SELECT COMPANYID, RUN_NUM, CMPGROUP
+                        FROM TB_CAM_RUN_CMPGROUP
+                        WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+                        ) RP
+                    WHERE CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER
+                        AND CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+                        AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+                        AND CC.USEFLAG = 'Y' AND BI.USEFLAG = 'Y'
+                        AND CC.COMPANYID = ?
+                    UNION ALL
+                    -- 리더십역량
+                    SELECT DISTINCT CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, CMPDEFINITION
+                    FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_CM_JOBLER_BHV JB,
+                        (
+                        SELECT COMPANYID, RUN_NUM, CMPGROUP
+                        FROM TB_CAM_RUN_CMPGROUP
+                        WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+                        ) RP
+                    WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+                        AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+                        AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+                        AND BI.COMPANYID = JB.COMPANYID AND BI.CMPNUMBER = JB.CMPNUMBER AND BI.BHV_INDC_NUM = JB.BHV_INDC_NUM AND CJ.JOBLDR_NUM = JB.JOBLDR_NUM AND JB.USEFLAG = 'Y'
+                        AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+                        AND (CC.COMPANYID, CJ.JOBLDR_NUM) IN (
+                            SELECT CR.COMPANYID, RI.LEADERSHIP 
+                            FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                            WHERE CR.USERID_EXED = BU.USERID
+                                AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                                AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                                AND CR.USEFLAG = 'Y'
+                                AND BU.USEFLAG = 'Y'
+                                AND RI.USEFLAG = 'Y'
+                        )
+                    UNION ALL
+                    -- 직무역량
+                    SELECT DISTINCT CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, CMPDEFINITION
+                    FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_CM_JOBLER_BHV JB, TB_CM_BHID_LDR CBL,
+                        (
+                        SELECT COMPANYID, RUN_NUM, CMPGROUP
+                        FROM TB_CAM_RUN_CMPGROUP
+                        WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+                        ) RP
+                    WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+                        AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+                        AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+                        AND BI.COMPANYID = JB.COMPANYID AND BI.CMPNUMBER = JB.CMPNUMBER AND BI.BHV_INDC_NUM = JB.BHV_INDC_NUM AND CJ.JOBLDR_NUM = JB.JOBLDR_NUM AND JB.USEFLAG = 'Y'
+                        AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+                        AND BI.COMPANYID = CBL.COMPANYID AND BI.BHV_INDC_NUM = CBL.BHID_NUM AND BI.CMPNUMBER = CBL.CMPT_NUM
+                        AND (CC.COMPANYID, CJ.JOBLDR_NUM, CBL.LDR_NUM) IN (
+                            SELECT CR.COMPANYID, RI.JOB , RI.LEADERSHIP
+                            FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                            WHERE CR.USERID_EXED = BU.USERID
+                                AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                                AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                                AND CR.USEFLAG = 'Y'
+                                AND BU.USEFLAG = 'Y'
+                                AND RI.USEFLAG = 'Y'
+                        )                                                           
+                    )
+                )
+                -- 부하진단이 있는경우 1문항 추가.
+                UNION ALL
+                SELECT NULL CMPNAME, 999999999 CMPNUMBER, 999999999 BHV_INDC_NUM,  '피진단자에게 의견을 작성해주세요' BHV_INDICATOR, NULL CMPDEFINITION
+                FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                WHERE CR.USERID_EXED = BU.USERID
+                    AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                    AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                    AND CR.RUNDIRECTION_CD = '4'
+                    AND CR.USEFLAG = 'Y'
+                    AND BU.USEFLAG = 'Y'
+                    AND RI.USEFLAG = 'Y'
+                    AND ROWNUM = 1
+            ) DD
+        ]]>
+    </sql-query>
+    
+    <sql-query name="GET_USER_MSD_EXED_BHV_RESPONSE_LIST" description="다면평가 피평가자 문항별 응답정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : GET_USER_MSD_EXED_BHV_RESPONSE_LIST
+
+        SELECT DENSE_RANK() OVER(ORDER BY DD.CMPNUMBER, DD.BHV_INDC_NUM) RNUM, DD.*
+        FROM(
+            SELECT 
+                A.COMPANYID, A.CMPNUMBER, A.BHV_INDC_NUM, A.USERID_EXED, A.USERID, A.RUNDIRECTION_CD, NAME, FUN_COMMON_CODE(A.COMPANYID, 'BA15', GRADE_NUM) GRADE_NM, 
+                ''||B.SCORE SCORE, B1, B2, B3, B4, B5
+            FROM(
+                SELECT DISTINCT COMPANYID, CMPNUMBER, BHV_INDC_NUM, USERID_EXED, USERID, RUNDIRECTION_CD, NAME, GRADE_NUM
+                FROM(
+                    -- 공통
+                    SELECT CCB.COMPANYID, CCB.CMPNUMBER, CCB.BHV_INDC_NUM, CCU.USERID_EXED, CCU.USERID, RUNDIRECTION_CD, NAME, GRADE_NUM 
+                    FROM(
+                        SELECT CC.COMPANYID, CC.CMPNUMBER, BI.BHV_INDC_NUM
+                        FROM TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_BA_COMMONCODE BC,
+                            (
+                            SELECT COMPANYID, RUN_NUM, CMPGROUP/*역량군*/
+                            FROM TB_CAM_RUN_CMPGROUP
+                            WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+                            ) RP
+                        WHERE CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER
+                            AND CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+                            AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+                            AND CC.USEFLAG = 'Y' AND BI.USEFLAG = 'Y'
+                            AND CC.COMPANYID = ?
+                        ) CCB,
+                        (
+                        SELECT CR.COMPANYID, CR.USERID_EXED/*피진단자*/, CR.USERID/*진단자*/, RUNDIRECTION_CD, NAME, RI.GRADE_NUM 
+                        FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                        WHERE CR.USERID_EXED = BU.USERID
+                            AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                            AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                            AND CR.USEFLAG = 'Y'
+                            AND BU.USEFLAG = 'Y'
+                            AND RI.USEFLAG = 'Y'
+                        ) CCU
+                    UNION ALL
+                    -- 리더십
+                    SELECT LD.COMPANYID, LD.CMPNUMBER, LD.BHV_INDC_NUM, UD.USERID_EXED, UD.USERID, UD.RUNDIRECTION_CD, UD.NAME, UD.GRADE_NUM 
+                    FROM(
+                        SELECT CJ.COMPANYID, CC.CMPNUMBER, BI.BHV_INDC_NUM, CJ.JOBLDR_NUM
+                        FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_CM_JOBLER_BHV JB,
+                            (
+                            SELECT COMPANYID, RUN_NUM, CMPGROUP
+                            FROM TB_CAM_RUN_CMPGROUP
+                            WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+                            ) RP
+                        WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+                            AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+                            AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+                            AND BI.COMPANYID = JB.COMPANYID AND BI.CMPNUMBER = JB.CMPNUMBER AND BI.BHV_INDC_NUM = JB.BHV_INDC_NUM AND CJ.JOBLDR_NUM = JB.JOBLDR_NUM AND JB.USEFLAG = 'Y'
+                            AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+                        ) LD,
+                        (
+                            SELECT CR.COMPANYID, RI.LEADERSHIP, CR.USERID_EXED, CR.USERID, CR.RUNDIRECTION_CD, BU.NAME, RI.GRADE_NUM 
+                            FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                            WHERE CR.USERID_EXED = BU.USERID
+                                AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                                AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                                AND CR.USEFLAG = 'Y'
+                                AND BU.USEFLAG = 'Y'
+                                AND RI.USEFLAG = 'Y'
+                        ) UD
+                    WHERE LD.COMPANYID = UD.COMPANYID AND LD.JOBLDR_NUM = UD.LEADERSHIP
+                    UNION ALL
+                    -- 직무
+                    SELECT LD.COMPANYID, LD.CMPNUMBER, LD.BHV_INDC_NUM, UD.USERID_EXED, UD.USERID, UD.RUNDIRECTION_CD, UD.NAME, UD.GRADE_NUM 
+                    FROM(
+                        SELECT CJ.COMPANYID, CC.CMPNUMBER, BI.BHV_INDC_NUM, CJ.JOBLDR_NUM, LDR_NUM
+                        FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_CM_JOBLER_BHV JB, TB_CM_BHID_LDR CBL,
+                            (
+                            SELECT COMPANYID, RUN_NUM, CMPGROUP
+                            FROM TB_CAM_RUN_CMPGROUP
+                            WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+                            ) RP
+                        WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+                            AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+                            AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+                            AND BI.COMPANYID = JB.COMPANYID AND BI.CMPNUMBER = JB.CMPNUMBER AND BI.BHV_INDC_NUM = JB.BHV_INDC_NUM AND CJ.JOBLDR_NUM = JB.JOBLDR_NUM AND JB.USEFLAG = 'Y'
+                            AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+                            AND BI.COMPANYID = CBL.COMPANYID AND BI.BHV_INDC_NUM = CBL.BHID_NUM AND BI.CMPNUMBER = CBL.CMPT_NUM
+                        ) LD,
+                        (
+                            SELECT CR.COMPANYID, RI.JOB, RI.LEADERSHIP, CR.USERID_EXED, CR.USERID, CR.RUNDIRECTION_CD, BU.NAME, RI.GRADE_NUM 
+                            FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                            WHERE CR.USERID_EXED = BU.USERID
+                                AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                                AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                                AND CR.USEFLAG = 'Y'
+                                AND BU.USEFLAG = 'Y'
+                                AND RI.USEFLAG = 'Y'
+                        ) UD
+                    WHERE LD.COMPANYID = UD.COMPANYID AND LD.JOBLDR_NUM = UD.JOB AND LD.LDR_NUM = UD.LEADERSHIP
+                    )
+                ) A,
+                (
+                SELECT COMPANYID, CMPNUMBER, BHV_INDC_NUM, USERID_EXED, USERID_EX, SCORE,
+                    CASE WHEN SCORE = 1 THEN 'checked' ELSE '' END B1,
+                    CASE WHEN SCORE = 2 THEN 'checked' ELSE '' END B2,
+                    CASE WHEN SCORE = 3 THEN 'checked' ELSE '' END B3,
+                    CASE WHEN SCORE = 4 THEN 'checked' ELSE '' END B4,
+                    CASE WHEN SCORE = 5 THEN 'checked' ELSE '' END B5
+                FROM TB_CAR_INDC_SCORE
+                WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID_EX = ?
+                    AND USEFLAG = 'Y'
+                ) B
+            WHERE A.COMPANYID = B.COMPANYID(+) AND A.CMPNUMBER = B.CMPNUMBER(+) AND A.BHV_INDC_NUM = B.BHV_INDC_NUM(+) AND A.USERID_EXED = B.USERID_EXED(+) AND A.USERID = B.USERID_EX(+)
+            UNION ALL
+            SELECT NULL COMPANYID, 999999999 CMPNUMBER, 999999999 BHV_INDC_NUM,  CR.USERID_EXED, CR.USERID, CR.RUNDIRECTION_CD, BU.NAME, FUN_COMMON_CODE(BU.COMPANYID, 'BA15', RI.GRADE_NUM) GRADE_NM, 
+                CR.EVL_OPN, NULL B1, NULL B2, NULL B3, NULL B4, NULL B5
+            FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+            WHERE CR.USERID_EXED = BU.USERID
+                AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+                AND CR.RUNDIRECTION_CD = '4'
+                AND CR.USEFLAG = 'Y'
+                AND BU.USEFLAG = 'Y'
+                AND RI.USEFLAG = 'Y'
+            ) DD
+        ORDER BY RNUM, CMPNUMBER, BHV_INDC_NUM, NAME 
+        ]]>
+    </sql-query>
+        
+    <sql-query name="START_EVL_TB_CAM_RUNDIRECTION_I" description="역량평가 시작일시 업데이트"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "START_EVL_TB_CAM_RUNDIRECTION_I"
+UPDATE TB_CAM_RUNDIRECTION_I
+SET START_DATE = DECODE(START_DATE, null, SYSDATE, START_DATE)
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+    AND USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_USEFLAG_N_TB_CAR_INDC_SCORE"
+        description="행동지표 진단 결과 사용여부 N처리."><![CDATA[
+        
+--sql_file : evl-sqlset.xml
+--sql_name : UPDATE_USEFLAG_N_TB_CAR_INDC_SCORE
+
+UPDATE TB_CAR_INDC_SCORE
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    AND RUN_NUM = ?
+    AND USERID_EX = ?
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_TB_CAR_INDC_SCORE" description="행동지표 진단 결과  MERGE "><![CDATA[
+        
+        --sql_file : evl-sqlset.xml
+        --sql_name : MERGE_TB_CAR_INDC_SCORE
+        
+MERGE INTO TB_CAR_INDC_SCORE A
+USING(
+    SELECT ? COMPANYID,
+        ? RUN_NUM,
+        ? USERID_EX,
+        ? USERID_EXED,
+        ? BHV_INDC_NUM,
+        ? CMPNUMBER,
+        ? SCORE,
+        'Y' USEFLAG,
+        SYSDATE CREATETIME,
+        ? CREATER
+    FROM DUAL
+) B
+ON ( 
+    A.COMPANYID = B.COMPANYID AND 
+    A.RUN_NUM = B.RUN_NUM AND 
+    A.USERID_EX = B.USERID_EX AND 
+    A.USERID_EXED = B.USERID_EXED AND 
+    A.BHV_INDC_NUM = B.BHV_INDC_NUM AND 
+    A.CMPNUMBER = B.CMPNUMBER
+)
+WHEN NOT MATCHED THEN
+    INSERT (
+       A.COMPANYID, A.RUN_NUM, A.USERID_EX, 
+       A.USERID_EXED, A.BHV_INDC_NUM, A.CMPNUMBER, 
+       A.SCORE, A.USEFLAG, A.CREATETIME, A.CREATER) 
+    VALUES(
+       B.COMPANYID, B.RUN_NUM, B.USERID_EX, 
+       B.USERID_EXED, B.BHV_INDC_NUM, B.CMPNUMBER, 
+       B.SCORE, B.USEFLAG, B.CREATETIME, B.CREATER
+       )
+WHEN MATCHED THEN
+    UPDATE SET
+        A.SCORE = B.SCORE,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_CMPT_EVL_EXEC_CMT" description="부서원 역량평가 역량별 코멘트 저장"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "MERGE_CMPT_EVL_EXEC_CMT"
+        
+MERGE INTO TB_CAM_RUNDIRECTION_I A
+USING(
+    SELECT
+        ? COMPANYID,
+        ? RUN_NUM,
+        ? USERID,
+        ? USERID_EXED,
+        ? EVL_OPN
+    FROM DUAL
+) B
+ON (A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID = B.USERID AND A.USERID_EXED = B.USERID_EXED)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.EVL_OPN = B.EVL_OPN
+    ]]>
+    </sql-query>
+
+    <sql-query name="COMPLETE_TB_CAM_RUNDIRECTION_I" description="역량평가 완료 방향별 테이블에 완료처리"><![CDATA[
+        
+        --sql_file : evl-sqlset.xml
+        --sql_name : "COMPLETE_TB_CAM_RUNDIRECTION_I"
+UPDATE TB_CAM_RUNDIRECTION_I
+SET CMPL_FLAG = 'Y',
+    CMPL_DATE = SYSDATE
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+    AND USEFLAG = 'Y' 
+    ]]></sql-query>
+
+    <sql-query name="EXCUTE_CMPT_COMPLETE_PROC" description="역량평가 완료 진단 결과 생성"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "EXCUTE_CMPT_COMPLETE_PROC"
+        CALL  PROC_CMPT_EVL_COMPLETE(?, ?, ?, ?, ?)
+    ]]></sql-query>
+    
+    <sql-query name="GET_EVL_GROW_LIST_CNT" description="역량평가 분석 - 역량성장도 평가 횟수 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_GROW_LIST_CNT"
+        
+SELECT COUNT(*) CNT
+FROM TB_CAM_RUN_L CR,
+    (
+    SELECT A.COMPANYID, A.RUN_NUM
+    FROM TB_CAR_EXED_CMPT_SCORE A, TB_CAM_RUNTARGET_I B, TB_CAM_RUNDIRECTION_I C
+    WHERE A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM AND A.USERID_EXED = B.USERID
+        AND B.COMPANYID = C.COMPANYID AND B.RUN_NUM = C.RUN_NUM AND B.USERID = C.USERID_EXED
+        AND A.COMPANYID = ? AND A.USERID_EXED = ?
+        AND A.USEFLAG = 'Y' 
+        AND B.USEFLAG = 'Y' 
+        AND C.USEFLAG = 'Y' AND C.CMPL_FLAG = 'Y'
+    GROUP BY A.COMPANYID, A.RUN_NUM
+    ) CS
+WHERE CR.COMPANYID = CS.COMPANYID AND CR.RUN_NUM = CS.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '1'
+    ]]>
+    </sql-query>
+    
+    
+    <sql-query name="GET_EVL_GROW_CMPT_LIST" description="역량평가 분석 - 역량성장도 역량목록"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_GROW_CMPT_LIST"
+        
+SELECT A.CMPNUMBER, A.CMPNAME,
+    ROW_NUMBER() OVER(ORDER BY A.CMPNAME)-1 RNUM
+FROM TB_CM_COMPETENCY A,
+    (
+    SELECT COMPANYID, RUN_NUM, CMPNUMBER, SCORE
+    FROM TB_CAR_EXED_CMPT_SCORE
+    WHERE COMPANYID = ? AND USERID_EXED = ? AND RUN_NUM = (
+        SELECT RUN_NUM
+        FROM(
+            SELECT CR.RUN_NUM, ROW_NUMBER() OVER(ORDER BY RUN_END DESC) RNUM
+            FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I RI, TB_CAR_EXED_CMPT_SCORE CS, TB_CAM_RUNDIRECTION_I CD
+            WHERE CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM
+                AND RI.COMPANYID = CS.COMPANYID AND RI.RUN_NUM = CS.RUN_NUM AND RI.USERID = CS.USERID_EXED
+                AND RI.COMPANYID = CD.COMPANYID AND RI.RUN_NUM = CD.RUN_NUM AND RI.USERID = CD.USERID_EXED
+                AND CR.COMPANYID = ? AND RI.USERID = ?
+                AND CR.USEFLAG = 'Y' AND CR.DEL_YN = 'N' AND RI.USEFLAG = 'Y' AND CS.USEFLAG = 'Y' AND CD.USEFLAG = 'Y' AND CD.CMPL_FLAG = 'Y'
+            )
+        WHERE RNUM = 1
+        )
+        AND USEFLAG = 'Y'
+    ) B
+WHERE A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER 
+    ]]>
+    </sql-query>
+
+    <sql-query name="GET_EVL_GROW_ANALYSIS_LIST" description="역량평가 분석 - 역량성장도"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_GROW_ANALYSIS_LIST"
+SELECT *
+FROM(
+    SELECT ROW_NUMBER() OVER(ORDER BY RUN_START ) RNUM,
+        RUN_NAME]]><dynamic><![CDATA[ ${ QUERY_SELECT } ]]></dynamic><![CDATA[
+    FROM TB_CAM_RUN_L A, TB_CAM_RUNTARGET_I B,
+        (
+        SELECT COMPANYID, RUN_NUM
+        FROM TB_CAM_RUNDIRECTION_I
+        WHERE COMPANYID = ? AND USERID_EXED = ? AND CMPL_FLAG = 'Y' AND USEFLAG = 'Y'
+        GROUP BY COMPANYID, RUN_NUM
+        ) C
+    ]]><dynamic><![CDATA[ ${ QUERY_FROM} ]]></dynamic><![CDATA[
+    WHERE A.COMPANYID = B.COMPANYID AND A.RUN_NUM = B.RUN_NUM
+        AND A.COMPANYID = C.COMPANYID AND A.RUN_NUM = C.RUN_NUM
+        AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y' --AND B.CMPT_EVL_CMPL_FLAG = 'Y'
+        AND B.USERID = ?
+    ]]><dynamic><![CDATA[ ${ QUERY_WHERE} ]]></dynamic><![CDATA[
+    )
+WHERE RNUM < 7
+        ]]>
+    </sql-query>
+    
+    <sql-query name="GET_CMPT_EVL_RUN_INFO" description="역량 평가 정보"><![CDATA[
+-- sql_file : evl-sqlset.xml
+-- sql_name : GET_CMPT_EVL_RUN_INFO
+-- 평가 정보 조회
+SELECT CR.YYYY, CR.RUN_NUM, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END,
+    FUN_COMMON_CODE(CR.COMPANYID, 'BA19', CR.DIAGNO_DIR_TYPE_CD) DIAGNO_DIR_TYPE_NM
+FROM TB_CAM_RUN_L CR
+WHERE CR.COMPANYID = ? AND CR.RUN_NUM = ?
+    ]]></sql-query>
+
+    <sql-query name="GET_CMPT_EVL_SELF_EXEC_BHV" description="자가 역량 평가 문항 조회"><![CDATA[
+-- sql_file : evl-sqlset.xml
+-- sql_name : GET_CMPT_EVL_SELF_EXEC_BHV
+-- 피평가자 진단문항 조회
+
+SELECT ROW_NUMBER() OVER(ORDER BY A.CMPNUMBER, A.BHV_INDC_NUM) RNUM, 
+    A.COMPANYID, A.CMPNAME, A.CMPNUMBER, A.BHV_INDC_NUM, A.BHV_INDICATOR, A.CMPDEFINITION, B.SCORE, B.B1, B.B2, B.B3, B.B4, B.B5, ? USERID_EXED
+FROM(
+    SELECT DISTINCT COMPANYID, CMPNAME, CMPNUMBER, BHV_INDC_NUM, BHV_INDICATOR, CMPDEFINITION
+    FROM(
+        SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, CMPDEFINITION
+        FROM TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_BA_COMMONCODE BC,
+            (
+            SELECT COMPANYID, RUN_NUM, CMPGROUP
+            FROM TB_CAM_RUN_CMPGROUP
+            WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+            ) RP
+        WHERE CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER
+            AND CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+            AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+            AND CC.USEFLAG = 'Y' AND BI.USEFLAG = 'Y'
+            AND CC.COMPANYID = ?
+        UNION ALL
+        --리더십역량
+        SELECT DISTINCT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, CMPDEFINITION
+        FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_CM_JOBLER_BHV JB,
+            (
+            SELECT COMPANYID, RUN_NUM, CMPGROUP
+            FROM TB_CAM_RUN_CMPGROUP
+            WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+            ) RP
+        WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+            AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+            AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+            AND BI.COMPANYID = JB.COMPANYID AND BI.CMPNUMBER = JB.CMPNUMBER AND BI.BHV_INDC_NUM = JB.BHV_INDC_NUM AND CJ.JOBLDR_NUM = JB.JOBLDR_NUM AND JB.USEFLAG = 'Y'
+            AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+            AND (CC.COMPANYID, CJ.JOBLDR_NUM) IN (
+                SELECT CR.COMPANYID, RI.LEADERSHIP 
+                FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                WHERE CR.USERID_EXED = BU.USERID
+                    AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                    AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ? AND CR.USERID_EXED = ?
+                    AND CR.USEFLAG = 'Y'
+                    AND BU.USEFLAG = 'Y'
+                    AND RI.USEFLAG = 'Y'
+            )
+        UNION ALL
+        -- 직무역량
+        SELECT DISTINCT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, CMPDEFINITION
+        FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_CM_JOBLER_BHV JB, TB_CM_BHID_LDR CBL,
+            (
+            SELECT COMPANYID, RUN_NUM, CMPGROUP
+            FROM TB_CAM_RUN_CMPGROUP
+            WHERE COMPANYID = ? AND RUN_NUM = ? AND USEFLAG = 'Y'
+            ) RP
+        WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+            AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+            AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+            AND BI.COMPANYID = JB.COMPANYID AND BI.CMPNUMBER = JB.CMPNUMBER AND BI.BHV_INDC_NUM = JB.BHV_INDC_NUM AND CJ.JOBLDR_NUM = JB.JOBLDR_NUM AND JB.USEFLAG = 'Y'
+            AND CC.COMPANYID = RP.COMPANYID AND CC.CMPGROUP = RP.CMPGROUP
+            AND BI.COMPANYID = CBL.COMPANYID AND BI.BHV_INDC_NUM = CBL.BHID_NUM AND BI.CMPNUMBER = CBL.CMPT_NUM
+            AND (CC.COMPANYID, CJ.JOBLDR_NUM, CBL.LDR_NUM) IN (
+                SELECT CR.COMPANYID, RI.JOB , RI.LEADERSHIP
+                FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+                WHERE CR.USERID_EXED = BU.USERID
+                    AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+                    AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ? AND CR.USERID_EXED = ?
+                    AND CR.USEFLAG = 'Y'
+                    AND BU.USEFLAG = 'Y'
+                    AND RI.USEFLAG = 'Y'
+            ) 
+        )
+    ) A,
+    (
+    SELECT COMPANYID, CMPNUMBER, BHV_INDC_NUM, SCORE,
+        CASE WHEN SCORE = 1 THEN 'checked' ELSE '' END B1,
+        CASE WHEN SCORE = 2 THEN 'checked' ELSE '' END B2,
+        CASE WHEN SCORE = 3 THEN 'checked' ELSE '' END B3,
+        CASE WHEN SCORE = 4 THEN 'checked' ELSE '' END B4,
+        CASE WHEN SCORE = 5 THEN 'checked' ELSE '' END B5
+    FROM TB_CAR_INDC_SCORE
+    WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID_EX = ? AND USERID_EXED = ?
+        AND USEFLAG = 'Y'
+    ) B
+WHERE A.COMPANYID = B.COMPANYID(+) AND A.CMPNUMBER = B.CMPNUMBER(+) AND A.BHV_INDC_NUM = B.BHV_INDC_NUM(+)
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_TEMP_STATE_TB_CAM_RUNDIRECTION_I" description="역량진단 방향별 테이블에 완료 취소처리"><![CDATA[
+        
+        --sql_file : evl-sqlset.xml
+        --sql_name : UPDATE_TEMP_STATE_TB_CAM_RUNDIRECTION_I
+UPDATE TB_CAM_RUNDIRECTION_I
+SET CMPL_FLAG = null,
+    CMPL_DATE = null
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+    AND USEFLAG = 'Y' 
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_TEMP_STATE_TARG_USER_LIST" description="역량진단 방향별 테이블에 완료 취소처리 대상자 목록 조회"><![CDATA[
+        
+        --sql_file : evl-sqlset.xml
+        --sql_name : SELECT_TEMP_STATE_TARG_USER_LIST
+        
+SELECT USERID_EXED
+FROM TB_CAM_RUNDIRECTION_I
+WHERE COMPANYID = ? AND RUN_NUM = ? AND USERID = ?
+    AND USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    <sql-query name="GET_CMPT_DEPT_EVL_EXEC_BHV" description="부서원역량평가 평가 문항 조회"><![CDATA[
+-- sql_file : evl-sqlset.xml
+-- sql_name : GET_CMPT_DEPT_EVL_EXEC_BHV
+SELECT ROW_NUMBER() OVER(ORDER BY A.CMPNAME, A.BHV_INDICATOR) RNUM, 
+    CASE WHEN A.BHV_INDC_NUM IS NOT NULL THEN A.CMPNAME
+    ELSE A.CMPNAME||' '||'코멘트'
+    END CMPNAME, 
+    A.CMPNUMBER, A.BHV_INDC_NUM, A.BHV_INDICATOR,
+    B.B1, B.B2, B.B3, B.B4, B.B5, B.SCORE, C.SELF_SCORE, C.ONE_SCORE, CMT,
+    MOD(ROW_NUMBER() OVER(ORDER BY A.CMPNAME, A.BHV_INDICATOR), 2) ODDEVEN, CMPDEFINITION
+FROM(
+    SELECT  CMPNAME, CMPNUMBER, BHV_INDC_NUM, BHV_INDICATOR, CMT, CMPDEFINITION
+    FROM(
+	    -- 전사평가 역량군 문항
+	    SELECT DISTINCT CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, '' CMT, CMPDEFINITION
+	    FROM TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI, TB_BA_COMMONCODE BC
+	    WHERE CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER
+	        AND CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+	        AND CC.USEFLAG = 'Y' AND BI.USEFLAG = 'Y'
+	        AND CC.COMPANYID = ?
+	    -- 리더십 역량군 문항
+	    UNION ALL
+	    SELECT CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, '' CMT, CMPDEFINITION
+	    FROM TB_BA_USER BU, TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI
+	    WHERE BU.COMPANYID = CJ.COMPANYID AND BU.LEADERSHIP = CJ.JOBLDR_NUM AND CJ.JOBLDR_FLAG = 'L' AND CJ.USEFLAG = 'Y'
+	        AND CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJC.USEFLAG = 'Y' 
+	        AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+	        AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+	        AND CC.COMPANYID = ? AND BU.USERID = ?
+	    -- 직무 역량군 문항
+	    UNION ALL
+	    SELECT CC.CMPNAME, CC.CMPNUMBER, BI.BHV_INDC_NUM, BI.BHV_INDICATOR, '' CMT, CMPDEFINITION
+	    FROM TB_BA_USER BU, TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC, TB_CM_BHV_INDICATOR BI
+	    WHERE BU.COMPANYID = CJ.COMPANYID AND BU.JOB = CJ.JOBLDR_NUM AND CJ.JOBLDR_FLAG = 'J' AND CJ.USEFLAG = 'Y'
+	        AND CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJC.USEFLAG = 'Y' 
+	        AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+	        AND CC.COMPANYID = BI.COMPANYID AND CC.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+	        AND CC.COMPANYID = ? AND BU.USERID = ?
+	    UNION ALL
+	    -- 역량별 코멘트
+	    SELECT DB.CMPNAME, DB.CMPNUMBER, NULL BHV_INDC_NUM, NULL BHV_INDICATOR, DA.CMT, CMPDEFINITION
+	    FROM TB_CAR_USER_CMT DA, 
+	        (
+	        -- 전사평가 역량군
+	        SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, CMPDEFINITION
+	        FROM TB_CM_COMPETENCY CC, TB_BA_COMMONCODE BC
+	        WHERE CC.COMPANYID = BC.COMPANYID AND CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+	            AND CC.USEFLAG = 'Y' 
+	            AND CC.COMPANYID = ?
+	        -- 리더십 역량군
+	        UNION ALL
+	        SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, CMPDEFINITION
+	        FROM TB_BA_USER BU, TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC
+	        WHERE BU.COMPANYID = CJ.COMPANYID AND BU.LEADERSHIP = CJ.JOBLDR_NUM AND CJ.JOBLDR_FLAG = 'L' AND CJ.USEFLAG = 'Y'
+	            AND CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJC.USEFLAG = 'Y' 
+	            AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+	            AND CC.COMPANYID = ? AND BU.USERID = ?
+	        -- 직무 역량군
+	        UNION ALL
+	        SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, CMPDEFINITION
+	        FROM TB_BA_USER BU, TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC
+	        WHERE BU.COMPANYID = CJ.COMPANYID AND BU.JOB = CJ.JOBLDR_NUM AND CJ.JOBLDR_FLAG = 'J' AND CJ.USEFLAG = 'Y'
+	            AND CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJC.USEFLAG = 'Y' 
+	            AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+	            AND CC.COMPANYID = ? AND BU.USERID = ?
+	        ) DB, TB_CM_BHV_INDICATOR BI
+	    WHERE DA.COMPANYID(+) = DB.COMPANYID AND DA.CMPNUMBER(+) = DB.CMPNUMBER
+            AND DB.COMPANYID = BI.COMPANYID AND DB.CMPNUMBER = BI.CMPNUMBER AND BI.USEFLAG = 'Y'
+	        AND DA.COMPANYID(+) = ?
+	        AND DA.RUN_NUM(+) = ?
+	        AND DA.USERID(+) = ?
+	        AND DA.USERID_EXED(+) = ?
+        GROUP BY DB.CMPNAME, DB.CMPNUMBER, DA.CMT, DB.CMPDEFINITION
+        )
+    GROUP BY CMPNAME, CMPNUMBER, BHV_INDC_NUM, BHV_INDICATOR, CMT, CMPDEFINITION
+    ) A,
+    (
+    SELECT CMPNUMBER, BHV_INDC_NUM, SCORE,
+        CASE WHEN SCORE = 1 THEN 'checked' ELSE '' END B1,
+        CASE WHEN SCORE = 2 THEN 'checked' ELSE '' END B2,
+        CASE WHEN SCORE = 3 THEN 'checked' ELSE '' END B3,
+        CASE WHEN SCORE = 4 THEN 'checked' ELSE '' END B4,
+        CASE WHEN SCORE = 5 THEN 'checked' ELSE '' END B5
+    FROM TB_CAR_INDC_SCORE
+    WHERE COMPANYID = ?
+        AND RUN_NUM = ?
+        AND USERID_EX = ?
+        AND USERID_EXED = ?
+        AND USEFLAG = 'Y'
+    ) B,
+    (
+    SELECT CMPNUMBER, BHV_INDC_NUM, AVG(SELF_SCORE) SELF_SCORE, AVG(ONE_SCORE) ONE_SCORE
+    FROM(
+        SELECT CMPNUMBER, BHV_INDC_NUM, DECODE(RI.RUNDIRECTION_CD, '9', SCORE, NULL) SELF_SCORE, DECODE(RI.RUNDIRECTION_CD, '1', SCORE, NULL) ONE_SCORE
+        FROM TB_CAR_INDC_SCORE CI, TB_CAM_RUNDIRECTION_I RI
+        WHERE CI.COMPANYID = RI.COMPANYID AND CI.RUN_NUM = RI.RUN_NUM AND CI.USERID_EX = RI.USERID AND CI.USERID_EXED = RI.USERID_EXED
+            AND CI.COMPANYID = ?
+            AND CI.RUN_NUM = ?
+            AND RI.RUNDIRECTION_CD IN ( '9', '1')
+            AND CI.USERID_EXED = ?
+            AND CI.USEFLAG = 'Y'
+            AND RI.USEFLAG = 'Y'
+        )
+    GROUP BY CMPNUMBER, BHV_INDC_NUM
+    ) C
+WHERE A.CMPNUMBER = B.CMPNUMBER(+) AND A.BHV_INDC_NUM = B.BHV_INDC_NUM(+)
+    AND A.CMPNUMBER = C.CMPNUMBER(+) AND A.BHV_INDC_NUM = C.BHV_INDC_NUM(+)
+    ]]></sql-query>
+
+    
+    <sql-query name="GET_CMPT_DEPTMGR_RUN_LIST" description="부서원역량평가 평가목록 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_CMPT_DEPTMGR_RUN_LIST"
+        
+SELECT CR.RUN_NUM, CR.YYYY||'년' YYYY, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END, T_CNT, C_CNT,
+    CASE WHEN TO_CHAR(RUN_START, 'YYYYMMDD') > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가전'
+         WHEN TO_CHAR(RUN_END, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가종료'
+         WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(RUN_START, 'YYYYMMDD') AND TO_CHAR(RUN_END, 'YYYYMMDD') THEN '평가하기'
+    ELSE ''
+    END EVL_CMD
+FROM TB_CAM_RUN_L CR, 
+    (
+    SELECT CT.RUN_NUM, CT.COMPANYID, COUNT(*) T_CNT, SUM(DECODE(CMPL_FLAG, 'Y', 1, 0)) C_CNT
+    FROM TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I RI
+    WHERE CT.COMPANYID = RI.COMPANYID AND CT.RUN_NUM = RI.RUN_NUM AND CT.USERID = RI.USERID_EXED
+        AND CT.USEFLAG = 'Y'
+        AND RI.USEFLAG = 'Y'
+        AND RUNDIRECTION_CD IN ('1', '2')
+        AND CT.COMPANYID = ?
+        AND RI.USERID = ?
+    GROUP BY CT.RUN_NUM, CT.COMPANYID
+    ) TI
+WHERE CR.COMPANYID = TI.COMPANYID AND CR.RUN_NUM = TI.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND CR.COMPANYID = ?
+ORDER BY RUN_END DESC, CR.RUN_NUM DESC
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_CMPT_DEPTMGR_EXEC_USER_LIST" description="부서원역량평가 평가자 목록 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_CMPT_DEPTMGR_EXEC_USER_LIST"
+      
+    SELECT RUNDIRECTION_CD, CR.COMPANYID, CR.RUN_NUM, USERID_EXED, BU.NAME, EMPNO, CR.USERID, BU.DIVISIONID, BU.JOB, BU.LEADERSHIP,
+        (SELECT DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = BU.COMPANYID AND DIVISIONID = BU.DIVISIONID ) DVS_NAME, 
+        (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+        (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM 
+    FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU
+    WHERE CR.USERID = BU.USERID
+        AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID_EXED = ?
+        AND CR.USEFLAG = 'Y'
+        AND BU.USEFLAG = 'Y'
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_CMPT_DEPTMGR_EXED_LIST" description="부서원역량평가 피평가자 목록 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_CMPT_DEPTMGR_EXED_LIST"
+        
+SELECT ROW_NUMBER() OVER(ORDER BY A.NAME) RNUM,
+    A.COMPANYID, A.RUN_NUM, A.USERID_EXED, A.JOB, A.LEADERSHIP, A.USERID, A.NAME, EMPNO, DIVISION,
+    (SELECT DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = A.COMPANYID AND DIVISIONID = A.DIVISION ) DVS_NAME, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = A.COMPANYID AND JOBLDR_NUM = A.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = A.COMPANYID AND JOBLDR_NUM = A.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM, 
+    NVL(SELF.CMPL_FLAG, 'N') SELF_CMPL_FLAG, TO_CHAR(SELF.CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') SELF_CMPL_DATE, TO_CHAR(SELF.START_DATE, 'YYYY-MM-DD HH24:MI:SS') SELF_START_DATE,
+    ONE.USERID ONE_USERID, ONE.NAME ONE_NAME, NVL(ONE.CMPL_FLAG, 'N') ONE_CMPL_FLAG, TO_CHAR(ONE.CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') ONE_CMPL_DATE, TO_CHAR(ONE.START_DATE, 'YYYY-MM-DD HH24:MI:SS') ONE_START_DATE,
+    TWO.USERID TWO_USERID, TWO.NAME TWO_NAME, NVL(TWO.CMPL_FLAG, 'N') TWO_CMPL_FLAG, TO_CHAR(TWO.CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') TWO_CMPL_DATE, TO_CHAR(TWO.START_DATE, 'YYYY-MM-DD HH24:MI:SS') TWO_START_DATE
+FROM(
+    SELECT CR.COMPANYID, CR.RUN_NUM, USERID_EXED, BU.NAME, EMPNO, CR.USERID, RI.DIVISION, RI.JOB, RI.LEADERSHIP
+    FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+    WHERE CR.USERID_EXED = BU.USERID
+        AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+        AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+        AND RUNDIRECTION_CD IN ( '1', '2' )
+        AND CR.USEFLAG = 'Y'
+        AND BU.USEFLAG = 'Y'
+        AND RI.USEFLAG = 'Y'
+    ) A,
+    (
+    SELECT COMPANYID, RUN_NUM, COUNT(USERID_EXED) USERID_EXED_CNT, USERID, NVL(MIN(CMPL_FLAG), 'N') CMPL_FLAG, MIN(START_DATE) START_DATE, 
+        CASE WHEN NVL(MIN(CMPL_FLAG), 'N') = 'N' THEN NULL
+        ELSE MAX(CMPL_DATE) 
+        END CMPL_DATE
+    FROM(
+        SELECT CR.COMPANYID, CR.RUN_NUM, CI.USERID, USERID_EXED, CMPL_FLAG, START_DATE, CMPL_DATE
+        FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I CI
+        WHERE CR.COMPANYID = CT.COMPANYID AND CR.RUN_NUM = CT.RUN_NUM
+            AND CT.COMPANYID = CI.COMPANYID AND CT.RUN_NUM = CI.RUN_NUM AND CT.USERID = CI.USERID_EXED
+            AND CI.RUNDIRECTION_CD IN ( '9', '3', '4' )
+            AND CR.USEFLAG = 'Y' AND CT.USEFLAG = 'Y' AND CI.USEFLAG = 'Y'
+            AND CR.EVL_TYPE_CD = '1'
+            AND CR.COMPANYID = ?
+            AND CR.RUN_NUM = ?
+        )
+    GROUP BY COMPANYID, RUN_NUM, USERID
+    ) SELF,
+    (
+    SELECT OU.COMPANYID, RUN_NUM, USERID_EXED, OU.USERID, BU1.NAME, CMPL_FLAG, CMPL_DATE, START_DATE
+    FROM TB_CAM_RUNDIRECTION_I OU, TB_BA_USER BU1
+    WHERE OU.USERID =  BU1.USERID
+        AND OU.COMPANYID = ? AND RUN_NUM = ?  AND RUNDIRECTION_CD = '1' AND OU.USEFLAG = 'Y'
+    ) ONE,
+    (
+    SELECT OU.COMPANYID, RUN_NUM, USERID_EXED, OU.USERID, BU1.NAME, CMPL_FLAG, CMPL_DATE, START_DATE
+    FROM TB_CAM_RUNDIRECTION_I OU, TB_BA_USER BU1
+    WHERE OU.USERID =  BU1.USERID
+        AND OU.COMPANYID = ? AND RUN_NUM = ?  AND RUNDIRECTION_CD = '2' AND OU.USEFLAG = 'Y'
+    ) TWO
+WHERE A.COMPANYID = SELF.COMPANYID(+) AND A.RUN_NUM = SELF.RUN_NUM(+) AND A.USERID_EXED = SELF.USERID(+)
+    AND A.COMPANYID = ONE.COMPANYID(+) AND A.RUN_NUM = ONE.RUN_NUM(+) AND A.USERID_EXED = ONE.USERID_EXED(+)
+    AND A.COMPANYID = TWO.COMPANYID(+) AND A.RUN_NUM = TWO.RUN_NUM(+) AND A.USERID_EXED = TWO.USERID_EXED(+)
+    ]]></sql-query>
+    
+    <sql-query name="GET_CMPT_DEPTMGR_RUN_INFO" description="부서원역량평가 평가정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_CMPT_DEPTMGR_RUN_INFO"
+        
+SELECT CR.RUN_NUM, CR.YYYY||'년' YYYY, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END, T_CNT, C_CNT,
+    CASE WHEN TO_CHAR(RUN_START, 'YYYYMMDD') > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가전'
+         WHEN TO_CHAR(RUN_END, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가종료'
+         WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(RUN_START, 'YYYYMMDD') AND TO_CHAR(RUN_END, 'YYYYMMDD') THEN '평가하기'
+    ELSE ''
+    END EVL_CMD
+FROM TB_CAM_RUN_L CR, 
+    (
+    SELECT CT.RUN_NUM, CT.COMPANYID, COUNT(*) T_CNT, SUM(DECODE(CMPL_FLAG, 'Y', 1, 0)) C_CNT
+    FROM TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I RI
+    WHERE CT.COMPANYID = RI.COMPANYID AND CT.RUN_NUM = RI.RUN_NUM AND CT.USERID = RI.USERID_EXED
+        AND CT.USEFLAG = 'Y'
+        AND RI.USEFLAG = 'Y'
+        AND RUNDIRECTION_CD != '9'
+        AND CT.COMPANYID = ?
+        AND RI.USERID = ?
+    GROUP BY CT.RUN_NUM, CT.COMPANYID
+    ) TI
+WHERE CR.COMPANYID = TI.COMPANYID AND CR.RUN_NUM = TI.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND CR.COMPANYID = ?
+    AND CR.RUN_NUM = ?
+    ]]>
+    </sql-query>
+
+    <sql-query name="GET_COMPANY_OPERATOR_USER_INFO" description="고객사 담당자 정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_COMPANY_OPERATOR_USER_INFO"
+        
+SELECT NAME, PHONE, EMAIL, CELLPHONE
+FROM TB_BA_COMPANY_M A, TB_BA_USER B
+WHERE A.USERID = B.USERID 
+    AND A.COMPANYID = ?
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_EVL_CMPT_ANALYSIS" description="역량평가 분석 - 역량별 분석"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_CMPT_ANALYSIS"
+        
+--역량별 분석
+SELECT MA.COMPANYID, MA.CMPNUMBER, MA.CMPNAME, 
+    MA.SCORE, MA.SCORE_A, EJ.SCORE_J, EL.SCORE_L,
+    RANK() OVER(ORDER BY SCORE) RANK_R,
+    CASE WHEN SCORE-SCORE_A >= 0 THEN -1 ELSE ROW_NUMBER() OVER(ORDER BY SCORE-SCORE_A) END RANK_A,
+    SCORE-SCORE_A GAP_A,
+    CASE WHEN SCORE-SCORE_J >= 0 THEN -1 ELSE ROW_NUMBER() OVER(ORDER BY SCORE-SCORE_J) END RANK_J,
+    SCORE-SCORE_J GAP_J,
+    CASE WHEN SCORE-SCORE_L >= 0 THEN -1 ELSE ROW_NUMBER() OVER(ORDER BY SCORE-SCORE_L) END RANK_L,
+    SCORE-SCORE_L GAP_L
+FROM(
+    SELECT CS.COMPANYID, CS.CMPNUMBER, MAX(CO.CMPNAME) CMPNAME, ROUND(MIN(CS.SCORE)*20) SCORE, ROUND(AVG(CS_A.SCORE)*20) SCORE_A
+    FROM TB_CAR_EXED_CMPT_SCORE CS, TB_CM_COMPETENCY CO, TB_CAR_EXED_CMPT_SCORE CS_A
+    WHERE CS.COMPANYID = CO.COMPANYID AND CS.CMPNUMBER = CO.CMPNUMBER
+        AND CS.COMPANYID = CS_A.COMPANYID(+) AND CS.RUN_NUM = CS_A.RUN_NUM(+) AND CS.CMPNUMBER = CS_A.CMPNUMBER(+)
+        AND CS.COMPANYID = ? AND CS.RUN_NUM = ? AND CS.USERID_EXED = ?
+        AND CS.USEFLAG = 'Y' 
+        AND CS_A.USEFLAG = 'Y'
+    GROUP BY CS.COMPANYID, CS.CMPNUMBER
+    ) MA,
+    (
+    SELECT CS.COMPANYID, CS.CMPNUMBER, ROUND(AVG(CS.SCORE)*20) SCORE_J
+    FROM TB_CAR_EXED_CMPT_SCORE CS, TB_CAM_RUNTARGET_I TG
+    WHERE CS.COMPANYID = TG.COMPANYID AND CS.RUN_NUM = TG.RUN_NUM AND CS.USERID_EXED = TG.USERID
+        AND CS.COMPANYID = ? AND CS.RUN_NUM = ? AND TG.JOB = ?
+        AND CS.USEFLAG = 'Y'
+    GROUP BY CS.COMPANYID, CS.CMPNUMBER
+    ) EJ,
+    (
+    SELECT CS.COMPANYID, CS.CMPNUMBER, ROUND(AVG(CS.SCORE)*20) SCORE_L
+    FROM TB_CAR_EXED_CMPT_SCORE CS, TB_CAM_RUNTARGET_I TG
+    WHERE CS.COMPANYID = TG.COMPANYID AND CS.RUN_NUM = TG.RUN_NUM AND CS.USERID_EXED = TG.USERID
+        AND CS.COMPANYID = ? AND CS.RUN_NUM = ? AND TG.LEADERSHIP = ?
+        AND CS.USEFLAG = 'Y'
+    GROUP BY CS.COMPANYID, CS.CMPNUMBER
+    ) EL
+WHERE MA.COMPANYID = EJ.COMPANYID(+) AND MA.CMPNUMBER = EJ.CMPNUMBER(+)
+    AND MA.COMPANYID = EL.COMPANYID(+) AND MA.CMPNUMBER = EL.CMPNUMBER(+)
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_EVL_USER_CMT_ANALYSIS" description="역량평가 분석 - 평가자 코멘트"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_USER_CMT_ANALYSIS"
+        
+    SELECT CR.COMPANYID, CR.RUN_NUM, CR.USERID, CR.USERID_EXED, BU.NAME, EVL_OPN
+    FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU
+    WHERE CR.COMPANYID = BU.COMPANYID AND CR.USERID =  BU.USERID
+        AND CR.USEFLAG = 'Y' AND CMPL_FLAG = 'Y'
+        AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID_EXED = ?
+        AND RUNDIRECTION_CD = '4'
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_EVL_RECOMM_EDU" description="역량평가 분석 - 역량별 추천교육목록"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_RECOMM_EDU"
+        
+    SELECT ROWNUM RNUM, A.CMPNUMBER, AA.CMPNAME, B.SUBJECT_NUM, C.SUBJECT_NAME, FUN_COMMON_CODE(AA.COMPANYID, 'BA03', TRAINING_CODE) TRAINING_NAME, INSTITUTE_NAME, SAMPLE_URL
+    FROM TB_CM_COMPETENCY AA, TB_CAR_EXED_CMPT_SCORE A, TB_CM_SUBJECT_MAP B, TB_BA_SBJCT  C
+    WHERE AA.COMPANYID = A.COMPANYID AND AA.CMPNUMBER = A.CMPNUMBER
+        AND A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER
+        AND B.COMPANYID = C.COMPANYID AND B.SUBJECT_NUM = C.SUBJECT_NUM
+        AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y' AND C.USEFLAG = 'Y'
+        AND A.COMPANYID = ? AND A.RUN_NUM = ? AND A.USERID_EXED = ?
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_EVL_RECOMM_EDU_PRINT" description="역량평가 분석 - 역량별 추천교육목록(출력용 역량당 5개씩)"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_RECOMM_EDU_PRINT"
+SELECT *
+FROM(
+    SELECT ROW_NUMBER() OVER(PARTITION BY A.CMPNUMBER ORDER BY AA.CMPNAME) RNUM, A.CMPNUMBER, AA.CMPNAME, B.SUBJECT_NUM, C.SUBJECT_NAME, FUN_COMMON_CODE(AA.COMPANYID, 'BA03', TRAINING_CODE) TRAINING_NAME, INSTITUTE_NAME, SAMPLE_URL
+    FROM TB_CM_COMPETENCY AA, TB_CAR_EXED_CMPT_SCORE A, TB_CM_SUBJECT_MAP B, TB_BA_SBJCT  C
+    WHERE AA.COMPANYID = A.COMPANYID AND AA.CMPNUMBER = A.CMPNUMBER
+        AND A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER
+        AND B.SUBJECT_NUM = C.SUBJECT_NUM
+        AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y' AND C.USEFLAG = 'Y'
+        AND A.COMPANYID = ? AND A.RUN_NUM = ? AND A.USERID_EXED = ?
+    )
+WHERE RNUM < 6
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_EVL_RECOMM_EDU_URL_INFO" description="역량평가 분석 - 역량별 추천교육 바로가기 URL 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EVL_RECOMM_EDU_URL_INFO"
+        
+SELECT NVL(SAMPLE_URL, 'NO') SAMPLE_URL
+FROM TB_BA_SBJCT
+WHERE SUBJECT_NUM = ?
+    ]]>
+    </sql-query>
+
+    <sql-query name="GET_EDU_DETAIL_INFO" description="역량평가 분석 - 역량별 추천교육 상세정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EDU_DETAIL_INFO"
+        
+SELECT SUBJECT_NAME, FUN_COMMON_CODE(?, 'BA03', TRAINING_CODE) TRAINING_NAME, INSTITUTE_NAME, EDU_OBJECT, COURSE_CONTENTS, EDU_TARGET
+FROM TB_BA_SBJCT
+WHERE SUBJECT_NUM = ?
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_EDU_CHASU_LIST" description="역량평가 분석 - 역량별 추천교육 차수정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_EDU_CHASU_LIST"
+        
+SELECT YYYY, CHASU, TO_CHAR(EDU_STIME, 'YYYY-MM-DD') EDU_STIME, TO_CHAR(EDU_ETIME, 'YYYY-MM-DD') EDU_ETIME--/SUBJECT_NAME, FUN_COMMON_CODE(1, 'BA03', TRAINING_CODE) TRAINING_NAME, INSTITUTE_NAME, EDU_OBJECT, COURSE_CONTENTS, EDU_TARGET
+FROM TB_BA_SBJCT_OPEN
+WHERE SUBJECT_NUM = ?
+    AND USEFLAG = 'Y'
+    AND NVL(CLOSING_YN,'N') = 'N'
+    AND TO_CHAR(SYSDATE,'YYYYMMDD') < TO_CHAR(EDU_STIME,'YYYYMMDD') 
+    ]]>
+    </sql-query>
+
+
+    
+    
+    
+    
+    
+    <sql-query name="GET_CMPT_EVL_MSD_LIST" description="다면역량 평가 이력 리스트"><![CDATA[
+-- sql_file : evl-sqlset.xml
+-- sql_name : GET_CMPT_EVL_MSD_LIST
+SELECT ROW_NUMBER() OVER(ORDER BY NVL(CR.YYYY, 0) DESC, CR.RUN_END DESC) RNUM, 
+    CR.RUN_NUM, CR.YYYY, CR.RUN_NAME, CT.USERID TG_USERID, CT.USERID USERID_EXED, JOB, LEADERSHIP, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END,
+    NVL(SELF.CMPL_FLAG, 'N') SELF_CMPL_FLAG, SELF.CMPL_DATE SELF_CMPL_DATE, SELF.START_DATE SELF_START_DATE,
+    ONE.USERID ONE_USERID, ONE.NAME ONE_NAME, NVL(ONE.CMPL_FLAG, 'N') ONE_CMPL_FLAG, ONE.CMPL_DATE ONE_CMPL_DATE, ONE.START_DATE ONE_START_DATE,
+    TWO.USERID TWO_USERID, TWO.NAME TWO_NAME, NVL(TWO.CMPL_FLAG, 'N') TWO_CMPL_FLAG, TWO.CMPL_DATE TWO_CMPL_DATE, TWO.START_DATE TWO_START_DATE,
+    CASE WHEN TO_CHAR(CR.RUN_START, 'YYYYMMDD') > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가전'
+         WHEN TO_CHAR(CR.RUN_END, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가종료'
+         WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(CR.RUN_START, 'YYYYMMDD') AND TO_CHAR(CR.RUN_END, 'YYYYMMDD') THEN '평가하기'
+    ELSE ''
+    END EVL_CMD,
+    USERID_EXED_CNT
+FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I CT,
+    -- 자가 평가 
+    (
+    SELECT COMPANYID, RUN_NUM, COUNT(USERID_EXED) USERID_EXED_CNT, MAX(USERID) USERID, NVL(MIN(CMPL_FLAG), 'N') CMPL_FLAG, MAX(START_DATE) START_DATE, 
+        CASE WHEN NVL(MIN(CMPL_FLAG), 'N') = 'N' THEN ''
+        ELSE MAX(CMPL_DATE) 
+        END CMPL_DATE
+    FROM(
+        SELECT CR.COMPANYID, CR.RUN_NUM, USERID_EXED, CI.USERID, CMPL_FLAG, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE, TO_CHAR(CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPL_DATE
+        FROM TB_CAM_RUN_L CR, TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I CI
+        WHERE CR.COMPANYID = CT.COMPANYID AND CR.RUN_NUM = CT.RUN_NUM
+            AND CT.COMPANYID = CI.COMPANYID AND CT.RUN_NUM = CI.RUN_NUM AND CT.USERID = CI.USERID_EXED
+            AND CI.RUNDIRECTION_CD IN ( '9', '3', '4' )
+            AND CR.USEFLAG = 'Y' AND CT.USEFLAG = 'Y' AND CI.USEFLAG = 'Y'
+            AND CR.EVL_TYPE_CD = '1'
+            AND CR.COMPANYID = ?
+            AND CI.USERID = ?
+        )
+    GROUP BY COMPANYID, RUN_NUM
+    ) SELF,
+    -- 1차 평가자
+    (
+    SELECT A.COMPANYID, RUN_NUM, USERID_EXED, A.USERID, B.NAME, CMPL_FLAG, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE, TO_CHAR(CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPL_DATE
+    FROM TB_CAM_RUNDIRECTION_I A, TB_BA_USER B
+    WHERE A.USERID = B.USERID
+        AND A.COMPANYID = ? AND USERID_EXED = ?
+        AND RUNDIRECTION_CD = '1'
+        AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y'
+    ) ONE,
+    -- 2차 평가자
+    (
+    SELECT A.COMPANYID, RUN_NUM, USERID_EXED, A.USERID, B.NAME, CMPL_FLAG, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE, TO_CHAR(CMPL_DATE, 'YYYY-MM-DD HH24:MI:SS') CMPL_DATE
+    FROM TB_CAM_RUNDIRECTION_I A, TB_BA_USER B
+    WHERE A.USERID = B.USERID
+        AND A.COMPANYID = ? AND USERID_EXED = ?
+        AND RUNDIRECTION_CD = '2'
+        AND A.USEFLAG = 'Y' AND B.USEFLAG = 'Y'
+    ) TWO
+WHERE CR.COMPANYID = CT.COMPANYID AND CR.RUN_NUM = CT.RUN_NUM
+    AND CT.RUN_NUM = SELF.RUN_NUM(+) AND CT.USERID = SELF.USERID(+)
+    AND CT.RUN_NUM = ONE.RUN_NUM(+) AND CT.USERID = ONE.USERID_EXED(+)
+    AND CT.RUN_NUM = TWO.RUN_NUM(+) AND CT.USERID = TWO.USERID_EXED(+)
+    AND CR.USEFLAG = 'Y' AND CT.USEFLAG = 'Y'
+    AND CR.EVL_TYPE_CD = '1'
+    AND CR.COMPANYID = ?
+    AND CT.USERID = ?
+    ]]></sql-query>
+    
+    <sql-query name="GET_CMPT_MSD_RUN_INFO" description="다면역량평가 평가정보 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : "GET_CMPT_MSD_RUN_INFO"
+        
+SELECT CR.RUN_NUM, CR.YYYY||'년' YYYY, CR.RUN_NAME, TO_CHAR(CR.RUN_START, 'YYYY-MM-DD') RUN_START, TO_CHAR(CR.RUN_END, 'YYYY-MM-DD') RUN_END, T_CNT, C_CNT,
+    CASE WHEN TO_CHAR(RUN_START, 'YYYYMMDD') > TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가전'
+         WHEN TO_CHAR(RUN_END, 'YYYYMMDD') < TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '평가종료'
+         WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(RUN_START, 'YYYYMMDD') AND TO_CHAR(RUN_END, 'YYYYMMDD') THEN '평가하기'
+    ELSE ''
+    END EVL_CMD
+FROM TB_CAM_RUN_L CR, 
+    (
+    SELECT CT.RUN_NUM, CT.COMPANYID, COUNT(*) T_CNT, SUM(DECODE(CMPL_FLAG, 'Y', 1, 0)) C_CNT
+    FROM TB_CAM_RUNTARGET_I CT, TB_CAM_RUNDIRECTION_I RI
+    WHERE CT.COMPANYID = RI.COMPANYID AND CT.RUN_NUM = RI.RUN_NUM AND CT.USERID = RI.USERID_EXED
+        AND CT.USEFLAG = 'Y'
+        AND RI.USEFLAG = 'Y'
+        AND RUNDIRECTION_CD IN ( '9', '3', '4' )
+        AND CT.COMPANYID = ?
+        AND RI.USERID = ?
+    GROUP BY CT.RUN_NUM, CT.COMPANYID
+    ) TI
+WHERE CR.COMPANYID = TI.COMPANYID AND CR.RUN_NUM = TI.RUN_NUM
+    AND CR.USEFLAG = 'Y'
+    AND CR.COMPANYID = ?
+    AND CR.RUN_NUM = ?
+    ]]>
+    </sql-query>
+    
+    <sql-query name="GET_CMPT_MSD_EXED_LIST" description="역량평가 피평가자 목록 조회"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : GET_CMPT_MSD_EXED_LIST
+        
+SELECT CR.COMPANYID, CR.RUN_NUM, RUNDIRECTION_CD, USERID_EXED, BU.NAME, EMPNO, CR.USERID, RI.DIVISION, RI.JOB, RI.LEADERSHIP,
+    FUN_COMMON_CODE(RI.COMPANYID, 'BA18', CR.RUNDIRECTION_CD) RUNDIRECTION_NM,
+    (SELECT DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = RI.COMPANYID AND DIVISIONID = RI.DIVISION ) DVS_NAME, 
+    FUN_COMMON_CODE(RI.COMPANYID, 'BA15', RI.GRADE_NUM) GRADE_NM,
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = RI.COMPANYID AND JOBLDR_NUM = RI.JOB AND JOBLDR_FLAG = 'J') JOB_NM, 
+    (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = RI.COMPANYID AND JOBLDR_NUM = RI.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NM 
+FROM TB_CAM_RUNDIRECTION_I CR, TB_BA_USER BU, TB_CAM_RUNTARGET_I RI
+WHERE CR.USERID_EXED = BU.USERID
+    AND CR.COMPANYID = RI.COMPANYID AND CR.RUN_NUM = RI.RUN_NUM AND CR.USERID_EXED = RI.USERID
+    AND CR.COMPANYID = ? AND CR.RUN_NUM = ? AND CR.USERID = ?
+    AND CR.USEFLAG = 'Y'
+    AND BU.USEFLAG = 'Y'
+    AND RI.USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    <sql-query name="GET_CMPT_EXAMPLE_LIST" description="역량평가지 보기 목록"><![CDATA[
+        --sql_file : evl-sqlset.xml
+        --sql_name : GET_CMPT_EXAMPLE_LIST
+    
+SELECT NVL(MAX(SC),'매우그렇다') SC, 
+    NVL(MAX(AC),'그렇다') AC, 
+    NVL(MAX(BC),'보통이다') BC, 
+    NVL(MAX(CC),'그렇지않다') CC, 
+    NVL(MAX(DC),'전혀그렇지않다') DC
+FROM(
+    SELECT DECODE(COMMONCODE, '1', CMM_CODENAME) DC, 
+        DECODE(COMMONCODE, '2', CMM_CODENAME) CC,
+        DECODE(COMMONCODE, '3', CMM_CODENAME) BC,
+        DECODE(COMMONCODE, '4', CMM_CODENAME) AC,
+        DECODE(COMMONCODE, '5', CMM_CODENAME) SC
+    FROM TB_BA_COMMONCODE
+    WHERE STANDARDCODE = 'C115'
+        AND COMMONCODE IN ('1', '2', '3', '4', '5')
+        AND COMPANYID = ?
+    )
+    ]]></sql-query>
+
+</sqlset>

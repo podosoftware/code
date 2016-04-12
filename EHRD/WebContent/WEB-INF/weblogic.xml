@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<weblogic-web-app xmlns="http://xmlns.oracle.com/weblogic/weblogic-web-app">
+        <context-root>/ehrd</context-root>
+
+        <session-descriptor>
+            <timeout-secs>3600</timeout-secs>
+            <cookie-name>SESSION_EHRD</cookie-name>
+        </session-descriptor>
+
+        <jsp-descriptor>
+                <page-check-seconds>60</page-check-seconds>
+                <verbose>true</verbose>
+                <!--<encoding>EUC-KR</encoding>-->
+                <keepgenerated>true</keepgenerated>
+        </jsp-descriptor>
+
+        <container-descriptor>
+                <servlet-reload-check-secs>60</servlet-reload-check-secs>
+                <resource-reload-check-secs>60</resource-reload-check-secs>
+
+                <prefer-application-packages>
+                    <package-name>org.apache.*</package-name>
+                </prefer-application-packages>
+        </container-descriptor>
+
+        <charset-params>
+                <input-charset>
+                         <resource-path>/*</resource-path>
+                         <java-charset-name>UTF-8</java-charset-name>
+                </input-charset>
+        </charset-params>
+</weblogic-web-app>

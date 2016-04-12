@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<startup-config>
+	<setup>
+		<complete>false</complete>
+	</setup>
+	<license>
+		<file>PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPGxpY2Vuc2UgaWQ9IjIwMTMwNTIy
+IiBuYW1lPSJBUFBMSUNBVElPTiBBUkNISVRFQ1RVUkUgZm9yIEpBVkEiIGVkaXRpb249IlNUQU5EQVJE
+IiBjcmVhdGlvbkRhdGU9IjIwMTMvMDUvMjQiIHZlcnNpb249IjEuMC4zIiB0eXBlPSJDT01NRVJDSUFM
+Ij48Y2xpZW50IG5hbWU9Ind3dy5rc2Eub3Iua3IiIGNvbXBhbnk9IktPUkVBTiBTVEFOREFSRFMgQVNT
+T0NJQVRJT04iLz48bW9kdWxlIG5hbWU9ImFyY2hpdGVjdHVyZS1jb21tb24iLz48bW9kdWxlIG5hbWU9
+ImFyY2hpdGVjdHVyZS1lZSIvPjxtb2R1bGUgbmFtZT0iYXJjaGl0ZWN0dXJlLXVzZXIiLz48bW9kdWxl
+IG5hbWU9ImFyY2hpdGVjdHVyZS13ZWIiLz48c2lnbmF0dXJlPjMwMmMwMjE0NDJlMTczMzUzNDcwMDMy
+Njk1YzgxMTYxMmFmOGYwZTBkZDhhNmNhOTAyMTQ0NDIyYzdmNDVlNzE1ODFhZTBlMWY0NTkyMGIwYWEw
+OTJiZWE5ODI1PC9zaWduYXR1cmU+PC9saWNlbnNlPg==</file>
+	</license>
+	<view>
+		<render>
+			<freemarker>
+                <debug>true</debug>
+                <enabled>true</enabled>
+                <source>
+                    <location>/WEB-INF/template/ftl/</location>
+                </source>
+			</freemarker>
+			<velocity>
+				<enabled>false</enabled>
+			</velocity>
+		</render>
+	</view>	
+	
+	<userProvider>
+		<dao>		
+		</dao>
+	</userProvider>
+	
+	<components>
+		<image>
+			<enabled>true</enabled>
+			<maxImageSize>2048</maxImageSize>
+			<imagePreviewMaxSize>250</imagePreviewMaxSize>
+			<imageMaxWidth>450</imageMaxWidth>
+			<imageMaxHeight>600</imageMaxHeight>
+			<maxImagesPerObject>50</maxImagesPerObject>
+			<allowAllByDefault>true</allowAllByDefault>
+			<allowedTypes></allowedTypes>
+			<disallowedTypes></disallowedTypes>
+			<forceThumbnailsEnabled></forceThumbnailsEnabled>
+		</image>
+	</components>
+	
+	<security>	
+		<authentication>
+		    <disallowGuest>false</disallowGuest>
+		    <authority>ROLE_USER</authority>		
+			<encoding>
+				<algorithm>SHA-256</algorithm>
+			</encoding>
+		</authentication>
+	</security>
+	
+	<scripting>
+		<groovy>
+			<debug>false</debug>
+			<source>
+				<location />
+				<encoding>UTF-8</encoding>
+				<recompile>true</recompile>
+			</source>
+		</groovy>
+	</scripting>
+		
+	<database>
+		<default>
+		
+		<!-- 경북대학교 운영서버는 jndi를 사용하도록 요청받아서 아래와 같이 처리함.. -->
+		<!-- 1. Use jndi datasource.
+		<jndiDataSourceProvider order="1">
+            <jndiName>yes/ehrd</jndiName>
+		</jndiDataSourceProvider>
+		 -->
+		 
+		<!--  -->
+			<oracleDataSourceProvider>
+				<driverClassName>oracle.jdbc.pool.OracleDataSource</driverClassName>
+				<url>jdbc:oracle:thin:@//222.122.47.196:1521/PODODB</url>
+				<user>U_KNU</user>
+				<password>podoq23$</password>
+				<connectionCachingEnabled>true</connectionCachingEnabled>
+			</oracleDataSourceProvider>
+		
+		</default>
+
+	</database>
+		
+</startup-config>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<description><![CDATA[
+       Context for Foundation
+	]]></description>
+
+	<bean id="commonDao" class="kr.podosoft.ws.service.common.dao.impl.JdbcCommonDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" p:lobHandler-ref="lobHandler"/>
+	
+	<bean id="commonSrv" class="kr.podosoft.ws.service.common.impl.CommonServiceImpl" p:commonDao-ref="commonDao" />
+	
+	<bean id="mainDao" class="kr.podosoft.ws.service.common.dao.impl.JdbcMainDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" p:lobHandler-ref="lobHandler"/>
+	
+	<bean id="mainSrv" class="kr.podosoft.ws.service.common.impl.MainServiceImpl" p:mainDao-ref="mainDao" />
+
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl" p:host="mail.iccu.ac.kr" p:username="employment" p:password="123abc" />
+	
+	<!-- SMS dataSource
+	<bean id="dataSource2" class="architecture.ee.spring.jdbc.support.DefaultDataSourceProvider">
+		<property name="dataSourceName" value="sms" />
+	</bean>
+	-->
+	<bean id="smsDao" class="kr.podosoft.ws.service.common.dao.impl.JdbcSmsDao" parent="sqlQuerySupport" p:dataSource-ref="dataSource" p:lobHandler-ref="lobHandler"/>
+	<!-- SMS -->
+	
+	
+	<bean id="mailSenderSrv" class="kr.podosoft.ws.service.common.impl.MailSenderServiceImpl" p:mailSender-ref="mailSender" p:smsDao-ref="smsDao" />
+</beans>

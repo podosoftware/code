@@ -1,0 +1,1398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>BA</name>
+    <version>2.0</version>
+    <description>BA(기본영역) 모듈을 위한 쿼리</description>
+    
+ 	
+     
+    <!-- 로그인 -->
+    <sql-query name="SELECT_LOGIN_CHK_USER_LIST"
+        description="중복 체크을 위해 입력된 성명과 동일목록 추출"><![CDATA[
+    -- SELECT_LOGIN_CHK_USER_NAME_LIST
+    
+    SELECT A.USERID, ID, NAME, CELLPHONE, EMAIL, A.COMPANYID, NVL(USEFLAG, 'N') USEFLAG, PASSWORD,  
+        CASE WHEN HOME_PG_TYPE = 'B' THEN 'metro'
+             WHEN HOME_PG_TYPE = 'C' THEN 'bootstrap'
+        ELSE 'default'
+        END HOME_PG_TYPE, 
+        CASE WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(CTRT_ST_DT,'YYYYMMDD') AND TO_CHAR(CTRT_ED_DT,'YYYYMMDD') THEN 'Y'
+        ELSE 'N'
+        END CTRT_FLAG
+      FROM TB_BA_USER A, TB_BA_COMPANY_M B
+      WHERE A.COMPANYID = B.COMPANYID
+        AND EMPNO = ? AND A.COMPANYID = ?
+    ]]></sql-query>
+     
+    <sql-query name="SELECT_DEV_LOGIN_CHK_USER_LIST"
+        description="중복 체크을 위해 입력된 성명과 동일목록 추출(개발서버용)"><![CDATA[
+    -- SELECT_DEV_LOGIN_CHK_USER_LIST
+    
+    SELECT A.USERID, ID, NAME, CELLPHONE, EMAIL, A.COMPANYID, NVL(USEFLAG, 'N') USEFLAG, PASSWORD,  
+        CASE WHEN HOME_PG_TYPE = 'B' THEN 'metro'
+             WHEN HOME_PG_TYPE = 'C' THEN 'bootstrap'
+        ELSE 'default'
+        END HOME_PG_TYPE, 
+        CASE WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TO_CHAR(CTRT_ST_DT,'YYYYMMDD') AND TO_CHAR(CTRT_ED_DT,'YYYYMMDD') THEN 'Y'
+        ELSE 'N'
+        END CTRT_FLAG
+      FROM TB_BA_USER A, TB_BA_COMPANY_M B
+      WHERE A.COMPANYID = B.COMPANYID
+        AND EMPNO = ? AND A.COMPANYID = 1
+    ]]></sql-query>
+    
+    
+    <sql-query name="UPDATE_LAST_LOGIN_DATE"
+        description="마지막접속일 업데이트"><![CDATA[
+        -- BA, UPDATE_LAST_LOGIN_DATE
+        
+        UPDATE TB_BA_USER
+           SET LAST_LOGINED_IN = SYSDATE
+         WHERE USERID = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_COMPANY_LIST_EXCEL" description="고객사 정보 엑셀 다운로드"><![CDATA[
+-- BA, SELECT_COMPANY_LIST_EXCEL
+SELECT BC.COMPANYID, BC.COMPANYNAME, RGST_NO, TO_CHAR(CTRT_ST_DT, 'YYYY-MM-DD') CTRT_ST_DT, TO_CHAR(CTRT_ED_DT, 'YYYY-MM-DD') CTRT_ED_DT, CMPT_INFO_ADD_YN, KPI_ADD_YN, CSTM_ID
+    , BC.USERID, BU.NAME, BU.EMPNO, HOME_PG_TYPE, USE_YN, MN_CMT, EMAIL, PHONE
+FROM TB_BA_COMPANY_M BC, TB_BA_USER BU
+WHERE BC.USERID = BU.USERID(+)
+AND BC.DEL_YN = 'N'
+AND BU.DEL_YN = 'N'
+    ]]></sql-query>
+
+    <sql-query name="SELECT_COMPANY_KPI_USE_LIST" description="고객사에서 사용하는 KPI 목록 조회"><![CDATA[
+-- BA, SELECT_COMPANY_KPI_USE_LIST
+SELECT DECODE(B.KPI_NO, NULL, '', 'checked') CHK, A.KPI_NO, A.KPI_NM,
+    FUN_COMMON_CODE(A.COMPANYID, 'C104', A.KPIGROUP) KPIGROUP_STRING,
+    FUN_COMMON_CODE(A.COMPANYID, 'C105', A.KPIGROUP_S) KPIGROUP_S_STRING,
+    FUN_COMMON_CODE(A.COMPANYID, 'C108', A.EVL_TYPE) EVL_TYPE_STRING,
+    FUN_COMMON_CODE(A.COMPANYID, 'C109', A.EVL_HOW) EVL_HOW_STRING,
+    FUN_COMMON_CODE(A.COMPANYID, 'C110', A.UNIT) UNIT_STRING,
+    ROW_NUMBER() OVER(ORDER BY B.KPI_NO, A.KPIGROUP, A.KPIGROUP_S, A.KPI_NM) - 1 RNUM 
+FROM TB_KPI A, 
+    (
+    SELECT *
+    FROM TB_KPI
+    WHERE COMPANYID = ? AND USEFLAG = 'Y' AND DEL_YN = 'N'
+    ) B
+WHERE A.KPI_NO = B.KPI_NO(+)
+    AND A.USEFLAG = 'Y'
+    AND A.COMPANYID = 1
+    AND A.DEL_YN = 'N'
+    ]]></sql-query>
+    <sql-query name="SELECT_COMPANY_KPI_USE_N" description="고객사 사용 KPI 모두 N 처리"><![CDATA[
+-- BA, SELECT_COMPANY_KPI_USE_N
+UPDATE TB_KPI
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    ]]></sql-query>
+    <sql-query name="COMPANY_KPI_USE_MERGE" description="고객사 사용 KPI MERGE"><![CDATA[
+-- BA, COMPANY_KPI_USE_MERGE
+
+MERGE INTO TB_KPI A
+USING(
+    SELECT ? COMPANYID, KPI_NO, KPI_NM, EVL_TYPE, EVL_HOW, UNIT, 'Y' USEFLAG, SYSDATE CREATETIME, ? CREATER
+    FROM TB_KPI
+    WHERE COMPANYID = 1 AND KPI_NO = ?
+) B
+ON ( A.COMPANYID = B.COMPANYID AND A.KPI_NO = B.KPI_NO )
+WHEN NOT MATCHED THEN
+    INSERT(A.COMPANYID, A.KPI_NO, A.KPI_NM, A.EVL_TYPE, A.EVL_HOW, A.UNIT, A.USEFLAG, A.CREATETIME, A.CREATER, A.REG_TYPE_CD)
+    VALUES(B.COMPANYID, B.KPI_NO, B.KPI_NM, B.EVL_TYPE, B.EVL_HOW, B.UNIT, B.USEFLAG, B.CREATETIME, B.CREATER, '1')
+WHEN MATCHED THEN
+    UPDATE SET
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER
+    ]]></sql-query>
+    
+    
+    <sql-query name="SELECT_COMPANY_CMPT_USE_LIST" description="고객사에서 사용하는 역량 목록 조회"><![CDATA[
+-- BA, SELECT_COMPANY_CMPT_USE_LIST
+SELECT DECODE(B.CMPNUMBER, NULL, '', 'checked') CHK, A.CMPNUMBER, A.CMPNAME,
+    (SELECT CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = 1 AND STANDARDCODE = 'C102' AND COMMONCODE = A.CMPGROUP) CMPGROUP_STRING,
+    (SELECT CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = 1 AND STANDARDCODE = 'C103' AND COMMONCODE = A.CMPGROUP_S) CMPGROUP_S_STRING,
+    ROW_NUMBER() OVER(ORDER BY B.CMPNUMBER, A.CMPGROUP, A.CMPGROUP_S, A.CMPNAME) - 1 RNUM 
+FROM TB_CM_COMPETENCY A, 
+    (
+    SELECT *
+    FROM TB_CM_COMPETENCY
+    WHERE COMPANYID = ? AND USEFLAG = 'Y'
+    ) B
+WHERE A.CMPNUMBER = B.CMPNUMBER(+)
+    AND A.USEFLAG = 'Y'
+    AND A.COMPANYID = 1
+    ]]></sql-query>
+    
+     <sql-query name="SELECT_COMPANY_CMPT_USE_N" description="고객사 사용 역량 모두 N 처리"><![CDATA[
+-- BA, SELECT_COMPANY_CMPT_USE_N
+UPDATE TB_CM_COMPETENCY
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_COMPANY_BHV_USE_N" description="고객사 사용 행동지표 모두 N 처리"><![CDATA[
+-- BA, SELECT_COMPANY_CMPT_USE_N
+UPDATE TB_CM_BHV_INDICATOR
+SET USEFLAG = 'N'
+WHERE COMPANYID = ?
+    ]]></sql-query>
+
+    <sql-query name="SELECT_COMPANY_CMPT_USE_MERGE" description="고객사 사용 역량 MERGE"><![CDATA[
+-- BA, SELECT_COMPANY_CMPT_USE_MERGE
+
+BEGIN
+
+-- 역량 저장
+MERGE INTO TB_CM_COMPETENCY A
+USING(
+    SELECT CMPNUMBER, CMPNAME, CMPDEFINITION, KNOWLEDGE, SKILL, ATTITUDE, ? COMPANYID, 'Y' USEFLAG, SYSDATE CREATETIME, ? CREATER
+    FROM TB_CM_COMPETENCY
+    WHERE COMPANYID = 1
+        AND CMPNUMBER = ?
+) B
+ON (A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER)
+WHEN NOT MATCHED THEN
+    INSERT(A.CMPNUMBER, A.CMPNAME, A.CMPDEFINITION, A.KNOWLEDGE, A.SKILL, A.ATTITUDE, A.COMPANYID, A.USEFLAG, A.CREATETIME, A.CREATER)
+    VALUES(B.CMPNUMBER, B.CMPNAME, B.CMPDEFINITION, B.KNOWLEDGE, B.SKILL, B.ATTITUDE, B.COMPANYID, B.USEFLAG, B.CREATETIME, B.CREATER)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER;
+       
+ -- 행동지표 저장
+MERGE INTO TB_CM_BHV_INDICATOR A
+USING(
+    SELECT
+        BHV_INDICATOR, CMPNUMBER, BHV_INDC_NUM, ? COMPANYID, 'Y' USEFLAG, SYSDATE CREATETIME, ? CREATER
+    FROM TB_CM_BHV_INDICATOR
+    WHERE COMPANYID = 1 AND CMPNUMBER = ? AND USEFLAG = 'Y' 
+) B
+ON (A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER AND A.BHV_INDC_NUM = B.BHV_INDC_NUM)
+WHEN NOT MATCHED THEN
+    INSERT(A.BHV_INDICATOR, A.CMPNUMBER, A.BHV_INDC_NUM, A.COMPANYID, A.USEFLAG, A.CREATETIME, A.CREATER)
+    VALUES(B.BHV_INDICATOR, B.CMPNUMBER, B.BHV_INDC_NUM, B.COMPANYID, B.USEFLAG, B.CREATETIME, B.CREATER)
+WHEN MATCHED THEN
+    UPDATE SET 
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER;
+        
+END;
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_COMPANY_LIST" description="고객사 목록 조회"><![CDATA[
+-- BA, SELECT_COMPANY_LIST
+SELECT BC.COMPANYID, BC.COMPANYNAME, RGST_NO, CTRT_ST_DT, CTRT_ED_DT, CMPT_INFO_ADD_YN, KPI_ADD_YN, CSTM_ID
+    , BC.USERID, BU.NAME, BU.EMPNO, BU.EMAIL, BU.PHONE, HOME_PG_TYPE, USE_YN, MN_CMT
+FROM TB_BA_COMPANY_M BC, TB_BA_USER BU
+WHERE BC.USERID = BU.USERID(+)
+	AND BC.DEL_YN = 'N'
+    AND BC.COMPANYID != 1 -- 1번회사는 cnp총괄 회사임.. 
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_RGSTNO_CNT" description="사업자등록번호 중복체크"><![CDATA[
+-- BA, SELECT_RGSTNO_CNT        
+SELECT COUNT(*)
+FROM TB_BA_COMPANY_M
+WHERE RGST_NO = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_CSTMID_CNT" description="고객사ID 중복체크"><![CDATA[
+-- BA, SELECT_CSTMID_CNT        
+SELECT COUNT(*)
+FROM TB_BA_COMPANY_M
+WHERE LOWER(CSTM_ID) = LOWER(?)
+    ]]></sql-query>
+   
+   <sql-query name="MAX_COMPANYID" description="고객사ID 최대값 조회"><![CDATA[
+-- BA, MAX_COMPANYID        
+SELECT NVL(MAX(COMPANYID), 0) +1 
+FROM TB_BA_COMPANY_M
+    ]]></sql-query>
+    
+    <sql-query name="MAX_USERID" description="사용자번호 최대값 조회"><![CDATA[
+-- BA, MAX_COMPANYID        
+SELECT NVL(MAX(USERID), 0) +1 
+FROM TB_BA_USER
+    ]]></sql-query>
+    
+<sql-query name="INSERT_COMPANY" description="고객사 입력"><![CDATA[
+-- BA, INSERT_COMPANY     
+
+BEGIN
+
+-- 회사정보 등록/수정
+MERGE INTO TB_BA_COMPANY_M A
+USING(
+    SELECT
+        ? COMPANYID, ? COMPANYNAME, ? RGST_NO, ? CTRT_ST_DT, ? CTRT_ED_DT, ? CMPT_INFO_ADD_YN
+        , ? KPI_ADD_YN, ? CSTM_ID, ? HOME_PG_TYPE, ? USE_YN, sysdate CREATETIME, ? CREATER
+        , ? MN_CMT
+    FROM DUAL
+) B
+ON (A.COMPANYID = B.COMPANYID)
+WHEN NOT MATCHED THEN
+    INSERT(
+       A.COMPANYID, A.COMPANYNAME, A.RGST_NO, A.CTRT_ST_DT, A.CTRT_ED_DT, A.CMPT_INFO_ADD_YN, 
+       A.KPI_ADD_YN, A.CSTM_ID, A.HOME_PG_TYPE, A.USE_YN, A.CREATETIME, A.CREATER, 
+       A.MN_CMT) 
+    VALUES( 
+       B.COMPANYID, B.COMPANYNAME, B.RGST_NO, B.CTRT_ST_DT, B.CTRT_ED_DT, B.CMPT_INFO_ADD_YN, 
+       B.KPI_ADD_YN, B.CSTM_ID, B.HOME_PG_TYPE, B.USE_YN, B.CREATETIME, B.CREATER, 
+       B.MN_CMT
+    )
+WHEN MATCHED THEN 
+    UPDATE SET
+        A.COMPANYNAME = B.COMPANYNAME,
+        A.RGST_NO = B.RGST_NO, 
+        A.CTRT_ST_DT = B.CTRT_ST_DT, 
+        A.CTRT_ED_DT = B.CTRT_ED_DT, 
+        A.CMPT_INFO_ADD_YN = B.CMPT_INFO_ADD_YN,
+        A.KPI_ADD_YN = B.KPI_ADD_YN,
+        A.HOME_PG_TYPE = B.HOME_PG_TYPE, 
+        A.USE_YN = B.USE_YN, 
+        A.MN_CMT = B.MN_CMT,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER;
+
+-- 사용자정보 등록/수정
+MERGE INTO TB_BA_USER A
+USING(
+    SELECT 
+        ? USERID, ? PASSWORD, ? COMPANYID, ? NAME, ? EMAIL,
+        ? PHONE, ? USEFLAG, sysdate CREATETIME, ? CREATER, ? EMPNO
+    FROM DUAL
+) B
+ON (A.USERID = B.USERID)
+WHEN NOT MATCHED THEN
+    INSERT(
+        A.USERID, A.PASSWORD, A.COMPANYID, A.NAME, A.EMAIL, 
+        A.PHONE, A.USEFLAG, A.CREATETIME, A.CREATER, A.EMPNO, A.ID
+    ) 
+    VALUES (
+        B.USERID, B.PASSWORD, B.COMPANYID, B.NAME, B.EMAIL, 
+        B.PHONE, B.USEFLAG, B.CREATETIME, B.CREATER, B.EMPNO, B.COMPANYID||'_'||B.EMPNO
+    )
+WHEN MATCHED THEN
+    UPDATE SET
+        A.NAME = B.NAME,
+        A.EMAIL = B.EMAIL,
+        A.PHONE = B.PHONE,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER,
+        A.ID = B.COMPANYID||'_'||B.EMPNO;
+
+-- 신규회사 등록 시 
+UPDATE TB_BA_COMPANY_M
+SET USERID = ?
+WHERE COMPANYID = ?;
+
+-- 일반사용자 권한 부여
+MERGE INTO V2_GROUP_MEMBERS A
+USING (
+    SELECT 4 GROUP_ID, ? USER_ID, 0 ADMINISTRATOR
+    FROM DUAL
+) B
+ON ( A.GROUP_ID = B.GROUP_ID AND A.USER_ID = B.USER_ID )
+WHEN NOT MATCHED THEN
+	INSERT(A.GROUP_ID, A.USER_ID, A.ADMINISTRATOR)
+	VALUES(B.GROUP_ID, B.USER_ID, B.ADMINISTRATOR);
+
+-- 운영자 권한 부여
+MERGE INTO V2_GROUP_MEMBERS A
+USING (
+    SELECT 2 GROUP_ID, ? USER_ID, 0 ADMINISTRATOR
+    FROM DUAL
+) B
+ON ( A.GROUP_ID = B.GROUP_ID AND A.USER_ID = B.USER_ID )
+WHEN NOT MATCHED THEN
+    INSERT(A.GROUP_ID, A.USER_ID, A.ADMINISTRATOR)
+    VALUES(B.GROUP_ID, B.USER_ID, B.ADMINISTRATOR);
+
+
+-- 공통코드분류 : 코드는 아니라도 분류는 들어가 있어야 하는 코드분류가 존재함.
+MERGE INTO TB_BA_STANDARDCODE A
+USING (
+    SELECT STANDARDCODE, 
+        CASE WHEN STANDARDCODE='C102' THEN '역량군' 
+        ELSE STN_CODENAME END STN_CODENAME, 
+        ? COMPANYID, USEFLAG
+    FROM TB_BA_STANDARDCODE
+    WHERE COMPANYID = 1 AND USEFLAG = 'Y'
+        AND STANDARDCODE IN (
+            'BA03',   /* 학습유형 */
+            'BA06',   /* 첨부파일유형 */
+            'CO01',   /* 게시판구분 */
+            'C001',   /* 역량평가자 구분 */
+            'C102',   /* 역량군 */
+            'C106',   /* 지표유형 */
+            'C107',   /* 측정평가주기 */
+            'C108',   /* Characteristic(성과평가) */
+            'C109',   /* 관리유형 */
+            'C110',   /* 단위 */
+            'C111',   /* 평가구분 */
+            'C112',   /* 평가기간구분 */
+            'C113',   /* 설문문항유형 */
+            'C114',   /* 성과평가상태코드 */
+            'C115',   /* 역량평가 보기목록 */
+            'C116'    /* KPI등록유형코드(1:회사, 2:개인) */
+        )
+) B
+ON (A.STANDARDCODE = B.STANDARDCODE AND A.COMPANYID = B.COMPANYID)
+WHEN NOT MATCHED THEN
+    INSERT (A.STANDARDCODE, A.STN_CODENAME, A.COMPANYID, A.USEFLAG, A.CREATETIME)
+    VALUES (B.STANDARDCODE, B.STN_CODENAME, B.COMPANYID, B.USEFLAG, SYSDATE)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.STN_CODENAME = B.STN_CODENAME,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = SYSDATE;
+        
+-- 공통코드
+MERGE INTO TB_BA_COMMONCODE A
+USING (
+    SELECT BB.COMMONCODE, BB.CMM_CODENAME, AA.STANDARDCODE, ? COMPANYID, BB.USEFLAG, BB.CMM_CODEDESC, BB.PARENT_STANDARDCODE, BB.PARENT_COMMONCODE
+    FROM TB_BA_STANDARDCODE AA, TB_BA_COMMONCODE BB
+    WHERE AA.STANDARDCODE = BB.STANDARDCODE
+        AND AA.COMPANYID = BB.COMPANYID
+        AND AA.COMPANYID = 1 AND AA.USEFLAG = 'Y' AND BB.USEFLAG = 'Y'
+        AND AA.STANDARDCODE IN (
+            'BA03',
+            'BA06',
+            'CO01',
+            'C001',
+            'C106', 
+            'C107', 
+            'C108', 
+            'C109', 
+            'C110',
+            'C111',
+            'C112',
+            'C113',
+            'C114',
+            'C115',
+            'C116'
+        )
+) B
+ON (A.STANDARDCODE = B.STANDARDCODE AND A.COMPANYID = B.COMPANYID AND A.COMMONCODE = B.COMMONCODE)
+WHEN NOT MATCHED THEN
+    INSERT (A.COMMONCODE, A.CMM_CODENAME, A.STANDARDCODE, A.COMPANYID, A.USEFLAG, A.CMM_CODEDESC, A.PARENT_STANDARDCODE, A.PARENT_COMMONCODE, A.CREATETIME)
+    VALUES (B.COMMONCODE, B.CMM_CODENAME, B.STANDARDCODE, B.COMPANYID, B.USEFLAG, B.CMM_CODEDESC, B.PARENT_STANDARDCODE, B.PARENT_COMMONCODE, SYSDATE)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.CMM_CODENAME = B.CMM_CODENAME,
+        A.CMM_CODEDESC = B.CMM_CODEDESC,
+        A.PARENT_STANDARDCODE = B.PARENT_STANDARDCODE,
+        A.PARENT_COMMONCODE = B.PARENT_COMMONCODE,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = SYSDATE;
+
+-- 회사 로고파일 UPDATE
+UPDATE V2_ATTACHMENT
+SET OBJECT_ID = ?
+WHERE OBJECT_TYPE = 3 AND OBJECT_ID = ?;
+
+END;
+    ]]></sql-query>
+    
+
+    <!-- BASIC COMMON CODE -->
+    
+    <sql-query name="GET_COMMONCODE_CHECK"
+		description="코드 중복체크"><![CDATA[
+		-- BA, GET_COMMONCODE_CHECK
+		
+        SELECT DECODE(COUNT(*), 0, 'Y', 'N') 
+         FROM TB_BA_COMMONCODE 
+         WHERE STANDARDCODE = ?
+         AND   COMMONCODE = ?
+         AND COMPANYID = ?
+    ]]></sql-query>
+    <sql-query name="SELET_STANDARDCODE_LIST"
+		description="코드 카테고리 조회"><![CDATA[
+		-- BA, SELET_STANDARDCODE_LIST
+		
+        SELECT STANDARDCODE VALUE, STN_CODENAME TEXT 
+        FROM TB_BA_STANDARDCODE 
+        WHERE COMPANYID = ? AND USEFLAG = 'Y'
+        ORDER BY STN_CODENAME ASC
+        
+    ]]></sql-query>
+    <sql-query name="SELET_PARENT_STANDARDCODE_LIST"
+		description="코드 부모카테고리 조회"><![CDATA[
+		-- BA, SELET_PARENT_STANDARDCODE_LIST
+		
+            SELECT STANDARDCODE VALUE, STN_CODENAME TEXT 
+        FROM TB_BA_STANDARDCODE 
+        WHERE COMPANYID = ? AND USEFLAG = 'Y'
+        
+    ]]></sql-query>
+    <sql-query name="SELET_PARENT_COMMONCODE_LIST"
+		description="코드 부모카테고리코드 조회"><![CDATA[
+		-- BA, SELET_PARENT_COMMONCODE_LIST
+		
+        	SELECT COMMONCODE VALUE, CMM_CODENAME TEXT
+       FROM TB_BA_COMMONCODE
+       WHERE COMPANYID = ?
+       AND STANDARDCODE = ?
+       AND USEFLAG = 'Y'
+        
+    ]]></sql-query>
+	<sql-query name="SELECT-COMMONCODE-LIST"
+		description="공통코드 목록을 조회"><![CDATA[
+		-- BA, SELECT-COMMONCODE-LIST
+
+          SELECT TBS.COMPANYID
+             , TBS.STANDARDCODE, TBS.STN_CODENAME
+             , TBC.COMMONCODE, TBC.CMM_CODENAME
+             , TBC.CD_STARTVALUE, TBC.CD_ENDVALUE
+             , TBC.CD_VALUE1, TBC.CD_VALUE2, TBC.CD_VALUE3, TBC.CD_VALUE4, TBC.CD_VALUE5
+             , PARENT_STANDARDCODE
+             , TBC.PARENT_COMMONCODE
+             , TBC.USEFLAG
+             , FUN_DATE_FORMAT(TBC.CREATETIME,2) CREATETIME
+             , FUN_DATE_FORMAT(TBC.MODIFYTIME,2) MODIFYTIME
+             , DECODE(TBC.USEFLAG, 'Y', '사용', '미사용') USEFLAG_STRING
+             , ROW_NUMBER() OVER(ORDER BY TBS.STANDARDCODE , COMMONCODE ASC) - 1 ROWNUMBER
+          FROM TB_BA_COMMONCODE TBC,
+               TB_BA_STANDARDCODE TBS
+         WHERE TBS.COMPANYID = ?
+           AND TBS.COMPANYID = TBC.COMPANYID
+           AND TBS.STANDARDCODE = TBC.STANDARDCODE
+           AND TBC.DEL_YN = 'N'
+         ORDER BY USEFLAG_STRING DESC, TBS.CREATETIME DESC, STANDARDCODE, COMMONCODE
+         
+    ]]></sql-query>
+    <sql-query name="SELECT-COMMONCODE-CNT"
+		description="공통코드 전체 갯수"><![CDATA[
+		-- BA, SELECT-COMMONCODE-CNT
+		
+        SELECT COUNT(TBS.COMPANYID) CNT
+		  FROM TB_BA_COMMONCODE TBC,
+		       TB_BA_STANDARDCODE TBS
+		 WHERE TBS.COMPANYID = ?
+		   AND TBS.COMPANYID = TBC.COMPANYID
+		   AND TBS.STANDARDCODE = TBC.STANDARDCODE
+    ]]></sql-query>
+    <sql-query name="SELECT-NEW-COMMON-CODE"
+		description="공통코드 정보 등록"><![CDATA[
+		-- BA, SELECT-NEW-COMMON-CODE
+		
+		SELECT NVL(MAX(TO_NUMBER(COMMONCODE)),0)+1 COMMONCODE
+		  FROM TB_BA_COMMONCODE
+		 WHERE COMPANYID = ?
+		   AND STANDARDCODE = ?
+    ]]></sql-query>
+    <sql-query name="INSERT-COMMONCODE-INFO"
+		description="공통코드 정보 등록"><![CDATA[
+		-- BA, INSERT-COMMONCODE-INFO
+		
+		INSERT INTO TB_BA_COMMONCODE (
+			COMPANYID, STANDARDCODE, COMMONCODE, CMM_CODENAME, CD_STARTVALUE,
+			CD_ENDVALUE, CD_VALUE1, CD_VALUE2, CD_VALUE3, CD_VALUE4, 
+			CD_VALUE5, PARENT_STANDARDCODE, PARENT_COMMONCODE, USEFLAG, CREATETIME, 
+			CREATER
+		) VALUES (
+			?, ?, ?, ?, ?,
+			?, ?, ?, ?, ?, 
+			?, ?, ?, ?, SYSDATE, 
+			?
+		)
+    ]]></sql-query>
+    <sql-query name="UPDATE-COMMONCODE-INFO"
+		description="공통코드 정보 변경"><![CDATA[
+		-- BA, UPDATE-COMMONCODE-INFO
+		
+		UPDATE TB_BA_COMMONCODE
+		   SET CMM_CODENAME = ?
+		     , CD_STARTVALUE = ?
+		     , CD_ENDVALUE = ?
+		     , CD_VALUE1 = ?
+		     , CD_VALUE2 = ?
+		     , CD_VALUE3 = ?
+		     , CD_VALUE4 = ?
+		     , CD_VALUE5 = ?
+		     , PARENT_STANDARDCODE = ?
+		     , PARENT_COMMONCODE = ?
+		     , USEFLAG = ?
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		 WHERE COMPANYID = ?
+		   AND STANDARDCODE = ?
+		   AND COMMONCODE = ?
+    ]]></sql-query>
+    
+	<sql-query name="SELECT_KSA_SSO_ID"
+		description="KSA SSO 용 로그인 ID추출"><![CDATA[
+	-- BA, SELECT_KSA_SSO_ID
+
+		SELECT NVL((SELECT ID FROM TB_BA_USER WHERE KSA_USER_SEQ = ? AND ID = ?),' ') ID
+		  FROM DUAL
+    ]]></sql-query>
+    <sql-query name="SELECT_KSA_LOGIN_USERID"
+		description="KSA 용 로그인 ID추출"><![CDATA[
+	-- BA, SELECT_KSA_LOGIN_USERID
+
+		SELECT NVL((SELECT ID FROM TB_BA_USER WHERE NAME = ? AND REPLACE(CELLPHONE,'-','') = ?),' ') ID
+		  FROM DUAL
+    ]]></sql-query>
+    <sql-query name="SELECT_ICCU_SSO_ID"
+		description="ICCU SSO 용 로그인 ID추출"><![CDATA[
+	-- BA, SELECT_ICCU_SSO_ID
+
+		SELECT NVL((SELECT ID FROM TB_BA_USER WHERE COMPANYID = 3 AND ID = ? AND CELLPHONE = ?),' ') ID
+		  FROM DUAL
+    ]]></sql-query>
+    
+    
+    <!-- BASIC DEPT -->
+    <sql-query name="SELECT_DEPT_MNG_LIST"
+		description="조직(학과) 목록"><![CDATA[
+	-- BA, SELECT_DEPT_MNG_LIST
+WITH DT AS (
+    SELECT LEVEL LVL, DIVISIONID, DVS_NAME, DVS_MANAGER, DVS_MANAGER_NM, DVS_FULLNAME, HIGH_DVSID
+             , HIGH_DVSID_NAME, CHILDREN_CNT
+             , USEFLAG
+    FROM(
+        SELECT BD.COMPANYID, BD.DIVISIONID, BD.DVS_NAME, BD.DVS_MANAGER, NAME DVS_MANAGER_NM, BD.DVS_FULLNAME
+             , BD.HIGH_DVSID, UP.DVS_NAME HIGH_DVSID_NAME, NVL(CH.CNT, 0) CHILDREN_CNT
+             , BD.USEFLAG
+          FROM TB_BA_DIVISION BD, 
+            (
+            SELECT US.COMPANYID, DV.DIVISIONID, US.NAME
+            FROM TB_BA_USER US, TB_BA_DIVISION DV, V2_GROUP_MEMBERS VG
+            WHERE US.COMPANYID = DV.COMPANYID AND US.USERID = DV.DVS_MANAGER
+                AND DV.DVS_MANAGER = VG.USER_ID
+                AND VG.GROUP_ID = 3
+            ) BU, 
+            TB_BA_DIVISION UP,
+            (
+            SELECT COMPANYID, HIGH_DVSID, COUNT(*) CNT
+            FROM TB_BA_DIVISION
+            GROUP BY COMPANYID, HIGH_DVSID
+            ) CH
+         WHERE BD.COMPANYID = BU.COMPANYID(+) AND BD.DIVISIONID = BU.DIVISIONID(+)
+            AND BD.COMPANYID = UP.COMPANYID(+) AND BD.HIGH_DVSID = UP.DIVISIONID(+)
+            AND BD.COMPANYID = CH.COMPANYID(+) AND BD.DIVISIONID = CH.HIGH_DVSID(+)
+            AND BD.COMPANYID = ?
+            AND BD.USEFLAG LIKE '%'||?||'%'
+            AND BD.DEL_YN = 'N'
+         ) A
+     START WITH HIGH_DVSID IS NULL
+     CONNECT BY PRIOR DIVISIONID = HIGH_DVSID
+)
+SELECT *
+FROM(
+    SELECT MAX(LVL) MAXLVL
+    FROM DT
+    ) A,
+    (
+    SELECT *
+    FROM DT
+    )B
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_DEPT_LIST_EXCEL"
+        description="조직(학과) 목록 엑셀 다운로드용"><![CDATA[
+    -- BA, SELECT_DEPT_LIST_EXCEL
+SELECT BD.DIVISIONID, DVS_NAME, HIGH_DVSID, 
+    (SELECT DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = BD.COMPANYID AND DIVISIONID = BD.HIGH_DVSID) HIGH_DVSID_NAME,
+    DVS_MANAGER, NAME DVS_MANAGER_NM, BD.USEFLAG,
+    ROW_NUMBER() OVER(ORDER BY BD.DIVISIONID) RNUM
+FROM TB_BA_DIVISION BD, TB_BA_USER BU
+WHERE BD.COMPANYID = BU.COMPANYID(+) AND BD.DVS_MANAGER = BU.USERID(+) 
+AND BD.COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_DEPT" description="조직 저장"><![CDATA[
+    -- BA, MERGE_DEPT
+MERGE INTO TB_BA_DIVISION A
+USING(
+    SELECT
+	    ? AS COMPANYID,
+	    ? AS DIVISIONID,
+	    ? AS DVS_NAME,
+	    ? AS HIGH_DVSID,
+	    ? AS DVS_MANAGER,
+	    ? AS DEPT_STND_CD,
+	    UPPER(?) AS USEFLAG,
+	    SYSDATE AS CREATETIME,
+	    ? AS CREATER,
+	    (SELECT NVL(MAX(TO_NUMBER(DIVISIONID)), 0)+1 FROM TB_BA_DIVISION WHERE COMPANYID = ?) AS MAX_DIVISIONID
+	FROM DUAL
+) B
+ON (A.COMPANYID = B.COMPANYID AND A.DIVISIONID = B.DIVISIONID)
+WHEN NOT MATCHED THEN 
+    INSERT(A.COMPANYID, A.DIVISIONID, A.DVS_NAME, A.HIGH_DVSID, A.DVS_MANAGER, A.DEPT_STND_CD, A.USEFLAG, A.CREATETIME, A.CREATER)
+    VALUES(B.COMPANYID, B.MAX_DIVISIONID, B.DVS_NAME, B.HIGH_DVSID, B.DVS_MANAGER, B.DEPT_STND_CD, B.USEFLAG, B.CREATETIME, B.CREATER)
+WHEN MATCHED THEN
+    UPDATE SET
+        --A.DVS_NAME = B.DVS_NAME,
+        --A.HIGH_DVSID = B.HIGH_DVSID,
+        --A.DVS_MANAGER = B.DVS_MANAGER,
+        A.DEPT_STND_CD = B.DEPT_STND_CD,
+        A.USEFLAG = B.USEFLAG,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER
+    ]]></sql-query>
+    
+    
+        <sql-query name="MERGE_DEPT_MANAGER_USERGROUP" description="조직 저장(부서장 권한 수정)"><![CDATA[
+    -- BA, MERGE_DEPT_MANAGER_USERGROUP
+    
+		MERGE INTO V2_GROUP_MEMBERS A
+		USING(
+		    SELECT
+			    ? AS GROUP_ID,
+			    ? AS USER_ID
+			FROM DUAL
+		) B
+		ON (A.GROUP_ID = B.GROUP_ID AND A.USER_ID = B.USER_ID)
+		WHEN NOT MATCHED THEN 
+		    INSERT(A.GROUP_ID, A.USER_ID, A.ADMINISTRATOR, A.CREATION_DATE)
+		    VALUES(B.GROUP_ID, B.USER_ID, 0, SYSDATE)
+    ]]></sql-query>
+    
+        <sql-query name="SELECT_HIGH_USER" description="상위 부서 부서장 검색"><![CDATA[
+    -- BA, SELECT_HIGH_USER
+
+   SELECT NVL((
+    SELECT DVS_MANAGER 
+    FROM TB_BA_DIVISION 
+    WHERE DIVISIONID = ? AND USEFLAG = 'Y' AND COMPANYID = ?
+    ), 0) DVS_MANAGER
+    FROM DUAL
+    
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_USER_LIST_POPUP" description="사용자 검색"><![CDATA[
+    -- BA, SELECT_USER_LIST_POPUP
+   SELECT 
+       BU.USERID
+     , BU.ID
+     , BU.NAME
+     , BU.EMPNO
+     , BD.DVS_MANAGER
+     , BU.JOB
+     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J') JOB_NAME
+     , BU.LEADERSHIP
+     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE COMPANYID = BU.COMPANYID AND JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L') LEADERSHIP_NAME
+     , BD.DVS_NAME
+     , BU.GRADE_NM
+     , ROW_NUMBER() OVER(ORDER BY BU.NAME) RNUM
+    FROM (SELECT * FROM TB_BA_USER WHERE DIVISIONID = ?   UNION ALL   SELECT * FROM TB_BA_USER WHERE USERID = ?)BU, TB_BA_DIVISION BD
+    WHERE BU.COMPANYID = BD.COMPANYID(+)
+   AND BU.DIVISIONID = BD.DIVISIONID(+)
+   AND BU.COMPANYID = ?
+   AND BU.USEFLAG = 'Y'
+   ORDER BY BD.DVS_MANAGER DESC, NAME ASC
+    
+    ]]></sql-query>
+    
+    <!-- BASIC COUPON -->
+    
+    <sql-query name="SELECT_COUPON_STATE"
+		description="쿠폰형황"><![CDATA[
+	-- BA, SELECT_COUPON_STATE
+
+		SELECT TTL_CPN_CNT, USE_CPN_CNT, (TTL_CPN_CNT-USE_CPN_CNT) VALID_CPN_CNT
+		  FROM (
+		        SELECT NVL((
+		                SELECT TO_NUMBER(NVL(CD_VALUE1,0)) CD_VALUE1
+		                  FROM TB_BA_METACODE 
+		                 WHERE COMPANYID = ?
+		                   AND STANDARDMETA = 'BA01' 
+		                   AND METACODE = '1'
+		               ),0) TTL_CPN_CNT
+		             , NVL((
+		                SELECT SUM(COUPON)
+		                  FROM TB_BA_USER
+		               ),0) USE_CPN_CNT 
+		          FROM DUAL
+		       )
+    ]]></sql-query>
+    <sql-query name="SELECT_STUDENT_COUPON_HOLD_LIST"
+		description="학생별 쿠폰보유현황 목록"><![CDATA[
+	-- BA, SELECT_STUDENT_COUPON_STATE_LIST
+
+		SELECT BU.USERID
+		     , BU.NAME
+		     , BU.ID
+		     , BD.DVS_NAME
+		     , BU.CURRENT_CLASS
+		     , NVL(BU.COUPON,0) COUPON
+		     , NVL(C.COUPON_USE_CNT,0) COUPON_USE_CNT
+		  FROM 
+		       (
+		        SELECT USERID, COUNT(SUBJECT_NUM) COUPON_USE_CNT
+		          FROM TB_BA_CLASS BC
+		         WHERE BC.COUPON_FLAG = 'Y'
+		           AND ATTEND_STATE_CODE IN ('2','3','5','6')
+		         GROUP BY USERID
+		       ) C,
+		       (SELECT DIVISIONID, DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = ?) BD,
+		       TB_BA_USER BU,
+		       V2_GROUP_MEMBERS GM
+		 WHERE GM.GROUP_ID = 6
+		   AND GM.USER_ID = BU.USERID
+		   AND BU.DIVISIONID = BD.DIVISIONID(+)
+		   AND BU.USERID = C.USERID(+)
+		 ORDER BY BU.NAME, BU.ID
+    ]]></sql-query>
+    <sql-query name="UPDATE_STUDENT_GRANT_COUPON"
+		description="학생별 쿠폰부여"><![CDATA[
+	-- BA, UPDATE_GRANT_COUPON_STUDENT
+
+		UPDATE TB_BA_USER BU
+		   SET COUPON = (NVL(BU.COUPON,0) + ?)
+		 WHERE USERID = ?
+    ]]></sql-query>
+    <sql-query name="SELECT_STUDENT_COUPON_USE_LIST"
+		description="학생별 쿠폰사용현황 목록"><![CDATA[
+	-- BA, SELECT_STUDENT_COUPON_USE_LIST
+
+		SELECT BC.SUBJECT_NUM
+		     , BS.SUBJECT_NAME
+		     , BC.YEAR
+		     , BC.CHASU
+		     , BU.NAME
+		     , BU.ID
+		     , BC.DVS_NAME
+		     , BC.CURRENT_CLASS
+		     , C5.CMM_CODENAME as ATTEND_STR
+		     , FUN_DATE_FORMAT2(BC.APPLY_TIME,2) APPLY_DATE
+		  FROM (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA05') C5,
+		       (SELECT DIVISIONID, DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = ?) BD,
+		       TB_BA_USER BU,
+		       TB_BA_SBJCT BS,
+		       TB_BA_CLASS BC
+		 WHERE BC.YEAR = ?
+		   AND BC.ATTEND_STATE_CODE IN ('2','3','5','6')
+		   AND BC.COUPON_FLAG = 'Y'
+		   AND BC.SUBJECT_NUM = BS.SUBJECT_NUM
+		   AND BC.USERID = BU.USERID
+		   AND BU.DIVISIONID = BD.DIVISIONID(+)
+		   AND BC.ATTEND_STATE_CODE = C5.COMMONCODE
+		 ORDER BY BU.NAME, BU.ID
+    ]]></sql-query>
+    
+
+    <sql-query name="SELECT_LOGIN_CHK_USER_ID_LIST"
+		description="중복 체크을 위해 입력된 성명과 동일목록 추출"><![CDATA[
+	-- SELECT_LOGIN_CHK_USER_ID_LIST
+	
+	SELECT USERID, ID, NAME, CELLPHONE, EMAIL, COMPANYID
+  	  FROM TB_BA_USER
+ 	  WHERE ID = ?
+ 	    AND USEFLAG = 'Y'
+    ]]></sql-query>
+    
+    
+    <sql-query name="SELECT-JOB-CNT"
+		description="직무관리 총 갯수"><![CDATA[
+		-- BA, SELECT-JOB-CNT
+		
+       SELECT COUNT(COMPANYID) CNT
+          FROM TB_CM_JOB_LDR_I
+         WHERE COMPANYID = ?
+         AND JOBLDR_FLAG = ? 
+    ]]></sql-query>
+    
+      <sql-query name="SELECT-JOB-LIST"
+		description="직무관리 리스트"><![CDATA[
+		-- BA, SELECT-JOB-LIST
+		
+       SELECT COMPANYID,JOBLDR_NUM,JOBLDR_NAME,JOBLDR_FLAG,JOBLDR_COMMENT,USEFLAG,CREATETIME,CREATER,MODIFYTIME,MODIFIER,MAIN_TASK,DECODE(USEFLAG, 'Y', '사용', '미사용') USEFLAG_STRING, COMPANY_JOB_CD
+       	FROM TB_CM_JOB_LDR_I
+       WHERE COMPANYID = ? 
+       AND JOBLDR_FLAG = ? 
+       AND DEL_YN = 'N'
+       ORDER BY USEFLAG_STRING DESC, CREATETIME DESC, JOBLDR_NAME DESC
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_JOB_LIST_EXCEL"
+		description="직무/계급관리 엑셀 리스트"><![CDATA[
+		-- BA, SELECT_JOB_LIST_EXCEL
+		
+       SELECT JOBLDR_NUM,JOBLDR_NAME,JOBLDR_COMMENT,MAIN_TASK,USEFLAG
+           FROM TB_CM_JOB_LDR_I
+       WHERE COMPANYID = ? 
+       AND JOBLDR_FLAG = ?
+       AND DEL_YN = 'N'
+       ORDER BY USEFLAG DESC, CREATETIME DESC, JOBLDR_NAME DESC
+    ]]></sql-query>
+    
+     <sql-query name="SELECT_JOB_MAPP_CMPT_EXCEL"
+		description="직무/계급관리 역량매핑 엑셀 리스트"><![CDATA[
+		-- BA, SELECT_JOB_MAPP_EXCEL
+		
+       SELECT   
+            B.JOBLDR_NUM,
+            B.JOBLDR_NAME,
+            A.CMPGROUP,
+            FUN_COMMON_CODE(A.COMPANYID, 'C102', CMPGROUP) CMPGROUP_STRING,
+            A.CMPNUMBER,
+            A.CMPNAME,
+            B.USEFLAG        
+        FROM TB_CM_COMPETENCY A,
+            (
+            SELECT TR.CMPNUMBER,TI.JOBLDR_NAME, TI.COMPANYID,TI.JOBLDR_NUM ,TR.STD_SCORE, TR.USEFLAG
+            FROM TB_CM_JOB_LDR_I TI,TB_CM_JOBLER_CMPT_R TR
+            WHERE TI.COMPANYID = TR.COMPANYID
+                AND TI.JOBLDR_NUM = TR.JOBLDR_NUM
+                AND TI.COMPANYID = ?
+                AND JOBLDR_FLAG = ? 
+            ) B
+        WHERE   A.COMPANYID = B.COMPANYID 
+            AND A.CMPNUMBER = B.CMPNUMBER
+            AND A.DEL_YN = 'N'
+            AND A.CMPGROUP NOT IN (
+                SELECT COMMONCODE
+                FROM TB_BA_COMMONCODE
+                WHERE COMPANYID = A.COMPANYID AND STANDARDCODE = 'C102' AND CD_VALUE1 = 'Y'
+            )
+       ORDER BY USEFLAG DESC ,JOBLDR_NAME DESC , B.CMPNUMBER
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_JOB_MAPP_BHV_EXCEL"
+		description="직무/계급관리 행동지표매핑 엑셀 리스트"><![CDATA[
+		-- BA, SELECT_JOB_MAPP_EXCEL
+		
+       SELECT 
+                A.JOBLDR_NUM,
+                A.JOBLDR_NAME,
+                C.CMPGROUP,
+                FUN_COMMON_CODE(A.COMPANYID, 'C102', CMPGROUP) CMPGROUP_STRING,
+                A.CMPNUMBER,
+                C.CMPNAME,
+                A.BHV_INDC_NUM,
+                B.BHV_INDICATOR,
+                A.USEFLAG  
+            FROM 
+                ( SELECT TL.COMPANYID,
+                    TL.JOBLDR_NUM,
+                    TL.JOBLDR_NAME,
+                    TB.BHV_INDC_NUM,
+                    TB.CMPNUMBER,
+                    TB.USEFLAG
+                  FROM TB_CM_JOB_LDR_I TL , TB_CM_JOBLER_BHV TB
+                  WHERE TL.COMPANYID= ?
+                  AND JOBLDR_FLAG = ?
+                  AND TL.COMPANYID= TB.COMPANYID
+                  AND TL.JOBLDR_NUM = TB.JOBLDR_NUM
+                  AND TL.DEL_YN = 'N'
+                )A,
+                TB_CM_BHV_INDICATOR B ,TB_CM_COMPETENCY C
+            WHERE A.CMPNUMBER = B.CMPNUMBER
+            AND A.COMPANYID = B.COMPANYID
+            AND A.BHV_INDC_NUM = B.BHV_INDC_NUM
+            AND B.DEL_YN= 'N'
+            AND A.COMPANYID = C.COMPANYID
+            AND A.CMPNUMBER = C.CMPNUMBER
+            ORDER BY USEFLAG DESC ,JOBLDR_NAME DESC , A.CMPNUMBER
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_LDR_MAPP_GRADE_EXCEL"
+		description="계급관리 직급매핑 엑셀 리스트"><![CDATA[
+		-- BA, SELECT_JOB_MAPP_GRADE_EXCEL
+		
+      SELECT 
+           B.JOBLDR_NUM,
+           B.JOBLDR_NAME,
+           A.COMMONCODE,
+           A.CMM_CODENAME,
+           B.USEFLAG
+        FROM TB_BA_COMMONCODE A, 
+            (SELECT TI.COMPANYID,TI.JOBLDR_NAME,TI.JOBLDR_NUM,TG.GRADE_NUM, TI.USEFLAG
+             FROM TB_CM_JOB_LDR_I TI,TB_BA_JOBLER_GRADE TG
+             WHERE TI.COMPANYID = TG.COMPANYID
+             AND TI.JOBLDR_NUM = TG.JOBLDR_NUM
+             AND TI.COMPANYID = ?
+             AND TI.JOBLDR_FLAG = ?
+             AND TG.USEFLAG = 'Y'
+             AND TI.USEFLAG = 'Y'
+             AND TI.DEL_YN = 'N'
+             ) B
+        WHERE A.COMPANYID = B.COMPANYID(+)
+        AND A.COMMONCODE = B.GRADE_NUM
+        AND A. STANDARDCODE = 'BA15'
+        ORDER BY USEFLAG DESC, JOBLDR_NAME DESC
+    ]]></sql-query>
+    
+
+    
+    <sql-query name="SELECT-JOBLDR_MAPP-LIST"
+		description="역량매핑 직무,리더십 리스트()"><![CDATA[
+		-- BA, SELECT-JOBLDR_MAPP-LIST
+		
+       SELECT COMPANYID,JOBLDR_NUM,JOBLDR_NAME,REPLACE(REPLACE(JOBLDR_FLAG,'J','직무'),'L','계층')JOBLDR_FLAG_NAME,JOBLDR_COMMENT,USEFLAG,CREATETIME,CREATER,MODIFYTIME,MODIFIER,MAIN_TASK, DECODE(USEFLAG, 'Y', '사용', '미사용') USEFLAG_STRING
+           FROM TB_CM_JOB_LDR_I
+       WHERE COMPANYID = ?
+       AND USEFLAG = 'Y'
+       AND DEL_YN = 'N'
+       ORDER BY USEFLAG_STRING DESC, CREATETIME, MODIFYTIME ,JOBLDR_FLAG_NAME
+    ]]></sql-query>
+     
+    <sql-query name="SELECT-JOB-UPDATE"
+		description="직무관리 수정"><![CDATA[
+		-- BA, SELECT-JOB-UPDATE
+		
+		UPDATE TB_CM_JOB_LDR_I
+		   SET JOBLDR_NAME = ?
+		   	 , COMPANY_JOB_CD = ?
+		     , JOBLDR_COMMENT = ?
+		     , USEFLAG = ?
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		     , MAIN_TASK = ?
+		 WHERE COMPANYID = ?
+		   AND JOBLDR_NUM = ?
+		   AND JOBLDR_FLAG = ?
+    ]]></sql-query>
+  
+	<sql-query name="SELECT-JOB-INSERT-CNT"
+		description="직무관리 총 갯수+1"><![CDATA[
+		-- BA, SELECT-JOB-INSERT_CNT
+		
+       SELECT COUNT(COMPANYID)+1 CNT
+          FROM TB_CM_JOB_LDR_I
+         WHERE COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="SELECT-JOB-INSERT"
+		description="직무관리 등록"><![CDATA[
+		-- BA, SELECT-JOB-INSERT
+		
+		INSERT INTO TB_CM_JOB_LDR_I 
+			(COMPANYID,JOBLDR_NUM,JOBLDR_NAME,JOBLDR_FLAG,JOBLDR_COMMENT,USEFLAG,CREATETIME,CREATER,MODIFYTIME,MAIN_TASK, COMPANY_JOB_CD)
+				VALUES 
+			(?,?,?,?,?,?,SYSDATE,?,'',?,?)
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_EXCEL_JOB"
+		description="직무관리 엑셀 저장"><![CDATA[
+		-- BA, MERGE_JOB
+		
+		MERGE INTO TB_CM_JOB_LDR_I A
+                USING(
+                    SELECT
+                    ? COMPANYID,
+                    ? JOBLDR_NUM,
+                    ? JOBLDR_NAME,
+                    ? MAIN_TASK,
+                    ? JOBLDR_FLAG,
+                    ? JOBLDR_COMMENT,
+                    UPPER(?) USEFLAG,
+                    ? USERNUM
+                    FROM DUAL
+                )B ON (
+                      A.COMPANYID = B.COMPANYID
+                  AND A.JOBLDR_NUM = B.JOBLDR_NUM
+                  AND A.JOBLDR_FLAG = B.JOBLDR_FLAG
+                )
+        WHEN MATCHED THEN
+        UPDATE
+        SET JOBLDR_NAME = B.JOBLDR_NAME,
+            JOBLDR_COMMENT = B.JOBLDR_COMMENT,
+            USEFLAG = B.USEFLAG,
+            MAIN_TASK = B.MAIN_TASK,
+            MODIFYTIME = SYSDATE,
+            MODIFIER = B.USERNUM
+        WHEN NOT MATCHED THEN 
+        INSERT(COMPANYID, JOBLDR_NUM, JOBLDR_NAME, JOBLDR_FLAG, JOBLDR_COMMENT, USEFLAG, MAIN_TASK,
+                    CREATETIME, CREATER) 
+        VALUES(
+        B.COMPANYID, 
+        (SELECT MAX(TO_NUMBER(NVL(JOBLDR_NUM, '0'))) + 1 FROM TB_CM_JOB_LDR_I where COMPANYID = ?), 
+        B.JOBLDR_NAME,
+        B.JOBLDR_FLAG,
+        B.JOBLDR_COMMENT, 
+        B.USEFLAG,
+        B.MAIN_TASK,
+        SYSDATE,
+        B.USERNUM
+        )
+
+    ]]></sql-query>
+    
+    <sql-query name="GET_PW_SEARCH_INFO" description="비밀번호 찾기"><![CDATA[
+        -- BA : GET_PW_SEARCH_INFO
+    
+SELECT USERID
+FROM TB_BA_USER
+WHERE EMPNO = ?
+    AND NAME = ?
+    AND EMAIL = ?
+    AND COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="GET_OPERATOR_EMAIL" description="고객사운영자 이메일 조회"><![CDATA[
+        -- BA : GET_OPERATOR_EMAIL
+   
+    SELECT B.NAME FROM_NAME, B.EMAIL FROM_EMAIL
+    FROM TB_BA_COMPANY_M A, TB_BA_USER B
+    WHERE A.COMPANYID = B.COMPANYID 
+        AND A.USERID = B.USERID
+        AND A.COMPANYID = ?
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_PWD" description="비번 변경"><![CDATA[
+        -- BA : UPDATE_PWD
+   
+UPDATE TB_BA_USER
+SET PASSWORD = ?
+WHERE USERID = ?
+    ]]></sql-query>
+
+    <sql-query name="GET_CNPADMIN_INFO" description="총괄관리자 정보 조회"><![CDATA[
+        -- BA : GET_CNPADMIN_INFO
+    
+    SELECT C.USERID, C.COMPANYID, U.NAME, U.EMPNO, U.PHONE, U.EMAIL
+    FROM TB_BA_COMPANY_M C, TB_BA_USER U 
+    WHERE C.USERID = U.USERID 
+        AND C.COMPANYID = 1
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_CNPADMIN" description="총괄관리자 변경"><![CDATA[
+        -- BA : UPDATE_CNPADMIN
+   
+UPDATE TB_BA_USER
+SET NAME = ?,
+    EMPNO = ?,
+    PHONE = ?,
+    EMAIL = ?
+WHERE USERID = ?
+    ]]></sql-query>
+    
+	<sql-query name="SELECT_JOB_CM_MAPPING_LIST"
+			description="직무관리 역량매핑"><![CDATA[
+			-- BA, SELECT_JOB_CM_MAPPING_LIST
+	
+		SELECT 
+            FUN_COMMON_CODE(A.COMPANYID, 'C102', CMPGROUP) CMPGROUP_STRING,
+            A.CMPNAME,
+            A.CMPNUMBER,
+            B.JOBLDR_NUM,
+            B.STD_SCORE,
+            ROW_NUMBER() OVER(ORDER BY B.USEFLAG,B.CMPNUMBER ASC)-1 ROWNUMBER,
+            DECODE(B.USEFLAG, 'Y', 'checked="1"','') CHECKFLAG        
+        FROM TB_CM_COMPETENCY A,
+            (
+            SELECT TR.CMPNUMBER, TI.COMPANYID,TI.JOBLDR_NUM ,TR.STD_SCORE, TR.USEFLAG
+            FROM TB_CM_JOB_LDR_I TI,TB_CM_JOBLER_CMPT_R TR
+            WHERE TI.COMPANYID = TR.COMPANYID
+                AND TI.JOBLDR_NUM = TR.JOBLDR_NUM
+                AND TI.COMPANYID = ?
+                AND TI.JOBLDR_NUM = ?
+                AND TR.USEFLAG = 'Y'
+            ) B
+        WHERE   A.COMPANYID = B.COMPANYID 
+            AND A.CMPNUMBER = B.CMPNUMBER
+            AND A.USEFLAG = 'Y'
+            AND A.DEL_YN = 'N'
+            AND A.CMPGROUP NOT IN (
+                SELECT COMMONCODE
+                FROM TB_BA_COMMONCODE
+                WHERE COMPANYID = A.COMPANYID AND STANDARDCODE = 'C102' AND CD_VALUE1 = 'Y'
+            )
+        ORDER BY ROWNUMBER, CMPGROUP_STRING, B.CMPNUMBER, A.CMPGROUP, A.CMPGROUP_S, A.CMPNUMBER
+	]]></sql-query>
+	
+	<sql-query name="SELECT_JOB_INDC_MAPPING_LIST"
+			description="직무관리 행동지표매핑"><![CDATA[
+			-- BA, SELECT_JOB_INDC_MAPPING_LIST
+	
+			 SELECT 
+                A.COMPANYID,
+                FUN_COMMON_CODE(A.COMPANYID, 'C102', CMPGROUP) CMPGROUP_STRING,
+                A.CMPNUMBER,
+                C.CMPNAME,
+                A.BHV_INDC_NUM,
+                B.BHV_INDICATOR,
+                ROW_NUMBER() OVER(ORDER BY A.USEFLAG,A.CMPNUMBER ASC)-1 ROWNUMBER,
+                A.USEFLAG  
+            FROM 
+                ( SELECT TL.COMPANYID,
+                    TL.JOBLDR_NUM,
+                    TB.BHV_INDC_NUM,
+                    TB.CMPNUMBER,
+                    TB.USEFLAG
+                  FROM TB_CM_JOB_LDR_I TL , TB_CM_JOBLER_BHV TB
+                  WHERE TL.COMPANYID= ?
+                  AND TL.JOBLDR_NUM = ?
+                  AND TL.COMPANYID= TB.COMPANYID
+                  AND TL.JOBLDR_NUM = TB.JOBLDR_NUM
+                  AND TL.DEL_YN = 'N'
+                  AND TB.USEFLAG = 'Y'
+                )A,
+                TB_CM_BHV_INDICATOR B ,TB_CM_COMPETENCY C
+            WHERE A.CMPNUMBER = B.CMPNUMBER
+            AND A.COMPANYID = B.COMPANYID
+            AND A.BHV_INDC_NUM = B.BHV_INDC_NUM
+            AND B.USEFLAG= 'Y'
+            AND B.DEL_YN= 'N'
+            AND A.COMPANYID = C.COMPANYID
+            AND A.CMPNUMBER = C.CMPNUMBER
+            ORDER BY ROWNUMBER, CMPGROUP_STRING, B.CMPNUMBER, A.CMPNUMBER
+	]]></sql-query>
+	
+	<sql-query name="SELECT_JOB_CM_NEW_MAPPING_LIST"
+			description="직무관리 역량추가 리스트"><![CDATA[
+			-- BA, SELECT_JOB_CM_NEW_MAPPING_LIST
+	
+		SELECT
+            FUN_COMMON_CODE(A.COMPANYID, 'C102', CMPGROUP) CMPGROUP_STRING,
+            A.CMPNAME,
+            A.CMPNUMBER,
+            B.STD_SCORE,
+            ROW_NUMBER() OVER(ORDER BY B.USEFLAG,CMPGROUP ASC)-1 ROWNUMBER,
+            DECODE(B.USEFLAG, 'Y', 'checked="1"','') CHECKFLAG  
+        FROM TB_CM_COMPETENCY A,
+            (
+                SELECT TR.CMPNUMBER, TI.COMPANYID,TI.JOBLDR_NUM ,TR.STD_SCORE, TR.USEFLAG
+                FROM TB_CM_JOB_LDR_I TI,TB_CM_JOBLER_CMPT_R TR
+                WHERE TI.COMPANYID = TR.COMPANYID
+                AND TI.JOBLDR_NUM = TR.JOBLDR_NUM
+                AND TI.COMPANYID = ?
+                AND TI.JOBLDR_NUM = ?
+                AND TR.USEFLAG = 'Y'
+            ) B
+        WHERE A.COMPANYID = B.COMPANYID(+) 
+            AND A.CMPNUMBER = B.CMPNUMBER(+)
+            AND A.USEFLAG = 'Y'
+            AND A.COMPANYID = ?
+            AND A.DEL_YN = 'N'
+            AND A.CMPGROUP NOT IN (
+                SELECT COMMONCODE
+                FROM TB_BA_COMMONCODE
+                WHERE COMPANYID = A.COMPANYID AND STANDARDCODE = 'C102' AND CD_VALUE1 = 'Y'
+            )
+        ORDER BY ROWNUMBER, CMPGROUP_STRING, B.CMPNUMBER, A.CMPGROUP, A.CMPGROUP_S, A.CMPNUMBER   
+	]]></sql-query>
+	
+	<sql-query name="SELECT_JOB_INDC_NEW_MAPPING_LIST"
+			description="직무관리  행동지표 추가 리스트"><![CDATA[
+	-- BA, SELECT_JOB_INDC_NEW_MAPPING_LIST
+	     SELECT                     
+                FUN_COMMON_CODE(A.COMPANYID, 'C102', CMPGROUP) CMPGROUP_STRING,
+                A.COMPANYID,
+                A.CMPNUMBER,
+                C.CMPNAME,
+                A.BHV_INDC_NUM,
+                A.BHV_INDICATOR,
+                DECODE(B.USEFLAG, 'Y', 'checked="1"','') CHECKFLAG,
+                ROW_NUMBER() OVER(ORDER BY B.USEFLAG,CMPGROUP,A.CMPNUMBER ASC)-1 ROWNUMBER
+        FROM TB_CM_BHV_INDICATOR A,
+            (
+                SELECT TR.CMPNUMBER, TI.COMPANYID,TI.JOBLDR_NUM ,TR.BHV_INDC_NUM, TR.USEFLAG
+                FROM TB_CM_JOB_LDR_I TI,TB_CM_JOBLER_BHV TR
+                WHERE TI.COMPANYID = TR.COMPANYID
+                AND TI.JOBLDR_NUM = TR.JOBLDR_NUM
+                AND TI.COMPANYID = ?
+                AND TI.JOBLDR_NUM = ?
+                AND TI.DEL_YN = 'N'
+                AND TR.USEFLAG = 'Y'
+            ) B
+            ,TB_CM_COMPETENCY C
+        WHERE A.COMPANYID = B.COMPANYID(+)
+            AND A.BHV_INDC_NUM = B.BHV_INDC_NUM(+) 
+            AND A.COMPANYID = ?
+            AND A.COMPANYID = C.COMPANYID
+            AND A.CMPNUMBER = C.CMPNUMBER
+            AND A.USEFLAG = 'Y'
+            AND A.DEL_YN = 'N'
+         ORDER BY ROWNUMBER, CMPGROUP_STRING, B.CMPNUMBER, C.CMPGROUP, C.CMPGROUP_S, C.CMPNUMBER 
+	]]></sql-query>
+	
+	<sql-query name="UPDATE_JOB_COMP_DEL_INDC" description="직무관리  역량삭제 시 행동지표 삭제"><![CDATA[
+		--sql_file : ba-sqlset.xml
+		--UPDATE_JOB_COMP_DEL_INDC
+		
+		UPDATE TB_CM_JOBLER_BHV
+		SET USEFLAG = 'N'
+		WHERE  COMPANYID = ?
+		AND JOBLDR_NUM = ?
+		AND CMPNUMBER = ?
+	]]></sql-query>
+	
+    <sql-query name="UPDATE_JOB_INDC_DEL" description="직무관리  행동지표 삭제"><![CDATA[
+		--sql_file : ba-sqlset.xml
+		--UPDATE_JOB_INDC_DEL
+		
+		UPDATE TB_CM_JOBLER_BHV
+		SET USEFLAG = 'N'
+		WHERE  COMPANYID = ?
+		AND JOBLDR_NUM = ?
+		AND CMPNUMBER = ?
+		AND BHV_INDC_NUM = ?
+	]]></sql-query>
+	
+	<sql-query name="UPDATE_JOB_COMP_DEL" description="직무관리  역량 삭제"><![CDATA[
+		--sql_file : ba-sqlset.xml
+		--UPDATE_JOB_COMP_DEL
+		
+		UPDATE TB_CM_JOBLER_CMPT_R
+		SET USEFLAG = 'N'
+		WHERE  COMPANYID = ?
+		AND JOBLDR_NUM = ?
+		AND CMPNUMBER = ?
+	]]>
+	</sql-query>
+	
+	<sql-query name="UPDATE_JOB_COMP_MAPPING" description="직무 역량매핑 정보 삭제"><![CDATA[
+        --sql_file : ba-sqlset.xml
+        -- UPDATE_JOB_CM_MAPPING
+        
+		UPDATE TB_CM_JOBLER_CMPT_R
+		SET USEFLAG = 'N'
+		WHERE COMPANYID = ? AND JOBLDR_NUM = ?
+    ]]></sql-query>
+    
+	<sql-query name="MERGE_TB_COMP_JOB_MAP" description="직무역량 매핑정보 머지"><![CDATA[
+      --sql_file : ba-sqlset.xml
+      --sql_name : MERGE_TB_COMP_JOB_MAP
+        
+		MERGE INTO TB_CM_JOBLER_CMPT_R A
+		USING(
+		    SELECT
+		        ? COMPANYID,
+		        ? CMPNUMBER,
+		        ? JOBLDR_NUM,
+		        -- ? STD_SCORE,
+		        'Y' USEFLAG
+		    FROM DUAL
+		) B
+		ON (A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER AND A.JOBLDR_NUM = B.JOBLDR_NUM)
+		WHEN MATCHED THEN
+		UPDATE SET 
+		    A.USEFLAG = B.USEFLAG
+		   -- A.STD_SCORE = B.STD_SCORE
+		WHEN NOT MATCHED THEN
+		    --INSERT(A.COMPANYID, A.CMPNUMBER, A.JOBLDR_NUM, A.USEFLAG, A.STD_SCORE)
+		    --VALUES(B.COMPANYID, B.CMPNUMBER, B.JOBLDR_NUM, B.USEFLAG, B.STD_SCORE)
+		    INSERT(A.COMPANYID, A.CMPNUMBER, A.JOBLDR_NUM, A.USEFLAG)
+		    VALUES(B.COMPANYID, B.CMPNUMBER, B.JOBLDR_NUM, B.USEFLAG)
+    ]]></sql-query>
+    
+    
+    <sql-query name="UPDATE_JOB_INDC_MAPPING" description="직무 행동지표 매핑 정보 삭제"><![CDATA[
+        --sql_file : ba-sqlset.xml
+        -- UPDATE_JOB_INDC_MAPPING
+        
+		UPDATE TB_CM_JOBLER_BHV
+		SET USEFLAG = 'N'
+		WHERE COMPANYID = ? 
+		AND JOBLDR_NUM = ? 
+    ]]></sql-query>
+    
+	<sql-query name="MERGE_TB_INDC_JOB_MAP" description="직무역량 행동지표 정보 머지"><![CDATA[
+        --sql_file : ba-sqlset.xml
+        --sql_name : MERGE_TB_INDC_JOB_MAP
+        
+		MERGE INTO TB_CM_JOBLER_BHV A
+		USING(
+		    SELECT
+		        ? COMPANYID,
+		        ? CMPNUMBER,
+		        ? JOBLDR_NUM,
+		        ? BHV_INDC_NUM,
+		        'Y' USEFLAG
+		    FROM DUAL
+		) B
+		ON (A.COMPANYID = B.COMPANYID AND A.CMPNUMBER = B.CMPNUMBER AND A.JOBLDR_NUM = B.JOBLDR_NUM AND A.BHV_INDC_NUM =B.BHV_INDC_NUM)
+		WHEN MATCHED THEN
+		UPDATE SET 
+		    A.USEFLAG = B.USEFLAG
+		WHEN NOT MATCHED THEN
+		    INSERT(A.COMPANYID, A.CMPNUMBER, A.JOBLDR_NUM, A.BHV_INDC_NUM, A.USEFLAG)
+		    VALUES(B.COMPANYID, B.CMPNUMBER, B.JOBLDR_NUM, B.BHV_INDC_NUM, B.USEFLAG)
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_JOB_GRADE_MAPPING_LIST" description="계급관리 직급매핑 리스트"><![CDATA[
+        --sql_file : ba-sqlset.xml
+        --sql_name : SELECT_JOB_GRADE_MAPPING_LIST
+        
+		SELECT A.COMPANYID,
+           A.CMM_CODENAME,
+           A.COMMONCODE,
+           B.GRADE_NUM,
+           B.JOBLDR_NUM,
+           B.JOBLDR_NAME,
+           ROW_NUMBER() OVER(ORDER BY A.CMM_CODENAME ASC)-1 ROWNUMBER,
+           DECODE(B.JOBLDR_NUM, ?, 'checked','') CHECKFLAG
+        FROM TB_BA_COMMONCODE A, 
+            (SELECT TI.COMPANYID,TI.JOBLDR_NUM,TG.GRADE_NUM,TI.JOBLDR_NAME, TI.USEFLAG
+             FROM TB_CM_JOB_LDR_I TI,TB_BA_JOBLER_GRADE TG
+             WHERE TI.COMPANYID = TG.COMPANYID
+             AND TI.JOBLDR_NUM = TG.JOBLDR_NUM
+             AND TI.COMPANYID = ?
+             AND TG.USEFLAG = 'Y'
+             AND TI.USEFLAG = 'Y'
+             AND TI.DEL_YN = 'N'
+             ) B  
+        WHERE A.COMPANYID = B.COMPANYID(+)
+        AND A.COMMONCODE = B.GRADE_NUM(+)
+        AND A. STANDARDCODE = 'BA15'
+        ORDER BY ROWNUMBER
+    ]]></sql-query>
+    
+    <sql-query name="MERGE_TB_GRADE_JOB_MAP" description="계급관리 직급정보 머지"><![CDATA[
+      --sql_file : ba-sqlset.xml
+      --sql_name : MERGE_TB_GRADE_JOB_MAP
+        
+		MERGE INTO TB_BA_JOBLER_GRADE A
+		USING(
+		    SELECT
+		        ? COMPANYID,
+		        ? JOBLDR_NUM,
+		        ? COMMONCODE,
+		        'Y' USEFLAG
+		    FROM DUAL
+		) B
+		ON (A.COMPANYID = B.COMPANYID AND A.GRADE_NUM = B.COMMONCODE AND A.JOBLDR_NUM = B.JOBLDR_NUM )
+		WHEN MATCHED THEN
+		UPDATE SET
+		    A.USEFLAG = B.USEFLAG
+		WHEN NOT MATCHED THEN
+		    INSERT(A.COMPANYID, A.GRADE_NUM, A.JOBLDR_NUM, A.USEFLAG)
+		    VALUES(B.COMPANYID, B.COMMONCODE, B.JOBLDR_NUM, B.USEFLAG)
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_TB_GRADE_JOB_NOT_USE" description="계급관리 직급정보 사용중 직급 미사용처리"><![CDATA[
+      --sql_file : ba-sqlset.xml
+      --sql_name : MERGE_TB_GRADE_JOB_MAP
+        
+        UPDATE TB_BA_JOBLER_GRADE 
+        SET USEFLAG = 'N'
+        WHERE COMPANYID = ?
+        AND JOBLDR_NUM = ?
+        AND GRADE_NUM = ?
+       
+    ]]></sql-query>
+    
+    
+	
+	 <sql-query name="UPDATE_JOB_GRADE_MAPPING" description="계급관리 직급 매핑 정보 삭제"><![CDATA[
+        --sql_file : ba-sqlset.xml
+        -- UPDATE_JOB_GRADE_MAPPING
+        
+		UPDATE TB_BA_JOBLER_GRADE
+		SET USEFLAG = 'N'
+		WHERE COMPANYID = ? 
+		AND JOBLDR_NUM = ? 
+    ]]></sql-query>
+    
+    <sql-query name="UPDATE_JOB_GRADE_DEL" description="직무관리  행동지표 삭제"><![CDATA[
+		--sql_file : ba-sqlset.xml
+		--UPDATE_JOB_GRADE_DEL
+		
+		UPDATE TB_BA_JOBLER_GRADE
+		SET USEFLAG = 'N'
+		WHERE  COMPANYID = ?
+		AND JOBLDR_NUM = ?
+	]]></sql-query>
+    
+</sqlset>

@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>EM_APPLY</name>
+    <version>2.0</version>
+    <description>EM APPLY(교육훈련 교육신청 영역) 모듈을 위한 쿼리</description>
+    
+	<sql-query name="SELECT_MYCAM_LIST" description="나의강의실  교육신청  나의 역량진단 목록 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_MYCAM_LIST
+		
+        SELECT YYYY, RUN_NUM, RUN_NAME, RUN_DATE
+          FROM (
+                SELECT YYYY, RUN_NUM, RUN_NAME
+                     , (SELECT FUN_DATE_PERIOD(RUN_START, RUN_END, 2) FROM DUAL) RUN_DATE 
+                  FROM (
+                        SELECT DISTINCT CRL.YYYY, CRL.RUN_NUM, CRL.RUN_NAME, CRL.RUN_START, CRL.RUN_END
+                          FROM TB_CAM_RUN_L CRL, TB_CAM_RUNTARGET_I CRI, TB_CAM_RUNDIRECTION_I CDI, TB_CAR_EXED_CMPT_SCORE CECS
+                         WHERE CRL.COMPANYID = CRI.COMPANYID AND CRL.RUN_NUM = CRI.RUN_NUM
+                           AND CRI.COMPANYID = CDI.COMPANYID AND CRI.RUN_NUM = CDI.RUN_NUM AND CRI.USERID = CDI.USERID_EXED
+                           AND CRI.COMPANYID = CECS.COMPANYID AND CRI.RUN_NUM = CECS.RUN_NUM AND CRI.USERID = CECS.USERID_EXED
+                           AND CRI.COMPANYID = ?
+                           AND CRI.USERID = ?
+                           AND CRI.USEFLAG = 'Y' 
+                           AND CDI.USEFLAG = 'Y'
+                           AND CDI.CMPL_FLAG = 'Y'
+                           AND CECS.USEFLAG = 'Y'
+                           AND CRL.EVL_TYPE_CD = '1' /* 역량진단 */
+                           AND CRL.USEFLAG = 'Y'
+                           AND CRL.DEL_YN = 'N'
+                        )
+                 ORDER BY YYYY DESC, RUN_START DESC
+                )
+         WHERE ROWNUM = 1 
+	]]></sql-query>
+	
+	<sql-query name="SELECT_MYCAR_SCR_LIST" description="나의강의실  교육신청  나의 역량진단 결과정보 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_MYCAR_SCR_LIST
+		
+SELECT A.CMPNUMBER, A.CMPNAME, B.YYYY, B.RUN_NUM, B.BRL_SCR, B.MY_SCR, B.GAP
+FROM(
+    SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, CMPDEFINITION
+    FROM TB_CM_COMPETENCY CC, TB_BA_COMMONCODE BC
+    WHERE CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+        AND CC.USEFLAG = 'Y'
+        AND CC.COMPANYID = ?
+    UNION ALL
+    SELECT DISTINCT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER, CMPDEFINITION
+    FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC
+    WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+        AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+        AND (CC.COMPANYID, CJ.JOBLDR_NUM) IN (
+            SELECT COMPANYID, JOB 
+            FROM TB_BA_USER 
+            WHERE USERID = ?
+            UNION ALL
+            SELECT COMPANYID, LEADERSHIP 
+            FROM TB_BA_USER 
+            WHERE USERID = ?
+        )
+    ) A,
+    (
+    SELECT CRL.COMPANYID, CRL.YYYY
+         , CRL.RUN_NUM
+         , CECS.CMPNUMBER
+         , CC.CMPNAME
+         , NVL(CC.BSNS_REQR_LEVEL,0) BRL_SCR
+         , NVL(CECS.SCORE*20,0) MY_SCR
+         , CASE WHEN (NVL(CECS.SCORE,0)-NVL(CC.BSNS_REQR_LEVEL,0)) > 0 THEN '▲'
+                WHEN (NVL(CECS.SCORE,0)-NVL(CC.BSNS_REQR_LEVEL,0)) < 0 THEN '▼'
+                ELSE '-'
+            END||(NVL(CECS.SCORE,0)-NVL(CC.BSNS_REQR_LEVEL,0)) AS GAP
+      FROM TB_CAR_EXED_CMPT_SCORE CECS,
+           TB_CAM_RUN_L CRL,
+           TB_CM_COMPETENCY CC
+     WHERE CECS.COMPANYID = ?
+       AND CECS.USERID_EXED = ?
+       AND CECS.RUN_NUM = ?
+       AND CECS.USEFLAG = 'Y'
+       AND CECS.COMPANYID = CRL.COMPANYID
+       AND CECS.RUN_NUM = CRL.RUN_NUM
+       AND CRL.EVL_TYPE_CD = '1' /* 역량진단 */
+       AND CRL.USEFLAG = 'Y'
+       AND CECS.COMPANYID = CC.COMPANYID
+       AND CECS.CMPNUMBER = CC.CMPNUMBER
+    ) B
+WHERE A.COMPANYID = B.COMPANYID(+) AND A.CMPNUMBER = B.CMPNUMBER(+)
+ORDER BY A.CMPNAME
+	]]></sql-query>
+	
+	<sql-query name="SELECT_MYCDP_LIST" description="나의강의실  교육신청  나의 최근 경력개발계획 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_MYCDP_LIST
+		
+		SELECT RUN_NUM, RUN_NAME, RUN_DATE
+		  FROM (
+				SELECT CRL.RUN_NUM, CRL.RUN_NAME
+				    , (SELECT FUN_DATE_PERIOD(CRL.RUN_START, CRL.RUN_END, 2) FROM DUAL) RUN_DATE
+				  FROM TB_CAM_RUN_L CRL,
+				       TB_CAM_RUNTARGET_I CRI,
+				       TB_CDP C
+				 WHERE CRL.COMPANYID = ?
+				   AND CRL.EVL_TYPE_CD = '2' /* 경력개발계획 */
+				   AND CRL.YYYY = TO_CHAR(SYSDATE,'YYYY') /* 당해년도 */
+				   AND CRL.USEFLAG = 'Y'
+				   AND CRL.COMPANYID = CRI.COMPANYID
+				   AND CRL.RUN_NUM = CRI.RUN_NUM
+				   AND CRI.USERID = ? /* 사용자ID */
+				   AND CRI.USEFLAG = 'Y'
+				   AND CRI.COMPANYID = C.COMPANYID
+				   AND CRI.RUN_NUM = C.RUN_NUM
+				   AND CRI.USERID = C.USERID
+				   AND C.REQ_STS_CD = '2' /* 계획승인완료 */
+				   AND C.USEFLAG = 'Y'
+				 ORDER BY CRL.RUN_START DESC
+			   )
+	     WHERE ROWNUM = 1
+	]]></sql-query>
+	
+    <sql-query name="SELECT_MYCAM_SBJCT_OPEN_LIST" description="나의강의실  교육신청  역량진단 과정개설 목록 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_MYCAM_SBJCT_OPEN_LIST
+		
+		SELECT A.*
+		     , COUNT(1) OVER() TOTALITEMCOUNT
+		  FROM (
+		        SELECT BSO.SUBJECT_NUM /* 과정번호 */
+		             , BSO.OPEN_NUM /* 개설번호 */
+		             , BSO.COMPANYID /* 회사번호 */
+		             , BSO.SUBJECT_NAME /* 과정명 */
+		             , C1.CMM_CODENAME AS TRAINING_NM /* 학습유형 */
+		             , BSO.YYYY /* 개설년도 */
+		             , BSO.CHASU /* 기수 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.EDU_STIME, BSO.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.APPLY_STIME, BSO.APPLY_ETIME, 2) FROM DUAL) APPLY_PERIOD /* 신청기간 */
+		             , DECODE(BSO.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+		             , C2.CMM_CODENAME AS DEPT_DESIGNATION_NM /* 지정학습구분 */
+		             , DECODE(BSO.VETER_ASSE_REQ_YN,'Y','예','아니오') VETER_ASSE_REQ_YN /* 보훈직무필수과정 */
+		             , BSO.INSTITUTE_NAME /* 교육기관 */
+		             , NVL(BSO.RECOG_TIME_H,0)||'시간 '||NVL(BSO.RECOG_TIME_M,0)||'분' AS RECOG_TIME /* 인정시간 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '01' /* 신청불가 : 신청중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '2' THEN '02' /* 신청불가 : 수강중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '5' THEN '05' /* 신청불가 : 수료 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '00'
+		                    ELSE '10' /* 신청불가 : 신청기간 X */
+		                END APPLY_CD /* 신청가능여부 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '아니오' /* 신청불가 : 신청중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '2' THEN '아니오' /* 신청불가 : 수강중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '5' THEN '아니오' /* 신청불가 : 수료 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '예'
+		                    ELSE '아니오' /* 신청불가 : 신청기간 X */
+		                END APPLY_NM /* 신청가능여부 */
+		             , CM.CMPNUMBER /* 역량번호 */
+		             , CM.CMPNAME /* 역량명 */
+		          FROM (
+                        SELECT RD.CMPNUMBER, RD.CMPNAME, SUBJECT_NUM
+                        FROM(
+                            SELECT MC.COMPANYID, MC.CMPNUMBER, MC.CMPNAME
+                            FROM(
+                                SELECT DISTINCT COMPANYID, CMPNAME, CMPNUMBER
+                                FROM(
+                                    SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER
+                                    FROM TB_CM_COMPETENCY CC, TB_BA_COMMONCODE BC
+                                    WHERE CC.CMPGROUP = BC.COMMONCODE AND BC.STANDARDCODE = 'C102' AND BC.CD_VALUE1 = 'Y'
+                                        AND CC.USEFLAG = 'Y' AND BC.USEFLAG = 'Y'
+                                        AND CC.COMPANYID = ?
+                                    UNION ALL
+                                    SELECT CC.COMPANYID, CC.CMPNAME, CC.CMPNUMBER
+                                    FROM TB_CM_JOB_LDR_I CJ, TB_CM_JOBLER_CMPT_R CJC,TB_CM_COMPETENCY CC
+                                    WHERE CJ.COMPANYID = CJC.COMPANYID AND CJ.JOBLDR_NUM = CJC.JOBLDR_NUM AND CJ.USEFLAG = 'Y' AND CJC.USEFLAG = 'Y' 
+                                        AND CJC.COMPANYID = CC.COMPANYID AND CJC.CMPNUMBER = CC.CMPNUMBER AND CC.USEFLAG = 'Y'
+                                        AND (CC.COMPANYID, CJ.JOBLDR_NUM) IN (
+                                            SELECT COMPANYID, JOB FROM TB_BA_USER WHERE USERID = ?
+                                            UNION ALL
+                                            SELECT COMPANYID, LEADERSHIP FROM TB_BA_USER WHERE USERID = ?
+                                            )
+                                    )
+                                ) MC,
+                                ( 
+                                SELECT CECS.COMPANYID, CECS.CMPNUMBER, CC.CMPNAME
+                                FROM TB_CAR_EXED_CMPT_SCORE CECS, TB_CAM_RUN_L CRL, TB_CM_COMPETENCY CC
+                                WHERE CECS.COMPANYID = CRL.COMPANYID AND CECS.RUN_NUM = CRL.RUN_NUM
+                                    AND CECS.COMPANYID = CC.COMPANYID AND CECS.CMPNUMBER = CC.CMPNUMBER
+                                    AND CECS.COMPANYID = ?
+                                    AND CECS.USERID_EXED = ?
+                                    AND CECS.RUN_NUM = ? /* 역량진단실시번호 */
+                                    AND CECS.USEFLAG = 'Y'
+                                    AND CRL.EVL_TYPE_CD = '1' /* 역량진단 */
+                                    AND CRL.USEFLAG = 'Y'
+                                ) EC
+                            WHERE MC.COMPANYID = EC.COMPANYID(+) AND MC.CMPNUMBER = EC.CMPNUMBER(+)
+                                ]]><dynamic><![CDATA[ ${ WHERE_CMPNUMBER } ]]></dynamic><![CDATA[
+                            ) RD, TB_CM_SUBJECT_MAP CSM
+                        WHERE RD.COMPANYID = CSM.COMPANYID
+                            AND RD.CMPNUMBER = CSM.CMPNUMBER
+                            AND CSM.USEFLAG = 'Y'
+		               ) CM, /* 진단결과의 역량과 매핑된 과정목록 */
+		               (
+		                SELECT DISTINCT SO.OPEN_NUM, SO.SUBJECT_NUM, SOC.ATTEND_STATE_CODE
+		                  FROM TB_BA_SBJCT_OPEN SO,
+		                       TB_BA_SBJCT_OPEN_CLASS SOC
+		                 WHERE SOC.COMPANYID = ?
+		                   AND SOC.USERID = ?
+		                   AND SOC.ATTEND_STATE_CODE IN ('1','2','5')
+		                   AND SOC.COMPANYID = SO.COMPANYID
+		                   AND SOC.OPEN_NUM = SO.OPEN_NUM
+                           AND SOC.USEFLAG = 'Y' AND SOC.DEL_YN = 'N'
+		                   AND SO.YYYY = TO_CHAR(SYSDATE,'YYYY') /* 당해년도 */
+		                   AND SO.USEFLAG = 'Y'
+		                   AND SO.DEL_YN = 'N'
+		               ) OC, /* 신청, 수강,수료 과정 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA04') C2, /* 지정학습구분 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA03') C1, /* 학습유형 */
+		               TB_BA_SBJCT BS,
+		               TB_BA_SBJCT_OPEN BSO
+		         WHERE BSO.COMPANYID = ?
+		           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+		           AND BSO.COMPANYID = BS.COMPANYID
+		           AND BS.USEFLAG = 'Y'
+		           AND BS.DEL_YN = 'N'
+		           AND BSO.EDU_STIME BETWEEN TO_DATE(?,'YYYY-MM-DD') AND TO_DATE(?,'YYYY-MM-DD') /* 검색기간 */
+		           AND BSO.USEFLAG = 'Y'
+		           AND BSO.DEL_YN = 'N'
+		           AND BS.SUBJECT_NUM = CM.SUBJECT_NUM
+		           AND C1.COMMONCODE = BSO.TRAINING_CODE
+		           AND C2.COMMONCODE(+) = BSO.DEPT_DESIGNATION_CD
+		           AND BSO.SUBJECT_NUM = OC.SUBJECT_NUM(+)
+		      ) A
+		WHERE 1 = 1
+		  and APPLY_CD = '00' -- 신청 가능한과정만 검색되도록 처리 15.04.14
+		]]>
+     	<dynamic><![CDATA[ ${ GRID_WHERE_CLAUSE } ]]></dynamic>
+     	<dynamic><![CDATA[ ${ GRID_ORDERBY_CLAUSE } ]]></dynamic>
+	</sql-query>
+	
+	<sql-query name="SELECT_MYCDP_SBJCT_OPEN_LIST" description="나의강의실  교육신청  경력개발계획 과정개설 목록 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_MYCDP_SBJCT_OPEN_LIST
+		
+		SELECT A.*
+		     , COUNT(1) OVER() TOTALITEMCOUNT
+		  FROM (
+		        SELECT BSO.SUBJECT_NUM /* 과정번호 */
+		             , BSO.OPEN_NUM /* 개설번호 */
+		             , BSO.COMPANYID /* 회사번호 */
+		             , BSO.SUBJECT_NAME /* 과정명 */
+		             , C1.CMM_CODENAME AS TRAINING_NM /* 학습유형 */
+		             , BSO.YYYY /* 개설년도 */
+		             , BSO.CHASU /* 기수 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.EDU_STIME, BSO.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.APPLY_STIME, BSO.APPLY_ETIME, 2) FROM DUAL) APPLY_PERIOD /* 신청기간 */
+		             , DECODE(BSO.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+		             , C2.CMM_CODENAME AS DEPT_DESIGNATION_NM /* 지정학습구분 */
+		             , DECODE(BSO.VETER_ASSE_REQ_YN,'Y','예','아니오') VETER_ASSE_REQ_YN /* 보훈직무필수과정 */
+		             , BSO.INSTITUTE_NAME /* 교육기관 */
+		             , NVL(BSO.RECOG_TIME_H,0)||'시간 '||NVL(BSO.RECOG_TIME_M,0)||'분' AS RECOG_TIME /* 인정시간 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '3' THEN '이수'
+		                    ELSE '미이수'
+		                END CMPLT_YN /* 이수여부 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '01' /* 신청불가 : 신청중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '2' THEN '02' /* 신청불가 : 수강중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '5' THEN '05' /* 신청불가 : 수료 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '00'
+		                    ELSE '10' /* 신청불가 : 신청기간 X */
+		                END APPLY_CD /* 신청가능여부 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '아니오' /* 신청불가 : 신청중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '2' THEN '아니오' /* 신청불가 : 수강중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '5' THEN '아니오' /* 신청불가 : 수료 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '예'
+		                    ELSE '아니오' /* 신청불가 : 신청기간 X */
+		                END APPLY_NM /* 신청가능여부 */
+		          FROM (
+		                SELECT CEP.RUN_NUM, CEP.SUBJECT_NUM
+		                  FROM TB_CAM_RUN_L CRL,
+		                       TB_CAM_RUNTARGET_I CRI,
+		                       TB_CDP C,
+		                       TB_CDP_EDU_PLAN CEP
+		                 WHERE CRL.COMPANYID = ?
+		                   AND CRL.RUN_NUM = ? /* 경력개발계획 실시번호 */
+		                   AND CRL.EVL_TYPE_CD = '2' /* 경력개발계획 */
+		                   AND CRL.USEFLAG = 'Y'
+		                   AND CRL.COMPANYID = CRI.COMPANYID
+		                   AND CRL.RUN_NUM = CRI.RUN_NUM
+		                   AND CRI.USERID = ? /* 사용자ID */
+		                   AND CRI.USEFLAG = 'Y'
+		                   AND CRI.COMPANYID = C.COMPANYID
+		                   AND CRI.RUN_NUM = C.RUN_NUM
+		                   AND CRI.USERID = C.USERID
+		                   AND C.REQ_STS_CD = '2' /* 계획승인완료 */
+		                   AND C.USEFLAG = 'Y'
+		                   AND C.COMPANYID = CEP.COMPANYID
+		                   AND C.RUN_NUM = CEP.RUN_NUM
+		                   AND C.USERID = CEP.USERID
+		                   AND CEP.USEFLAG = 'Y'
+		               ) CDP,
+		               (
+		                SELECT DISTINCT SO.OPEN_NUM, SO.SUBJECT_NUM, SOC.ATTEND_STATE_CODE
+		                  FROM TB_BA_SBJCT_OPEN SO,
+		                       TB_BA_SBJCT_OPEN_CLASS SOC
+		                 WHERE SOC.COMPANYID = ?
+		                   AND SOC.USERID = ?
+		                   AND SOC.ATTEND_STATE_CODE IN ('1','2','5')
+		                   AND SOC.COMPANYID = SO.COMPANYID
+		                   AND SOC.OPEN_NUM = SO.OPEN_NUM
+		                   AND SO.YYYY = TO_CHAR(SYSDATE,'YYYY') /* 당해년도 */
+		                   AND SO.USEFLAG = 'Y'
+		                   AND SO.DEL_YN = 'N'
+		               ) OC, /* 신청, 수강,수료 과정 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA04') C2, /* 지정학습구분 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA03') C1, /* 학습유형 */
+		               TB_BA_SBJCT BS,
+		               TB_BA_SBJCT_OPEN BSO
+		         WHERE BSO.COMPANYID = ?
+		           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+		           AND BSO.COMPANYID = BS.COMPANYID
+		           AND CDP.SUBJECT_NUM = BS.SUBJECT_NUM
+		           AND BS.USEFLAG = 'Y'
+		           AND BS.DEL_YN = 'N'
+		           AND BSO.EDU_STIME BETWEEN TO_DATE(?,'YYYY-MM-DD') AND TO_DATE(?,'YYYY-MM-DD') /* 검색기간 */
+		           AND BSO.USEFLAG = 'Y'
+		           AND BSO.DEL_YN = 'N'
+		           AND C1.COMMONCODE = BSO.TRAINING_CODE
+		           AND C2.COMMONCODE(+) = BSO.DEPT_DESIGNATION_CD
+		           AND BSO.SUBJECT_NUM = OC.SUBJECT_NUM(+)
+		      ) A
+		WHERE 1 = 1
+		]]>
+     	<dynamic><![CDATA[ ${ GRID_WHERE_CLAUSE } ]]></dynamic>
+     	<dynamic><![CDATA[ ${ GRID_ORDERBY_CLAUSE } ]]></dynamic>
+	</sql-query>
+	
+	<sql-query name="SELECT_SBJCT_OPEN_LIST" description="나의강의실  교육신청  일반신청 과정개설 목록 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_SBJCT_OPEN_LIST
+		
+		SELECT A.*
+		     , COUNT(1) OVER() TOTALITEMCOUNT
+		  FROM (
+		        SELECT BSO.SUBJECT_NUM /* 과정번호 */
+		             , BSO.OPEN_NUM /* 개설번호 */
+		             , BSO.COMPANYID /* 회사번호 */
+		             , BSO.SUBJECT_NAME /* 과정명 */
+		             , C1.CMM_CODENAME AS TRAINING_NM /* 학습유형 */
+		             , BSO.YYYY /* 개설년도 */
+		             , BSO.CHASU /* 기수 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.EDU_STIME, BSO.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+		             , (SELECT FUN_DATE_PERIOD(BSO.APPLY_STIME, BSO.APPLY_ETIME, 2) FROM DUAL) APPLY_PERIOD /* 신청기간 */
+		             , DECODE(BSO.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+		             , C2.CMM_CODENAME AS DEPT_DESIGNATION_NM /* 지정학습구분 */
+		             , DECODE(BSO.VETER_ASSE_REQ_YN,'Y','예','아니오') VETER_ASSE_REQ_YN /* 보훈직무필수과정 */
+		             , BSO.INSTITUTE_NAME /* 교육기관 */
+		             , NVL(BSO.RECOG_TIME_H,0)||'시간 '||NVL(BSO.RECOG_TIME_M,0)||'분' AS RECOG_TIME /* 인정시간 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '01' /* 신청불가 : 신청중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '2' THEN '02' /* 신청불가 : 수강중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '5' THEN '05' /* 신청불가 : 수료 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '00'
+		                    ELSE '10' /* 신청불가 : 신청기간 X */
+		                END APPLY_CD /* 신청가능여부 */
+		             , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '아니오' /* 신청불가 : 신청중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '2' THEN '아니오' /* 신청불가 : 수강중 */
+		                    WHEN OC.ATTEND_STATE_CODE = '5' THEN '아니오' /* 신청불가 : 수료 */
+		                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '예'
+		                    ELSE '아니오' /* 신청불가 : 신청기간 X */
+		                END APPLY_NM /* 신청가능여부 */
+		          FROM (
+		                SELECT DISTINCT SO.OPEN_NUM, SO.SUBJECT_NUM, SOC.ATTEND_STATE_CODE
+		                  FROM TB_BA_SBJCT_OPEN SO,
+		                       TB_BA_SBJCT_OPEN_CLASS SOC
+		                 WHERE SOC.COMPANYID = ?
+		                   AND SOC.USERID = ?
+		                   AND SOC.ATTEND_STATE_CODE IN ('1','2','5')
+		                   AND SOC.COMPANYID = SO.COMPANYID
+		                   AND SOC.OPEN_NUM = SO.OPEN_NUM
+                           AND SOC.USEFLAG = 'Y' AND SOC.DEL_YN = 'N'
+		                   AND SO.YYYY = TO_CHAR(SYSDATE,'YYYY') /* 당해년도 */
+		                   AND SO.USEFLAG = 'Y'
+		                   AND SO.DEL_YN = 'N'
+		               ) OC, /* 신청, 수강,수료 과정 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA04') C2, /* 지정학습구분 */
+		               (SELECT COMMONCODE, CMM_CODENAME FROM TB_BA_COMMONCODE WHERE COMPANYID = ? AND STANDARDCODE = 'BA03') C1, /* 학습유형 */
+		               TB_BA_SBJCT BS,
+		               TB_BA_SBJCT_OPEN BSO
+		         WHERE BSO.COMPANYID = ?
+		           AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+		           AND BSO.COMPANYID = BS.COMPANYID
+		           AND BS.USEFLAG = 'Y'
+		           AND BS.DEL_YN = 'N'
+		           AND BSO.EDU_STIME BETWEEN TO_DATE(?,'YYYY-MM-DD') AND TO_DATE(?,'YYYY-MM-DD') /* 검색기간 */
+		           AND BSO.USEFLAG = 'Y'
+		           AND BSO.DEL_YN = 'N'
+		           AND C1.COMMONCODE = BSO.TRAINING_CODE
+		           AND C2.COMMONCODE(+) = BSO.DEPT_DESIGNATION_CD
+		           AND BSO.SUBJECT_NUM = OC.SUBJECT_NUM(+)
+		      ) A
+		WHERE 1 = 1
+          and APPLY_CD = '00' -- 신청 가능한과정만 검색되도록 처리 15.04.14
+		]]>
+     	<dynamic><![CDATA[ ${ GRID_WHERE_CLAUSE } ]]></dynamic>
+     	<dynamic><![CDATA[ ${ GRID_ORDERBY_CLAUSE } ]]></dynamic>
+	</sql-query>
+	
+	
+	<sql-query name="SELECT_SBJCT_OPEN_DTL" description="나의강의실  교육신청  과정차시 정보 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_SBJCT_OPEN_DTL
+
+		SELECT A.*
+		     , CASE WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NULL THEN ALW_STD_NM1||'-'||ALW_STD_NM2
+		            WHEN ALW_STD_NM1 IS NOT NULL AND ALW_STD_NM2 IS NOT NULL AND ALW_STD_NM3 IS NOT NULL THEN ALW_STD_NM1||'-'||ALW_STD_NM2||'-'||ALW_STD_NM3
+		            ELSE ''
+		        END ALW_STD_NM
+		  FROM (		
+				SELECT BSO.SUBJECT_NUM
+				     , BSO.OPEN_NUM /* 개설번호 */
+				     , BSO.SUBJECT_NAME /* 과정명 */
+				     , BSO.TRAINING_CODE
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA03', BSO.TRAINING_CODE) FROM DUAL) TRAINING_NM /* 학습유형 */
+				     , BSO.YYYY /* 개설년도 */
+				     , BSO.CHASU /* 기수 */
+				     , (SELECT FUN_DATE_PERIOD(BSO.EDU_STIME, BSO.EDU_ETIME, 2) FROM DUAL) EDU_PERIOD /* 교육기간 */
+				     , (SELECT FUN_DATE_PERIOD(BSO.APPLY_STIME, BSO.APPLY_ETIME, 2) FROM DUAL) APPLY_PERIOD /* 신청기간 */
+				     , (SELECT FUN_DATE_FORMAT(BSO.CANCEL_ETIME, 1) FROM DUAL) CANCEL_EDATE /* 취소마감일 */
+				     , BSO.APPLICANT /* 모집정원 */
+				     , BSO.INSTITUTE_NAME /* 교육기관 */
+				     , NVL(BSO.EDU_DAYS,0) EDU_DAYS /* 교육일수 */
+				     , NVL(BSO.EDU_HOUR_H,0) EDU_HOUR_H /* 교육시간 : 시 */
+				     , NVL(BSO.EDU_HOUR_M,0) EDU_HOUR_M /* 교육시간 : 분 */
+				     , NVL(BSO.RECOG_TIME_H,0) RECOG_TIME_H /* 인정시간 : 시 */
+				     , NVL(BSO.RECOG_TIME_M,0) RECOG_TIME_M /* 인정시간 : 분 */
+				     , BSO.EDU_OBJECT /* 목적 */
+				     , BSO.EDU_TARGET /* 대상 */
+				     , BSO.COURSE_CONTENTS /* 내용 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', SUBSTR(BSO.ALW_STD_CD, 1, 1)) FROM DUAL) ALW_STD_NM1 /* 상시학습종류 1단계 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', SUBSTR(BSO.ALW_STD_CD, 1, 4)) FROM DUAL) ALW_STD_NM2 /* 상시학습종류 2단계 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA08', BSO.ALW_STD_CD) FROM DUAL) ALW_STD_NM3 /* 상시학습종류 3단계 */
+				     , DECODE(BSO.DEPT_DESIGNATION_YN,'Y','예','아니오') DEPT_DESIGNATION_YN /* 부처지정유무 */
+				     , NVL((SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA04', BSO.DEPT_DESIGNATION_CD) FROM DUAL),'해당사항없음') DEPT_DESIGNATION_NM /* 지정학습구분 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA07', BSO.OFFICETIME_CD) FROM DUAL) OFFICETIME_NM /* 업무시간구분 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA05', BSO.EDUINS_DIV_CD) FROM DUAL) EDUINS_DIV_NM /* 교육기관구분 */
+				     , (SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA10', BSO.EDU_APL_DIV_CD) FROM DUAL) EDU_APL_DIV_NM /* 교육신청구분 */
+				     , DECODE(BSO.VETER_ASSE_REQ_YN,'Y','예','아니오') VETER_ASSE_REQ_YN /* 보훈직무필수과정 */
+				     , NVL((SELECT FUN_COMMON_CODE(BSO.COMPANYID, 'BA11', BSO.PERF_ASSE_SBJ_CD ) FROM DUAL),'해당사항없음') PERF_ASSE_SBJ_NM /* 기관성과평가 */
+				     , DECODE(BSO.REQUIRED_YN,'Y','예','아니오') REQUIRED_YN /* 필수여부 */
+				     , CASE WHEN OC.ATTEND_STATE_CODE = '1' THEN '01' /* 신청불가 : 신청중 */
+				            WHEN OC.ATTEND_STATE_CODE = '2' THEN '02' /* 신청불가 : 수강중 */
+				            WHEN OC.ATTEND_STATE_CODE = '5' THEN '05' /* 신청불가 : 수료 */
+				            WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN TO_CHAR(BSO.APPLY_STIME,'YYYYMMDD') AND TO_CHAR(BSO.APPLY_ETIME,'YYYYMMDD') THEN '00'
+				            ELSE '10' /* 신청불가 : 신청기간 X */
+				        END APPLY_CD /* 신청가능여부 */
+				     , BS.SAMPLE_URL
+                     , BSO.ALW_STD_CD
+                     , BSO.EVL_CMPL
+				  FROM (
+				        SELECT DISTINCT SO.OPEN_NUM, SO.SUBJECT_NUM, SOC.ATTEND_STATE_CODE
+				          FROM TB_BA_SBJCT_OPEN SO,
+				               TB_BA_SBJCT_OPEN_CLASS SOC
+				         WHERE SOC.COMPANYID = ?
+				           AND SOC.USERID = ?
+				           AND SOC.ATTEND_STATE_CODE IN ('1','2','5')
+				           AND SOC.COMPANYID = SO.COMPANYID
+				           AND SOC.OPEN_NUM = SO.OPEN_NUM
+                           AND SOC.USEFLAG = 'Y' AND SOC.DEL_YN = 'N'
+				           AND SO.YYYY = TO_CHAR(SYSDATE,'YYYY') /* 당해년도 */
+				           AND SO.USEFLAG = 'Y'
+				           AND SO.DEL_YN = 'N'
+				       ) OC, /* 신청, 수강,수료 과정 */
+				       TB_BA_SBJCT BS,
+				       TB_BA_SBJCT_OPEN BSO
+				 WHERE BSO.COMPANYID = ?
+				   AND BSO.OPEN_NUM = ? 
+				   AND BSO.SUBJECT_NUM = BS.SUBJECT_NUM
+				   AND BSO.COMPANYID = BS.COMPANYID
+				   AND BS.USEFLAG = 'Y'
+				   AND BS.DEL_YN = 'N'
+				   AND BSO.USEFLAG = 'Y'
+				   AND BSO.DEL_YN = 'N'
+				   AND BSO.SUBJECT_NUM = OC.SUBJECT_NUM(+)
+			 ) A
+	]]></sql-query>
+	
+	<sql-query name="SELECT_CM_SBJCT_MAP_LIST" description="과정 역량맵핑 정보"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_CM_SBJCT_MAP_LIST
+
+		SELECT (SELECT FUN_COMMON_CODE(?, 'C102', CC.CMPGROUP) FROM DUAL)||' > '||CC.CMPNAME AS CMPNM, CC.CMPNUMBER
+		  FROM TB_CM_SUBJECT_MAP CSM,
+		       TB_CM_COMPETENCY CC
+		 WHERE CSM.COMPANYID = ?
+		   AND CSM.SUBJECT_NUM = ?
+		   AND CSM.COMPANYID = CC.COMPANYID
+		   AND CSM.CMPNUMBER = CC.CMPNUMBER
+		   AND CSM.USEFLAG = 'Y'
+		   AND CC.USEFLAG = 'Y'
+		   AND CC.DEL_YN = 'N'
+		 ORDER BY CMPNM
+	]]></sql-query>
+	
+	<sql-query name="SELECT_SBJCT_CMPLT_STND_LIST" description="과정 수료기준 정보"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_SBJCT_CMPLT_STND_LIST
+		
+		SELECT CMPLT_STND_CD
+		     , (SELECT FUN_COMMON_CODE(?, 'BA09', CMPLT_STND_CD) FROM DUAL) CMPLT_STND_NM
+		     , NVL(WEI,0) WEI
+		  FROM TB_EM_CMPLT_STND
+		 WHERE COMPANYID = ?
+		   AND SUBJECT_NUM = ?
+		   AND USEFLAG = 'Y'
+         ORDER BY CMPLT_STND_CD
+	]]></sql-query>
+	
+	<sql-query name="SELECT_NEW_REQ_NUM" description="신규 결재 승인번호 조회"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- SELECT_NEW_REQ_NUM
+		
+		SELECT SEQ_REQ_NUM.NEXTVAL FROM DUAL
+	]]></sql-query>
+	
+    <sql-query name="SELECT_APPER_USER" description="교육훈련 승인자"><![CDATA[
+        -- sql_file : em-apply-sqlset.xml
+        -- SELECT_APPER_USER
+
+SELECT A.USERID, A.NAME
+FROM TB_BA_USER A, V2_GROUP_MEMBERS B
+WHERE A.USERID = B.USER_ID
+    AND B.GROUP_ID = 5 --교육훈련승인자 
+    AND ROWNUM = 1
+    ]]></sql-query>
+
+	<sql-query name="INSERT_BA_APPR_REQ" description="결재정보 저장"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- INSERT_BA_APPR_REQ
+		
+		INSERT INTO TB_BA_APPR_REQ (
+		  COMPANYID, REQ_NUM, REQ_TYPE_CD, REQ_USERID, REQ_DTIME,
+		  LAST_REQ_STS_CD, LAST_REQ_LINE_SEQ, USEFLAG, CREATETIME, CREATER
+		) VALUES (
+		  ?, ?, ?, ?, SYSDATE,
+		  ?, ?, 'Y', SYSDATE, ?
+		)
+	]]></sql-query>
+	
+	<sql-query name="INSERT_BA_APPR_REQ_LINE" description="결재라인정보 저장"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- INSERT_BA_APPR_REQ_LINE
+		
+		INSERT INTO TB_BA_APPR_REQ_LINE (
+		  COMPANYID, REQ_NUM, REQ_LINE_SEQ, APPR_USERID, REQ_STS_CD,
+		  APPR_DIV_CD, USEFLAG, CREATETIME, CREATER
+		) VALUES (
+		  ?, ?, ?, ?, ?,
+		  ?, 'Y', SYSDATE, ?
+		)
+	]]></sql-query>
+	
+	<sql-query name="INSERT_SBJCT_OPEN_CLASS" description="나의강의실  교육신청  신청정보 저장 (신규 신청시만 사용)"><![CDATA[
+		-- sql_file : em-apply-sqlset.xml
+		-- INSERT_SBJCT_OPEN_CLASS
+		
+		MERGE INTO TB_BA_SBJCT_OPEN_CLASS A 
+		USING (
+		  SELECT BU.COMPANYID
+		       , ? AS OPEN_NUM
+		       , ? AS SUBJECT_NUM
+		       , BU.USERID
+		       , '1' AS APL_DIV_CD /* 수강신청유형 */
+		       , BU.DIVISIONID
+		       , BU.JOB AS TIME_JOB
+		       , BU.LEADERSHIP AS TIME_LEADERSHIP
+		       , BU.GRADE_NUM AS TIME_GRADE_NUM
+		       , '1' AS ATTEND_STATE_CODE /* 수강상태 : 신청 */
+		       , SYSDATE AS APL_DTIME
+		       , NULL AS TARGET_CFM_DTIME
+		       , NULL AS FAIL_REASON
+		       , NULL AS CANCEL_STIME
+		       , NULL AS RECOG_TIME_H
+		       , NULL AS RECOG_TIME_M
+		       , DECODE(?, '0', NULL, ?) AS REQ_NUM /* 결재번호 */
+		       , ? AS REQ_STS_CD /* 승인상태 */
+		       , '1' AS W_DIV_CD /* 신청구분 : 본인 */
+		    FROM TB_BA_USER BU
+		   WHERE BU.USERID = ?
+		) B
+		ON (
+		  A.COMPANYID = B.COMPANYID AND A.OPEN_NUM = B.OPEN_NUM AND A.USERID= B.USERID
+		)
+		WHEN MATCHED THEN
+		  UPDATE SET
+		      APL_DIV_CD = B.APL_DIV_CD
+		    , DIVISIONID = B.DIVISIONID
+		    , TIME_JOB = B.TIME_JOB
+		    , TIME_GRADE_NUM = B.TIME_GRADE_NUM
+		    , ATTEND_STATE_CODE = B.ATTEND_STATE_CODE
+		    , APL_DTIME = B.APL_DTIME
+		    , TARGET_CFM_DTIME = B.TARGET_CFM_DTIME
+		    , FAIL_REASON = B.FAIL_REASON
+		    , CANCEL_STIME = B.CANCEL_STIME
+		    , RECOG_TIME_H = B.RECOG_TIME_H
+		    , RECOG_TIME_M = B.RECOG_TIME_M
+		    , CREATETIME = SYSDATE
+		    , CREATER = B.USERID
+		    , MODIFYTIME = NULL
+		    , MODIFIER = NULL
+		    , USEFLAG = 'Y'
+		    , DEL_YN = 'N'
+		    , REQ_NUM = B.REQ_NUM
+		    , REQ_STS_CD = B.REQ_STS_CD
+		WHEN NOT MATCHED THEN
+		  INSERT (
+		    COMPANYID, OPEN_NUM, USERID, APL_DIV_CD, DIVISIONID, 
+		    TIME_JOB, TIME_GRADE_NUM, ATTEND_STATE_CODE, APL_DTIME, CREATETIME, 
+		    CREATER, USEFLAG, DEL_YN, REQ_NUM, REQ_STS_CD, 
+		    SUBJECT_NUM, W_DIV_CD
+		  ) VALUES (
+		    B.COMPANYID, B.OPEN_NUM, B.USERID, B.APL_DIV_CD, B.DIVISIONID, 
+		    B.TIME_JOB, B.TIME_GRADE_NUM, B.ATTEND_STATE_CODE, B.APL_DTIME, SYSDATE, 
+		    B.USERID, 'Y', 'N', B.REQ_NUM, B.REQ_STS_CD, 
+		    B.SUBJECT_NUM, B.W_DIV_CD
+		  )
+	]]></sql-query>
+	
+	
+	
+	
+</sqlset>

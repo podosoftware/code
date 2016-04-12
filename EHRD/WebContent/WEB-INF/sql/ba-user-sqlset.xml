@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlset>
+    <name>BA_USER</name>
+    <version>2.0</version>
+    <description>FOUNDATION 모듈을 위한 쿼리</description>
+
+
+
+
+	<sql-query name="SELECT_USERID" description="사용자 번호를 받아온다."><![CDATA[
+        -- BA_SUBJECT : SELECT_USERID
+    
+		SELECT NVL((SELECT USERID FROM TB_BA_USER WHERE EMPNO = ? AND COMPANYID = ?), 0) USERID FROM DUAL   
+		 
+    ]]></sql-query>
+    
+    <sql-query name="SELECT_JOBID" description="직무번호 유효한지 체크."><![CDATA[
+        -- BA_SUBJECT : SELECT_JOBID
+    
+SELECT NVL((SELECT JOBLDR_NUM FROM TB_CM_JOB_LDR_I WHERE JOBLDR_FLAG = 'J' AND COMPANYID = ? and JOBLDR_NUM = ?), 0) JOBLDR_NUM FROM DUAL
+    ]]></sql-query>
+    
+	<sql-query name="DELETE_INTO_GROUP" description="사용자관리 - 부서장 여부 저장"><![CDATA[
+        -- BA_SUBJECT : DELETE_INTO_GROUP
+    
+		DELETE FROM V2_GROUP_MEMBERS WHERE GROUP_ID = ? AND USER_ID = ?     
+		 
+    ]]></sql-query>
+    
+
+	<sql-query name="INSERT_INTO_GROUP" description="사용자관리 - 부서장 여부 저장"><![CDATA[
+        -- BA_SUBJECT : INSERT_INTO_GROUP
+    
+		INSERT INTO V2_GROUP_MEMBERS ( GROUP_ID, USER_ID, ADMINISTRATOR, CREATION_DATE) 
+		VALUES ( ?,?, 0, SYSDATE) 
+		 
+    ]]></sql-query>
+    
+
+
+	<sql-query name="UPDATE_USER_JOB_LEADER" description="사용자관리 - 직무 수정"><![CDATA[
+        -- BA_SUBJECT : UPDATE_USER_JOB_LEADER
+    
+		UPDATE TB_BA_USER
+		   SET JOB = ?
+		 WHERE USERID = ?     
+		 
+    ]]></sql-query>
+    
+    
+	<sql-query name="SELECT_TABLENAMES_LIKE_NAME"
+		description="번들 이름에 해당하는 전체 택스트를 조회한다."><![CDATA[
+		SELECT 
+		    TABLE_NAME
+		FROM TABS 
+		WHERE TABLE_NAME LIKE  ?
+    ]]></sql-query>
+ 
+	<sql-query name="SELECT_TABLE"
+		description="번들 이름에 해당하는 전체 택스트를 조회한다.">
+		SELECT 
+		    *
+		FROM 
+		<dynamic>
+		${TABLE_NAME} 
+		</dynamic>
+    </sql-query>
+
+	<sql-query name="SELECT_ALL_TABLE"
+		description="번들 이름에 해당하는 전체 택스트를 조회한다.">
+		SELECT 
+			table_name
+		FROM tabs
+    </sql-query> 
+   <sql-query name="SELECT_TEST"
+		description="번들 이름에 해당하는 전체 택스트를 조회한다.">
+		SELECT 
+			*
+		FROM TEST_USER_DATA
+    </sql-query>
+    <sql-query name="SELECT_TEST2"
+		description="번들 이름에 해당하는 전체 택스트를 조회한다.">
+		SELECT *
+		FROM TEST_USER_DATA
+	   WHERE USER_NAME LIKE ?
+	   
+    </sql-query>
+    <sql-query name="SELECT_TEST3"
+		description="번들 이름에 해당하는 전체 택스트를 조회한다.">
+		SELECT 
+			*
+		FROM TEST_USER_DATA
+	   WHERE USER_NAME LIKE '%'|| ? ||'%'
+	   
+    </sql-query>
+    
+    <sql-query name="COUNT_USER"
+		description="TB_BA_USER의 카운트.">
+		SELECT COUNT(ID)
+		  FROM TB_BA_USER
+		 WHERE COMPANYID = ?
+    </sql-query>
+    
+    <sql-query name="USER-MGMT-SELECT-ALL"
+		description="사용자 정보를 조회한다.">
+		<![CDATA[
+		
+		-- BA, USER-MGMT-SELECT-ALL
+		
+          SELECT ROWNUM RNUM
+             , A.* , COUNT(*) OVER() TOTALITEMCOUNT
+          FROM (
+                SELECT BU.USERID
+                     , BU.COMPANYID
+                     , BU.ID
+                     , BU.EMPNO
+                     , BU.NAME
+                     , BU.DIVISIONID
+                     , NVL(BD.DVS_FULLNAME, BD.DVS_NAME) DVS_NAME
+                     , BU.JOB
+                     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J' AND  COMPANYID = ?) JOB_NAME
+                     , BU.LEADERSHIP
+                     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L' AND COMPANYID = ?) LEADERSHIP_NAME
+                     , BU.EMAIL
+                     , BU.PHONE
+                     , BU.CELLPHONE
+                     , BU.ZIPCODE
+                     , BU.ADDRESS1
+                     , BU.ADDRESS2
+                     , FUN_USER_ROLE_STR(?, BU.USERID) ROLE_STR
+                     , BU.IS_EXTERNAL
+                     , BU.USEFLAG
+                     , DECODE(BU.USEFLAG, 'Y', '사용', '미사용') USEFLAG_STRING
+                     , GRADE_NM
+                     , BC.CD_VALUE1 GRADE_DIV_NM
+                     , EMP_STS_CD
+                     , FUN_COMMON_CODE(BU.COMPANYID, 'BA16', EMP_STS_CD) EMP_STS_CD_NM
+                  FROM TB_BA_USER BU, TB_BA_DIVISION BD, TB_BA_COMMONCODE BC
+                 WHERE BU.COMPANYID =  BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+                   AND BU.COMPANYID = BC.COMPANYID(+) AND BU.GRADE_NUM = BC.COMMONCODE(+) AND BC.STANDARDCODE(+) = 'BA15'
+                   AND BU.COMPANYID = ?
+                   AND BU.DEL_YN = 'N'
+                 ORDER BY USEFLAG_STRING DESC, BU.CREATETIME DESC,BU.NAME
+               ) A
+          WHERE 1=1     
+		]]><dynamic><![CDATA[ ${ GRID_WHERE_CLAUSE } ]]></dynamic><![CDATA[
+		]]><dynamic><![CDATA[ ${ GRID_ORDERBY_CLAUSE } ]]></dynamic><![CDATA[
+		    ]]></sql-query>
+    
+    
+    <sql-query name="USER-MGMT-SELECT-ALL-EXCEL"
+		description="사용자 정보를 조회한다.">
+		
+		
+		-- BA, USER-MGMT-SELECT-ALL-EXCEL
+		
+		        SELECT ROWNUM RNUM
+             , A.* 
+          FROM (
+                SELECT BU.USERID
+                     , BU.COMPANYID
+                     , BU.ID
+                     , BU.EMPNO
+                     , BU.NAME
+                     , BU.DIVISIONID
+                     , NVL(BD.DVS_FULLNAME, BD.DVS_NAME) DVS_NAME
+                     , BU.JOB
+                     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE JOBLDR_NUM = BU.JOB AND JOBLDR_FLAG = 'J' AND  COMPANYID = ?) JOB_NAME
+                     , BU.LEADERSHIP
+                     , (SELECT JOBLDR_NAME FROM TB_CM_JOB_LDR_I WHERE JOBLDR_NUM = BU.LEADERSHIP AND JOBLDR_FLAG = 'L' AND COMPANYID = ?) LEADERSHIP_NAME
+                     , BU.EMAIL
+                     , BU.PHONE
+                     , BU.CELLPHONE
+                     , BU.ZIPCODE
+                     , BU.ADDRESS1
+                     , BU.ADDRESS2
+                     , FUN_USER_ROLE_STR(?, BU.USERID) ROLE_STR
+                     , BU.IS_EXTERNAL
+                     , BU.USEFLAG
+                     , DECODE(BU.USEFLAG, 'Y', '사용', '미사용') USEFLAG_STRING
+                     , GRADE_NM
+                     , BC.CD_VALUE1 GRADE_DIV_NM
+                     , EMP_STS_CD
+                     , FUN_COMMON_CODE(BU.COMPANYID, 'BA16', EMP_STS_CD) EMP_STS_CD_NM
+                  FROM TB_BA_USER BU, TB_BA_DIVISION BD, TB_BA_COMMONCODE BC
+                 WHERE BU.COMPANYID =  BD.COMPANYID(+) AND BU.DIVISIONID = BD.DIVISIONID(+)
+                   AND BU.COMPANYID = BC.COMPANYID(+) AND BU.GRADE_NUM = BC.COMMONCODE(+) AND BC.STANDARDCODE(+) = 'BA15'
+                   AND BU.COMPANYID = ?
+                   AND BU.DEL_YN = 'N'
+                 ORDER BY USEFLAG_STRING DESC, BU.CREATETIME DESC,BU.NAME
+               ) A
+             
+		</sql-query>
+    
+    <sql-query name="SELECT_MGMT_USER_INFO"
+		description="사용자 정보를 조회한다.">
+	-- BA, SELECT_MGMT_USER_INFO
+		
+        SELECT BU.USERID
+             , BU.COMPANYID
+             , BU.ID
+             , BU.EMPNO
+             , BU.NAME
+             , BU.DIVISIONID
+             , BD.DVS_NAME
+             , BU.JOB             
+             , BU.LEADERSHIP
+             , LD.JOBLDR_NAME LEADERSHIP_NM
+             , BU.EMAIL
+             , BU.PHONE
+             , BU.CELLPHONE
+             , BU.ZIPCODE
+             , BU.ADDRESS1
+             , BU.ADDRESS2
+             , FUN_USER_ROLE_STR(BU.COMPANYID,BU.USERID) ROLE_STR
+             , BU.IS_EXTERNAL
+             , BU.USEFLAG
+             , DECODE(BU.USEFLAG, 'Y', '사용', '미사용') USEFLAG_STRING
+             , GRADE_NM
+             , EMP_STS_CD
+             , FUN_COMMON_CODE(BU.COMPANYID, 'BA16', EMP_STS_CD) EMP_STS_CD_NM
+          FROM (SELECT DIVISIONID, DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = ?) BD,
+               TB_BA_USER BU, TB_CM_JOB_LDR_I LD
+         WHERE BU.COMPANYID = ?
+           AND BU.USERID = ?
+           AND BU.DIVISIONID = BD.DIVISIONID(+)
+           AND BU.COMPANYID = LD.COMPANYID(+) AND BU.LEADERSHIP = LD.JOBLDR_NUM(+) AND LD.JOBLDR_FLAG(+) = 'L' 
+
+    </sql-query>
+    
+    <sql-query name="SELECT_NEW_USREID"
+		description="신규사용자번호추출">
+	-- SELECT_NEW_USREID
+
+		SELECT NVL(MAX(USERID),0)+1 AS USERID
+		  FROM TB_BA_USER
+    </sql-query>
+    
+    <sql-query name="INSERT_BA_USER_INFO"
+		description="사용자 정보를 등록한다.">
+	-- INSERT_BA_USER_INFO
+	
+		INSERT INTO TB_BA_USER (
+			USERID, PASSWORD, ID, COMPANYID, NAME, 
+			EMAIL, PHONE, CELLPHONE, DIVISIONID,
+			JOB, LEADERSHIP, USEFLAG, CREATER, EMPNO
+		) VALUES (
+			?, ?, ?, ?, ?,
+		    ?, ?, ?, ?,
+		    ?, ?, ?, ?, ?	
+		)
+    </sql-query>
+    
+     <sql-query name="SELECT_NEW_USREID_EXCEL"
+		description="사용자 카운터">
+	-- SELECT_NEW_USREID_EXCEL
+	
+	
+    SELECT NVL((
+        SELECT USERID FROM TB_BA_USER
+        WHERE COMPANYID = ?
+            AND EMPNO = ?
+        ),
+        (SELECT MAX(USERID)+1 FROM TB_BA_USER )
+        ) USERID
+    FROM DUAL
+	
+    </sql-query>
+    
+    <sql-query name="INSERT_USER_GROUPS"
+		description="사용자에게 그룹롤을 부여한다.">
+	-- INSERT_USER_GROUPS
+	
+		INSERT INTO V2_GROUP_MEMBERS (
+		    GROUP_ID, USER_ID, ADMINISTRATOR, CREATION_DATE
+		) VALUES (
+		    ?, ?, 0, SYSDATE
+		)
+    </sql-query>
+    
+    <sql-query name="MERGE_USER_GROUPS"
+		description="사용자 엑셀 업로드 권한 부여">
+	-- INSERT_USER_GROUPS
+	
+		MERGE INTO V2_GROUP_MEMBERS A
+		USING(
+		    SELECT
+			    ? AS GROUP_ID,
+			    ? AS USER_ID
+			FROM DUAL
+		) B
+		ON (A.GROUP_ID = B.GROUP_ID AND A.USER_ID = B.USER_ID)
+		WHEN NOT MATCHED THEN 
+		    INSERT(A.GROUP_ID, A.USER_ID, A.ADMINISTRATOR, A.CREATION_DATE)
+		    VALUES(B.GROUP_ID, B.USER_ID, 0, SYSDATE)
+		    
+    </sql-query>
+   
+    <sql-query name="UPDATE_BA_USER_INFO"
+		description="사용자 정보를 업데이트한다.">
+		UPDATE TB_BA_USER
+		   SET USEFLAG = ?
+		   	 , NAME = ?
+		     , EMAIL = ?
+		     , PHONE = ?
+		     , CELLPHONE = ?		     
+		     , LEADERSHIP = ?
+		     , JOB = ?
+		     , DIVISIONID = ?
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		 WHERE USERID = ?
+		   AND COMPANYID = ?
+    </sql-query>
+    
+   
+    <sql-query name="UPDATE_BA_USER_INFO_NEW"
+		description="사용자 정보를 업데이트한다.">
+		UPDATE TB_BA_USER
+		   SET JOB = ?
+		     , MODIFYTIME = SYSDATE
+		     , MODIFIER = ?
+		 WHERE USERID = ?
+		   AND COMPANYID = ?
+    </sql-query>
+    
+    <sql-query name="USER-PASSWORD-MGMT-UPDATE"
+		description="사용자 정보를 업데이트한다.">
+		UPDATE TB_BA_USER
+		   SET PASSWORD = ?
+		 WHERE EMPNO = ?
+		   AND COMPANYID = ?
+    </sql-query>
+    
+    
+    <sql-query name="MERGE_USER" 
+    	description="사용자 엑셀 업로드"><![CDATA[
+    MERGE INTO TB_BA_USER A
+USING(
+    SELECT
+        ? AS COMPANYID,
+        ? AS EMPNO,
+        ? AS PASSWORD,
+        ? AS NAME,
+        ? AS CELLPHONE,
+        ? AS PHONE,
+        ? AS DIVISIONID,
+        ? AS JOB,
+        ? AS LEADERSHIP,
+        ? AS EMAIL,
+        SYSDATE AS CREATETIME,
+        ? AS CREATER,
+        UPPER(?) AS USEFLAG,
+        ? AS ID,
+        ? AS USERID
+    FROM DUAL
+) B
+ON (A.COMPANYID = B.COMPANYID AND A.EMPNO = B.EMPNO)
+WHEN NOT MATCHED THEN 
+    INSERT(A.COMPANYID, A.PASSWORD, A.EMPNO, A.NAME, A.CELLPHONE, A.PHONE, A.DIVISIONID, A.JOB, A.LEADERSHIP, A.EMAIL, A.CREATETIME, A.CREATER, A.USEFLAG, A.ID, A.USERID)
+    VALUES(B.COMPANYID, B.PASSWORD, B.EMPNO, B.NAME, B.CELLPHONE, B.PHONE, B.DIVISIONID, B.JOB, B.LEADERSHIP, B.EMAIL, B.CREATETIME, B.CREATER, B.USEFLAG, B.ID, B.USERID)
+WHEN MATCHED THEN
+    UPDATE SET
+        A.NAME = B.NAME,
+        A.CELLPHONE = B.CELLPHONE,
+        A.PHONE = B.PHONE,
+        A.DIVISIONID = B.DIVISIONID,
+        A.JOB = B.JOB,
+        A.LEADERSHIP = B.LEADERSHIP,
+        A.EMAIL = B.EMAIL,
+        A.MODIFYTIME = B.CREATETIME,
+        A.MODIFIER = B.CREATER,
+        A.USEFLAG = B.USEFLAG
+    ]]></sql-query>
+    
+    
+   <sql-query name="USER-COMPETENCE-BACKGROUND-SELECT"
+   		description = "유저의 핵심역량 진단 결과를 보여준다." >
+   		SELECT A.COMPANYID                                 --회사번호
+		     , A.RUN_NUM                                   --실시번호
+		     , A.RUN_START                                 --실시일
+		     , A.RUN_END                                   --종료일
+		     , FUN_DATE_PERIOD(A.RUN_START, A.RUN_END, 2) RUN_FROM_TO_DATE --실시기간
+		     , CASE WHEN C.CMPL_FLAG = 'Y' THEN '실시완료'
+		            WHEN C.CMPL_FLAG is null and a.RUN_START <![CDATA[ > ]]>  SYSDATE THEN '대기'
+		            WHEN C.CMPL_FLAG is null and a.RUN_START <![CDATA[ <= ]]> SYSDATE and a.RUN_END <![CDATA[ >= ]]> SYSDATE THEN '실시 전'
+		            WHEN C.CMPL_FLAG is null and a.RUN_END <![CDATA[ < ]]> SYSDATE THEN '진단 종료'
+		            ELSE '' END AS CMPL_YN                 --완료여부
+		     , C.CMPL_FLAG                                 --완료여부
+		     , TO_CHAR(C.CMPL_DATE,'YYYYMMDDHH24MISS') AS CMPL_DATE                                 --완료일자
+		     , B.USERID                                    --사용자번호
+		     , A.RUN_NAME                                  --실시명
+		     , X.ASSMTYPE_CODE
+		     , X.ASSM_SEQ
+		     , a.SELF_FLAG
+		  FROM TB_CAM_RUN_L A
+		     , TB_CAM_RUNTARGET_I B
+		     , TB_CAM_RUNDIRECTION_I C
+		     , (SELECT X.COMPANYID
+		             , X.RUN_NUM
+		             , Y.ASSMTYPE_CODE
+		             , Y.ASSM_SEQ
+		          FROM TB_CAM_RUN_L X
+		             , TB_CAM_RUN_ASSMTYPE_I Y
+		         WHERE X.COMPANYID = Y.COMPANYID
+		           AND X.RUN_NUM = Y.RUN_NUM
+		           AND X.USEFLAG = 'Y'
+		        ) X
+		 WHERE A.COMPANYID = B.COMPANYID
+		   AND B.COMPANYID = C.COMPANYID(+)
+		   AND A.COMPANYID = X.COMPANYID
+		   AND A.RUN_NUM = B.RUN_NUM
+		   AND B.RUN_NUM = C.RUN_NUM(+)
+		   AND A.RUN_NUM = X.RUN_NUM
+		   AND A.USEFLAG = 'Y'
+		   AND A.USEFLAG = B.USEFLAG
+		   AND B.USERID = C.USERID(+)
+		   and B.USERID = ?
+   </sql-query>
+   
+   
+   <sql-query name="SELECT_CHK_USER_ID"
+		description="입력된 ID 사용가능 여부 체크"><![CDATA[
+	-- SELECT_CHK_USER_ID
+	
+	SELECT DECODE(COUNT(EMPNO),0,'Y','N') CNT 
+  	  FROM TB_BA_USER
+ 	  WHERE EMPNO = ?
+ 	  AND COMPANYID = ?
+    ]]></sql-query>
+    <sql-query name="SELECT_CHK_USER_NAME_LIST"
+		description="중복 체크을 위해 입력된 성명과 동일목록 추출"><![CDATA[
+	-- SELECT_CHK_USER_NAME_LIST
+	
+	SELECT USERID, NAME, CELLPHONE 
+  	  FROM TB_BA_USER
+ 	  WHERE COMPANYID = ?
+ 	    AND NAME = ?
+    ]]></sql-query>
+    <sql-query name="SELECT_CHK_USER"
+		description="입력된 사용자 사용가능 여부 체크"><![CDATA[
+	-- SELECT_CHK_USER
+	
+	SELECT DECODE(COUNT(USERID),0,'Y','N') CNT 
+  	  FROM TB_BA_USER
+ 	  WHERE COMPANYID = ?
+ 	    AND NAME = ?
+ 	    AND CELLPHONE = ?
+    ]]></sql-query>
+    
+    
+	<sql-query name="SELECT_USERGROUP_LIST"
+		description="사용자 그룹목록 호출"><![CDATA[
+	-- SELECT_USERGROUP_LIST
+	
+		SELECT GROUP_ID AS DATA
+		     , NAME
+		     , DISPLAY_NAME AS LABEL
+		  FROM V2_GROUP
+		  --WHERE GROUP_ID > 1
+		  
+    ]]></sql-query>
+    <sql-query name="SELECT_USER_SET_USERGROUP_LIST"
+		description="사용자의 현재 그룹목록 호출"><![CDATA[
+	-- SELECT_USER_SET_USERGROUP_LIST
+	
+		SELECT G.GROUP_ID AS DATA
+		     , G.NAME
+		     , G.DISPLAY_NAME AS LABEL
+		  FROM V2_GROUP_MEMBERS GM,
+		       V2_GROUP G
+		 WHERE G.COMPANY_ID = 1
+		   AND GM.USER_ID = ?
+		   AND G.GROUP_ID = GM.GROUP_ID
+    ]]></sql-query>
+    <sql-query name="INSERT_TB_BA_DIVISION_EDU_MGR"
+		description="사용자의 교육운영담당 부서를 저장"><![CDATA[
+		-- ba-user-sqlset.xml
+		-- INSERT_TB_BA_DIVISION_EDU_MGR
+	
+		INSERT INTO TB_BA_DIVISION_EDU_MGR ( 
+		                                       COMPANYID, DIVISIONID, USERID, 
+		                                       USEFLAG, CREATETIME, CREATER 
+		                                   ) 
+		VALUES ( ?,?,?,?,SYSDATE,?)
+    
+    ]]></sql-query>
+    <sql-query name="DELETE_TB_BA_DIVISION_EDU_MGR"
+		description="사용자의 교육운영담당 부서를 저장"><![CDATA[
+		-- ba-user-sqlset.xml
+		-- DELETE_TB_BA_DIVISION_EDU_MGR
+	
+		DELETE FROM TB_BA_DIVISION_EDU_MGR WHERE USERID = ?
+    
+    ]]></sql-query>
+    <sql-query name="DELETE_USER_SET_USERGROUP"
+		description="사용자의 그룹제거"><![CDATA[
+	-- DELETE_USER_SET_USERGROUP
+	
+		DELETE FROM V2_GROUP_MEMBERS
+		 WHERE USER_ID = ? 
+    ]]></sql-query>
+    <sql-query name="INSERT_USER_SET_USERGROUP"
+		description="사용자의 그룹등록"><![CDATA[
+	-- INSERT_USER_SET_USERGROUP
+	
+		INSERT INTO  V2_GROUP_MEMBERS (
+		    GROUP_ID, USER_ID, ADMINISTRATOR, CREATION_DATE
+		) VALUES (
+		    ?, ?, 0, SYSDATE
+		)
+    ]]></sql-query>
+    
+    
+    
+    
+    
+    <sql-query name="SELECT_USER_INFO"
+		description="사용자 정보를 조회">
+		SELECT BU.NAME
+             , BU.ID
+		     , BD.DVS_NAME
+		     , BU.CURRENT_CLASS
+		     , BU.PHONE
+		     , BU.CELLPHONE
+             , BU.EMAIL
+		     , BU.ZIPCODE
+		     , BU.ADDRESS1
+		     , BU.ADDRESS2
+             , I.IMAGE_ID
+             , BU.SD_VISIBLE
+		  FROM (
+                SELECT UP.USER_ID, I.IMAGE_ID, I.OBJECT_TYPE, I.OBJECT_ID, I.FILE_NAME, I.FILE_SIZE, I.CONTENT_TYPE
+                 FROM V2_IMAGE I,
+                      V2_USER_PROPERTY UP
+                WHERE UP.USER_ID = ?
+                  AND UP.PROPERTY_NAME = 'imageId'
+                  AND UP.USER_ID = I.OBJECT_ID
+                  AND I.OBJECT_TYPE = 2
+                  AND UP.PROPERTY_VALUE = I.IMAGE_ID
+                  AND ROWNUM = 1
+               ) I,
+               (SELECT DIVISIONID, DVS_NAME FROM TB_BA_DIVISION WHERE COMPANYID = ?) BD,
+		       TB_BA_USER BU
+		 WHERE BU.USERID = ?
+           AND BU.DIVISIONID = BD.DIVISIONID(+)
+           AND BU.USERID = I.USER_ID(+)
+    </sql-query>
+    <sql-query name="UPDATE_USER_INFO_SD_VISIBLE"
+		description="취업경쟁력지수 공개여부 변경">
+		UPDATE TB_BA_USER
+		   SET SD_VISIBLE = ?
+		 WHERE USERID = ?
+    </sql-query>
+    <sql-query name="SELECT_USER_IMG_ID"
+		description="사용자 이미지번호 추출">
+		SELECT NVL(MAX(I.IMAGE_ID),0) IMAGEID
+		 FROM V2_IMAGE I,
+		      V2_USER_PROPERTY UP
+		WHERE UP.USER_ID = ?
+		  AND UP.PROPERTY_NAME = 'imageId'
+		  AND UP.USER_ID = I.OBJECT_ID
+		  AND I.OBJECT_TYPE = 2
+		  AND UP.PROPERTY_VALUE = I.IMAGE_ID
+    </sql-query>
+    <sql-query name="SELECT_USER_IMG_INFO"
+		description="사용자 이미지정보 추출">
+		SELECT I.IMAGE_ID
+		 FROM V2_IMAGE I,
+		      V2_USER_PROPERTY UP
+		WHERE UP.USER_ID = ? 
+		  AND UP.PROPERTY_NAME = 'imageId'
+		  AND UP.USER_ID = I.OBJECT_ID
+		  AND I.OBJECT_TYPE = 2
+		  AND UP.PROPERTY_VALUE = I.IMAGE_ID
+    </sql-query>
+    <sql-query name="SELECT_IMG_NUMBER"
+		description="이미지 파일번호 추출">
+		SELECT VALUE FROM V2_SEQUENCER WHERE SEQUENCER_ID = 1
+    </sql-query>
+    <sql-query name="UPDATE_IMGNUMBER_INC"
+		description="이미지 파일번호 증가">
+		UPDATE V2_SEQUENCER SET VALUE = ? WHERE SEQUENCER_ID = ? AND VALUE = ?
+    </sql-query>
+    <sql-query name="INSERT_IMAGE_INFO"
+		description="이미지 정보 등록">
+		INSERT INTO V2_IMAGE (
+		    IMAGE_ID, OBJECT_TYPE, OBJECT_ID, FILE_NAME, FILE_SIZE,
+		    CONTENT_TYPE, CREATION_DATE, MODIFIED_DATE
+		) VALUES ( 
+			?, ? ,?, ?, ?, 
+			?, SYSDATE, SYSDATE 
+		)
+    </sql-query>
+    <sql-query name="DELETE_IMAGE_INFO"
+		description="이미지 정보 삭제">
+		DELETE FROM V2_IMAGE WHERE IMAGE_ID = ? AND OBJECT_TYPE = ? AND OBJECT_ID = ?
+    </sql-query>
+    <sql-query name="DELETE_IMG_DATA"
+		description="이미지 데이터 삭제">
+		DELETE FROM V2_IMAGE_DATA WHERE IMAGE_ID = ?
+    </sql-query>
+    <sql-query name="INSERT_IMG_DATA"
+		description="이미지 데이터 등록">
+		INSERT INTO V2_IMAGE_DATA (IMAGE_ID, IMAGE_DATA) VALUES (?, ?)
+    </sql-query>
+    <sql-query name="DELETE_USER_IMG_PROPERTY"
+		description="사용자 프로퍼티 삭제">
+		DELETE FROM V2_USER_PROPERTY WHERE USER_ID = ? AND PROPERTY_NAME = 'imageId' AND PROPERTY_VALUE = ?
+    </sql-query>
+    <sql-query name="INSERT_USER_IMG_PROPERTY"
+		description="사용자 프로퍼티 등록">
+		INSERT INTO V2_USER_PROPERTY (
+			USER_ID, PROPERTY_NAME, PROPERTY_VALUE
+		) VALUES (
+			?, 'imageId', ?
+		)
+    </sql-query>
+    
+    <sql-query name="GET_BA_USER_DEPT_LIST"
+		description="사용자관리에서 사용할 부서(학과) 정보">
+		
+		SELECT '' as DATA, '== 학과를 선택하세요 ==' as LABEL, 0 as IDX 
+		  FROM DUAL
+		UNION ALL
+		SELECT DIVISIONID as DATA, DVS_NAME as LABEL, 1 as IDX
+		  FROM TB_BA_DIVISION
+		 WHERE COMPANYID = ?
+		   AND USEFLAG = 'Y'
+		 ORDER BY IDX, LABEL
+    </sql-query>
+    
+    <sql-query name="GET_BA_USER_JOBLDR_LIST"
+		description="사용자관리에서 사용할 직무,리더십 정보">
+		
+		SELECT null DATA, '==선택==' LABEL FROM DUAL UNION ALL
+	    SELECT * FROM(
+	    SELECT JOBLDR_NUM DATA ,JOBLDR_NAME LABEL
+           FROM TB_CM_JOB_LDR_I
+        WHERE COMPANYID = ?
+        AND JOBLDR_FLAG = ?
+        AND USEFLAG = 'Y'
+        AND DEL_YN = 'N'
+        ORDER BY JOBLDR_NAME
+       )
+       
+    </sql-query>
+    
+    
+    
+</sqlset>
